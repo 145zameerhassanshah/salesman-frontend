@@ -42,14 +42,14 @@ export default function ForgotPasswordPage() {
               className="w-full h-12 px-4 rounded-lg bg-white border border-gray-200 outline-none focus:ring-2 focus:ring-orange-400 text-black"
             />
 
-            <button className="w-full h-12 bg-gray-800 text-white rounded-lg hover:bg-gray-900 transition">
+            <button className="w-full h-12 bg-gray-800 text-white rounded-lg hover:bg-gray-900 transition cursor-pointer">
               Send Reset Link
             </button>
 
             <div className="text-center text-sm text-gray-600">
               Remember your password?{" "}
               <Link
-                href="/"
+                href="login"
                 className="text-orange-500 font-medium hover:text-orange-600"
               >
                 Back to Login
