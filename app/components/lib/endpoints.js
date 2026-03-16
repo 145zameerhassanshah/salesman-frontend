@@ -6,6 +6,8 @@ export const API = {
   register: `${API_URL}/auth/register`,
   forgotPassword: `${API_URL}/users/auth/forgot-password`,
   resetPassword: `${API_URL}/users/auth/reset-password`,
+    changePassword: `${API_URL}/users/auth/change-password`,
+
   productCategory:`${API_URL}/category`,
   subCategory:`${API_URL}/sub-category`,
   orders:`${API_URL}/order`,
