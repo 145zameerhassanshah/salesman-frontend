@@ -3,19 +3,28 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
+import { useSearchParams } from "next/navigation";
 import toast from "react-hot-toast";
 import AuthService from "@/app/components/services/authService";
+export default function ResetPasswordPage() {
 
-export default function ForgotPasswordPage() {
+  const searchParams = useSearchParams();
+  const token = searchParams.get("token");
 
-  const [email,setEmail] = useState("");
+  const [password,setPassword] = useState("");
+  const [confirmPassword,setConfirmPassword] = useState("");
   const [loading,setLoading] = useState(false);
 
-  const handleSubmit = async (e :any) => {
+  const handleSubmit = async (e:any) => {
     e.preventDefault();
 
-    if(!email){
-      toast.error("Please enter your email");
+    if(!password || !confirmPassword){
+      toast.error("Please fill all fields");
+      return;
+    }
+
+    if(password !== confirmPassword){
+      toast.error("Passwords do not match");
       return;
     }
 
@@ -23,16 +32,15 @@ export default function ForgotPasswordPage() {
 
     try{
 
-      const res = await AuthService.forgotPassword({ email });
+      const res = await AuthService.resetPassword({ token, password });
 
       if(!res.success){
-        toast.error(res.message || "Failed to send reset link");
+        toast.error(res.message || "Password reset failed");
         setLoading(false);
         return;
       }
 
-      toast.success("Password reset link sent to your email");
-      setEmail("");
+      toast.success("Password updated successfully");
 
     }catch(err){
       console.error(err);
@@ -52,21 +60,22 @@ export default function ForgotPasswordPage() {
 
           {/* Logo */}
           <div className="flex flex-col items-center mb-8">
-            <Image
-              src="/images/Welcome-Official-Logo.webp"
-              alt="Welcome Appliances"
-              width={120}
-              height={60}
-            />
+<Image
+  src="/images/Welcome-Official-Logo.webp"
+  alt="logo"
+  width={120}
+  height={60}
+  style={{ height: "auto" }}
+/>
           </div>
 
           {/* Title */}
           <div className="text-center mb-6">
             <h2 className="text-2xl font-semibold text-gray-800">
-              Forgot Password
+              Reset Password
             </h2>
             <p className="text-sm text-gray-500 mt-1">
-              Enter your registered email and we will send a reset link.
+              Enter your new password below.
             </p>
           </div>
 
@@ -74,11 +83,20 @@ export default function ForgotPasswordPage() {
           <form className="space-y-5" onSubmit={handleSubmit}>
 
             <input
-              type="email"
-              placeholder="Enter your email"
+              type="password"
+              placeholder="New Password"
               required
-              value={email}
-              onChange={(e)=>setEmail(e.target.value)}
+              value={password}
+              onChange={(e)=>setPassword(e.target.value)}
+              className="w-full h-12 px-4 rounded-lg bg-white border border-gray-200 outline-none focus:ring-2 focus:ring-orange-400 text-black"
+            />
+
+            <input
+              type="password"
+              placeholder="Confirm Password"
+              required
+              value={confirmPassword}
+              onChange={(e)=>setConfirmPassword(e.target.value)}
               className="w-full h-12 px-4 rounded-lg bg-white border border-gray-200 outline-none focus:ring-2 focus:ring-orange-400 text-black"
             />
 
@@ -87,16 +105,16 @@ export default function ForgotPasswordPage() {
               disabled={loading}
               className="w-full h-12 bg-gray-800 text-white rounded-lg hover:bg-gray-900 transition cursor-pointer"
             >
-              {loading ? "Sending..." : "Send Reset Link"}
+              {loading ? "Updating..." : "Reset Password"}
             </button>
 
             <div className="text-center text-sm text-gray-600">
-              Remember your password?{" "}
+              Back to{" "}
               <Link
                 href="/login"
                 className="text-orange-500 font-medium hover:text-orange-600"
               >
-                Back to Login
+                Login
               </Link>
             </div>
 

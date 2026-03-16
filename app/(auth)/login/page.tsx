@@ -1,133 +1,77 @@
-// "use client";
-
-// import Image from "next/image";
-// import { Eye, EyeOff } from "lucide-react";
-// import { useState } from "react";
-
-// export default function LoginPage() {
-//   const [showPassword, setShowPassword] = useState(false);
-
-//   return (
-//     <div className="min-h-screen flex bg-[#d7dbd9]">
-
-//       {/* Left Section */}
-//       <div className="hidden lg:flex w-1/2 items-center justify-center p-8">
-//         <div className="relative w-full h-full rounded-2xl overflow-hidden">
-
-//           {/* Background Image */}
-//           <Image
-//             src="/images/login1.jpeg"
-//             alt="Background"
-//             fill
-//             className="object-cover"
-//             priority
-//           />
-
-//           {/* Overlay */}
-//           {/* <div className="absolute inset-0 bg-black/40" /> */}
-
-//           {/* Top Text */}
-//           <div className="relative z-10 p-10 text-white">
-//             <h2 className="text-3xl font-light">
-//               Welcome Appliances
-//             </h2>
-//             <h1 className="text-4xl font-bold mt-2">
-//               Order Management Software
-//             </h1>
-//           </div>
-
-//           {/* Bottom Appliances Image */}
-//           <div className="absolute bottom-0 left-0 right-0 flex justify-center pb-6 z-10">
-//             <Image
-//               src="/images/Welcome-Official-Logo.webp"
-//               alt="Appliances"
-//               width={420}
-//               height={420}
-//               className="object-contain"
-//             />
-//           </div>
-
-//         </div>
-//       </div>
-
-//       {/* Right Section */}
-//       <div className="flex w-full lg:w-1/2 items-center justify-center">
-//         <div className="w-[420px]">
-
-//           {/* Logo */}
-//           <div className="flex flex-col items-center mb-10">
-//             <Image
-//               src="/images/Welcome-Official-Logo.webp"
-//               alt="Welcome Appliances"
-//               width={160}
-//               height={80}
-//             />
-//           </div>
-
-//           {/* Login Form */}
-//           <form className="space-y-5">
-
-//             {/* Email */}
-//             <input
-//               type="email"
-//               placeholder="Email"
-//               className="w-full h-12 px-4 rounded-lg bg-white border border-gray-200 outline-none focus:ring-2 focus:ring-orange-400"
-//             />
-
-//             {/* Password */}
-//             <div className="relative">
-//               <input
-//                 type={showPassword ? "text" : "password"}
-//                 placeholder="Password"
-//                 className="w-full h-12 px-4 pr-10 rounded-lg bg-white border border-gray-200 outline-none focus:ring-2 focus:ring-orange-400"
-//               />
-
-//               <button
-//                 type="button"
-//                 onClick={() => setShowPassword(!showPassword)}
-//                 className="absolute right-3 top-3.5 text-gray-400"
-//               >
-//                 {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-//               </button>
-//             </div>
-
-//             {/* Login Button */}
-//             <button
-//               className="w-full h-12 bg-gray-800 text-white rounded-lg hover:bg-gray-900 transition"
-//             >
-//               Login
-//             </button>
-
-//             {/* Remember */}
-//             <div className="flex items-center gap-2 text-sm text-gray-600">
-//               <input type="checkbox" />
-//               Remember me
-//             </div>
-
-//           </form>
-//         </div>
-//       </div>
-
-//     </div>
-//   );
-// }
-
 "use client";
-
 import Image from "next/image";
 import { Eye, EyeOff } from "lucide-react";
 import { useState } from "react";
-
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import toast from "react-hot-toast";
+import AuthService from "@/app/components/services/authService";
+import { USER_ROLES } from "@/app/components/lib/roles";
 export default function LoginPage() {
+  const router = useRouter();
+
   const [showPassword, setShowPassword] = useState(false);
 
-  return (
-    <div className="min-h-screen flex flex-col lg:flex-row bg-[#d7dbd9]">
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
 
-      {/* RIGHT SECTION (FORM) */}
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+const handleLogin = async (event:any) => {
+  event.preventDefault();
+
+  setLoading(true);
+
+  try {
+    const res = await AuthService.loginUser({
+      email,
+      password,
+    });
+
+    if (!res.success) {
+      toast.error(res.message || "Login failed");
+      setLoading(false);
+      return;
+    }
+
+    
+    
+
+    toast.success("Login successful");
+
+    const role = res?.user?.role;
+
+    if (role === USER_ROLES.SUPER_ADMIN) {
+      router.push("/dashboard/super-admin");
+    } 
+    else if (role === USER_ROLES.ADMIN) {
+      router.push("/dashboard/admin");
+    } 
+    else if (role === USER_ROLES.SALESMAN) {
+      router.push("/dashboard/sales");
+    } 
+    else if (role === USER_ROLES.DISPATCHER) {
+      router.push("/dashboard/dispatch");
+    } 
+    else if (role === USER_ROLES.ACCOUNTANT) {
+      router.push("/dashboard/accounts");
+    } 
+    else {
+      router.push("/dashboard");
+    }
+
+  } catch (err) {
+    console.error(err);
+    toast.error("Server error. Try again.");
+  }
+
+  setLoading(false);
+};  return (
+    <div className="min-h-screen flex flex-col lg:flex-row bg-[#d7dbd9]">
+      {/* RIGHT SECTION */}
       <div className="order-1 lg:order-2 flex w-full lg:w-1/2 items-center justify-center px-6 py-10">
         <div className="w-full max-w-[420px]">
-
           {/* Logo */}
           <div className="flex flex-col items-center mb-8">
             <Image
@@ -139,12 +83,18 @@ export default function LoginPage() {
           </div>
 
           {/* Login Form */}
-          <form className="space-y-5">
+          <form className="space-y-5" onSubmit={handleLogin}>
+            {error && (
+              <p className="text-red-500 text-sm text-center">{error}</p>
+            )}
 
             {/* Email */}
             <input
               type="email"
               placeholder="Email"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               className="w-full h-12 px-4 rounded-lg bg-white border border-gray-200 outline-none focus:ring-2 focus:ring-orange-400 text-black"
             />
 
@@ -153,6 +103,9 @@ export default function LoginPage() {
               <input
                 type={showPassword ? "text" : "password"}
                 placeholder="Password"
+                required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
                 className="w-full h-12 px-4 pr-10 rounded-lg bg-white border border-gray-200 outline-none focus:ring-2 focus:ring-orange-400 text-black"
               />
 
@@ -166,8 +119,12 @@ export default function LoginPage() {
             </div>
 
             {/* Login Button */}
-            <button className="w-full h-12 bg-gray-800 text-white rounded-lg hover:bg-gray-900 transition">
-              Login
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full h-12 bg-gray-800 text-white rounded-lg hover:bg-gray-900 transition cursor-pointer"
+            >
+              {loading ? "Logging in..." : "Login"}
             </button>
 
             {/* Remember & Forgot */}
@@ -177,23 +134,20 @@ export default function LoginPage() {
                 Remember me
               </label>
 
-              <button
-                type="button"
-                className="text-orange-500 hover:text-orange-600 font-medium"
+              <Link
+                href="/forget-password"
+                className="text-orange-500 hover:text-orange-600 font-medium cursor-pointer"
               >
                 Forgot Password?
-              </button>
+              </Link>
             </div>
-
           </form>
         </div>
       </div>
 
-      {/* LEFT SECTION (IMAGE AREA) */}
+      {/* LEFT SECTION */}
       <div className="order-2 lg:order-1 w-full lg:w-1/2 ">
         <div className="relative w-full h-[380px] lg:h-full overflow-hidden rounded-2xl">
-
-          {/* Background Image */}
           <Image
             src="/images/login1.jpeg"
             alt="background"
@@ -202,7 +156,6 @@ export default function LoginPage() {
             className="object-cover"
           />
 
-          {/* TOP CONTENT (logo always visible, text hidden on mobile) */}
           <div className="absolute top-6 left-0 right-0 flex flex-col items-center text-white z-10">
             <Image
               src="/images/Welcome-Official-Logo.webp"
@@ -220,7 +173,6 @@ export default function LoginPage() {
             </div>
           </div>
 
-          {/* Product Image */}
           <div className="absolute bottom-4 left-0 right-0 flex justify-center z-10">
             <Image
               src="/images/login3.jpeg"
@@ -230,10 +182,8 @@ export default function LoginPage() {
               className="object-contain"
             />
           </div>
-
         </div>
       </div>
-
     </div>
   );
 }
