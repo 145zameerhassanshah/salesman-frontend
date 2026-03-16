@@ -5,7 +5,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
-import { loginUser } from "@/app/components/services/authService";
+import AuthService from "@/app/components/services/authService";
 import { USER_ROLES } from "@/app/components/lib/roles";
 export default function LoginPage() {
   const router = useRouter();
@@ -24,7 +24,7 @@ const handleLogin = async (event:any) => {
   setLoading(true);
 
   try {
-    const res = await loginUser({
+    const res = await AuthService.loginUser({
       email,
       password,
     });
