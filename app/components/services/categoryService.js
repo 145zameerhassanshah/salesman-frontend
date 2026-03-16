@@ -2,7 +2,6 @@ import { API } from "@/app/components/lib/endpoints";
 
 class CategoryService {
   async addCategory(data) {
-    try {
       const res = await fetch(API.productCategory, {
         method: "POST",
         headers: {
@@ -13,13 +12,10 @@ class CategoryService {
       });
       const result = await res.json();
       if (!res.ok) {
-        return false;
+        return result;
       }
 
       return result.message;
-    } catch (error) {
-        throw error.message;
-    }
   }
 
   async getAllCategories(){
@@ -34,6 +30,17 @@ class CategoryService {
         return result.categories;
     } catch (error) {
         throw error.message;
+    }
+  }
+
+  async getMyCategories(){
+    try {
+        const res=await fetch(API.myadded,{method:"GET",credentials:"include"});
+        const result=await res.json();
+
+        return result.category;
+    } catch (error) {
+        return [];
     }
   }
 

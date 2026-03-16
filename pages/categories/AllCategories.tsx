@@ -1,21 +1,26 @@
 "use client";
 
+import { category } from "@/app/components/services/categoryService";
 import { Search, Filter, Plus, Pencil, Eye, MoreVertical } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 
 export default function AllCategories() {
   const router=useRouter();
+  const [categories,setCategories]=useState([]);
 
-  const data = [
-    { name: "Heaters", products: 6, status: "Active", date: "24/2/2026" },
-    { name: "Heaters", products: 6, status: "Active", date: "24/2/2026" },
-    { name: "Heaters", products: 6, status: "Inactive", date: "24/2/2026" },
-    { name: "Heaters", products: 6, status: "Approved", date: "24/2/2026" },
-  ];
+  useEffect(()=>{
+    async function getMyCategory(){
+      const data=await category.getMyCategories();
+      setCategories(data);
+    }
+    getMyCategory()
+  },[])
 
-  const statusColor = (status: string) => {
-    if (status === "Active") return "bg-green-100 text-green-600";
-    if (status === "Inactive") return "bg-gray-200 text-gray-500";
+
+  const statusColor = (status: boolean) => {
+    if (status === true) return "bg-green-100 text-green-600";
+    if (status === false) return "bg-gray-200 text-gray-500";
     return "bg-teal-100 text-teal-600";
   };
 
@@ -95,13 +100,13 @@ export default function AllCategories() {
             {/* Body */}
             <tbody>
 
-              {data.map((item, i) => (
+              {categories?.map((item, i) => (
 
                 <tr key={i} className="border-b last:border-none">
 
                   {/* Name */}
                   <td className="py-4 flex items-center gap-3">
-                    {item.name}
+                    {item?.name}
 
                   </td>
 
@@ -111,8 +116,8 @@ export default function AllCategories() {
                   {/* Status */}
                   <td>
 
-                    <span className={`px-2 py-1 rounded-md text-xs ${statusColor(item.status)}`}>
-                      {item.status}
+                    <span className={`px-2 py-1 rounded-md text-xs ${statusColor(item.is_active)}`}>
+                      {item.is_active==true?"Yes":"No"}
                     </span>
 
                   </td>

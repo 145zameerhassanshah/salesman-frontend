@@ -12,8 +12,6 @@ export default function AuthProvider({ children }: any) {
 
   const dispatch = useDispatch();
   const { data } = useCurrentUser(!user);
-
-  console.log(user)
   useEffect(() => {
 
     if (data) {

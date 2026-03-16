@@ -16,7 +16,7 @@ class IndustryService {
 
       const result = await res.json();
 
-      if (!res.ok) return false;
+      if (result.success==false) return result;
 
       return result.industry;
 
@@ -31,8 +31,6 @@ class IndustryService {
   ========================= */
 
   async createIndustry(data) {
-    try {
-
       const res = await fetch(API.industry, {
         method: "POST",
         headers: {
@@ -44,13 +42,9 @@ class IndustryService {
 
       const result = await res.json();
 
-      if (!res.ok) return false;
+      if (!res.ok) return result;
 
-      return result.message;
-
-    } catch (error) {
-      throw error.message;
-    }
+      return result;
   }
 
 

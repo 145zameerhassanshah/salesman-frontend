@@ -26,8 +26,8 @@ const router=useRouter();
   const handleSubmit = async () => {
     try {
         const data=await category.addCategory(formData);
-        if(data==false) toast.error(data.message);
-        toast.success(data?.message);
+        if(data.message) return toast.error(data?.message);
+        toast.success(data);
         router.push("/categories");
     } catch (error) {
         toast.error("Something went wrong");
