@@ -54,61 +54,53 @@ class ProductService {
 
   /* ADD PRODUCT */
 
-  static async addProduct(data){
-    try{
+static async addProduct(data){
+  try{
 
-      const res = await fetch(API.products,{
-        method:"POST",
-        headers:{
-          "Content-Type":"application/json"
-        },
-        credentials:"include",
-        body:JSON.stringify(data)
-      });
+    const res = await fetch(API.products,{
+      method:"POST",
+      credentials:"include",
+      body:data
+    });
 
-      const result = await res.json();
+    const result = await res.json();
 
-      if(!res.ok){
-        throw new Error(result.message || "Failed to add product");
-      }
-
-      return result;
-
-    }catch(err){
-      console.error("Add product error:",err);
-      throw err;
+    if(!res.ok){
+      throw new Error(result.message || "Failed to add product");
     }
-  }
 
+    return result;
+
+  }catch(err){
+    console.error("Add product error:",err);
+    throw err;
+  }
+}
 
   /* UPDATE PRODUCT */
 
-  static async updateProduct(id,data){
-    try{
+static async updateProduct(id,data){
+  try{
 
-      const res = await fetch(`${API.products}/${id}`,{
-        method:"PUT",
-        headers:{
-          "Content-Type":"application/json"
-        },
-        credentials:"include",
-        body:JSON.stringify(data)
-      });
+    const res = await fetch(`${API.products}/${id}`,{
+      method:"PUT",
+      credentials:"include",
+      body:data
+    });
 
-      const result = await res.json();
+    const result = await res.json();
 
-      if(!res.ok){
-        throw new Error(result.message || "Failed to update product");
-      }
-
-      return result;
-
-    }catch(err){
-      console.error("Update product error:",err);
-      throw err;
+    if(!res.ok){
+      throw new Error(result.message || "Failed to update product");
     }
-  }
 
+    return result;
+
+  }catch(err){
+    console.error("Update product error:",err);
+    throw err;
+  }
+}
 
   /* DELETE PRODUCT */
 
@@ -136,4 +128,4 @@ class ProductService {
 
 }
 
-export const product=new ProductService();
+export default ProductService;
