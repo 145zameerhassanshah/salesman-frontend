@@ -7,7 +7,7 @@ export const API = {
   forgotPassword: `${API_URL}/users/auth/forgot-password`,
   resetPassword: `${API_URL}/users/auth/reset-password`,
     changePassword: `${API_URL}/users/auth/change-password`,
-
+  logout:`${API_URL}/users/auth/logout`,
   productCategory:`${API_URL}/category`,
   subCategory:`${API_URL}/sub-category`,
   orders:`${API_URL}/order`,

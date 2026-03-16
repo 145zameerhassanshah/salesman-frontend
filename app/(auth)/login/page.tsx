@@ -33,17 +33,14 @@ const handleLogin = async (event:any) => {
       toast.error(res.message || "Login failed");
       setLoading(false);
       return;
-    }
-
-    
-    
+    }   
 
     toast.success("Login successful");
 
     const role = res?.user?.role;
 
     if (role === USER_ROLES.SUPER_ADMIN) {
-      router.push("/dashboard/super-admin");
+      router.push("/dashboard");
     } 
     else if (role === USER_ROLES.ADMIN) {
       router.push("/dashboard/admin");

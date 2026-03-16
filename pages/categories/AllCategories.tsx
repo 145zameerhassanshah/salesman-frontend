@@ -1,8 +1,10 @@
 "use client";
 
 import { Search, Filter, Plus, Pencil, Eye, MoreVertical } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 export default function AllCategories() {
+  const router=useRouter();
 
   const data = [
     { name: "Heaters", products: 6, status: "Active", date: "24/2/2026" },
@@ -47,7 +49,7 @@ export default function AllCategories() {
           </button>
 
           {/* Add Category */}
-          <button className="bg-black text-white flex items-center gap-2 px-3 py-2 rounded-xl text-sm">
+          <button onClick={()=>router.push("/categories/add")} className="bg-black text-white flex items-center gap-2 px-3 py-2 rounded-xl text-sm">
 
             Add Category
             <Plus size={16}/>
@@ -74,16 +76,12 @@ export default function AllCategories() {
                   Category Name
                 </th>
 
-                <th className="text-left">
+                {/* <th className="text-left">
                   No. of Products
-                </th>
+                </th> */}
 
                 <th className="text-left">
-                  Status
-                </th>
-
-                <th className="text-left">
-                  Date
+                  Active
                 </th>
 
                 <th className="text-left">
@@ -103,18 +101,12 @@ export default function AllCategories() {
 
                   {/* Name */}
                   <td className="py-4 flex items-center gap-3">
-
-                    <img
-                      src="/product.png"
-                      className="w-8 h-8 rounded-lg"
-                    />
-
                     {item.name}
 
                   </td>
 
-                  {/* Products */}
-                  <td>{item.products}</td>
+                  {/* Products
+                  <td>{item.products}</td> */}
 
                   {/* Status */}
                   <td>
@@ -124,10 +116,6 @@ export default function AllCategories() {
                     </span>
 
                   </td>
-
-                  {/* Date */}
-                  <td>{item.date}</td>
-
                   {/* Action */}
                   <td>
 
@@ -136,11 +124,6 @@ export default function AllCategories() {
                       <button className="bg-gray-100 p-2 rounded-lg">
                         <Pencil size={14}/>
                       </button>
-
-                      <button className="bg-gray-100 p-2 rounded-lg">
-                        <Eye size={14}/>
-                      </button>
-
                       <button className="bg-gray-100 p-2 rounded-lg">
                         <MoreVertical size={14}/>
                       </button>
