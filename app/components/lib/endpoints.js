@@ -5,8 +5,10 @@ export const API = {
   register: `${API_URL}/auth/register`,
   forgotPassword: `${API_URL}/auth/forget-password`,
   resetPassword: `${API_URL}/auth/reset-password`,
-
-  products: `${API_URL}/dashboard/products`,
-  orders: `${API_URL}/dashboard/orders`,
-  quotations: `${API_URL}/dashboard/quotations`,
+  productCategory:`${API_URL}/category`,
+  subCategory:`${API_URL}/sub-category`,
+  orders:`${API_URL}/order`,
+  industry:`${API_URL}/industry`,
+  dealers:`${API_URL}/dealers`,
+  quotations:`${API_URL}/quotation`,
 };
