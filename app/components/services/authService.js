@@ -135,6 +135,29 @@ class AuthService {
       throw err;
     }
   }
+ static async resetPassword(data){  
+    try{
+
+      const res = await fetch(API.resetPassword,{
+        method:"POST",
+        headers:{
+          "Content-Type":"application/json"
+        },
+        body:JSON.stringify(data)
+      }); 
+            const result = await res.json();
+
+      if(!res.ok){
+        throw new Error(result.message || "Reset password failed");
+      }
+      return result;
+
+    } 
+    catch(err){
+      console.error("Reset password error:",err);
+      throw err;
+    }
+  }
 
 }
 

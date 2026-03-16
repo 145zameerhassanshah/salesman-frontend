@@ -3,8 +3,8 @@ import API_URL from "@/app/components/lib/apiConfig";
 export const API = {
   login: `${API_URL}/users/auth/login`,
   register: `${API_URL}/auth/register`,
-  forgotPassword: `${API_URL}/auth/forget-password`,
-  resetPassword: `${API_URL}/auth/reset-password`,
+  forgotPassword: `${API_URL}/users/auth/forgot-password`,
+  resetPassword: `${API_URL}/users/auth/reset-password`,
   productCategory:`${API_URL}/category`,
   subCategory:`${API_URL}/sub-category`,
   orders:`${API_URL}/order`,
