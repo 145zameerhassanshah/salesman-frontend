@@ -55,7 +55,7 @@ class UserService {
     }
   }
 
-  static async fetchUsers(){
+  async fetchUsers(){
     try{
 
       const res = await fetch(API.users,{
@@ -200,4 +200,4 @@ class UserService {
 
 }
 
-export default UserService;
+export const user=new UserService();

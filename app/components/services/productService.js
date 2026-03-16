@@ -4,7 +4,7 @@ class ProductService {
 
   /* GET ALL PRODUCTS */
 
-  static async fetchProducts(){
+  async fetchProducts(){
     try{
 
       const res = await fetch(API.products,{
@@ -136,4 +136,4 @@ class ProductService {
 
 }
 
-export default ProductService;
+export const product=new ProductService();
