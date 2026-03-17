@@ -2,7 +2,7 @@ import API_URL from "@/app/components/lib/apiConfig";
 
 export const API = {
   login: `${API_URL}/users/auth/login`,
-  myadded:`${API_URL}/category/my-added`,
+  users:`${API_URL}/users`,
   me:`${API_URL}/users/me`,
   register: `${API_URL}/auth/register`,
   forgotPassword: `${API_URL}/users/auth/forgot-password`,

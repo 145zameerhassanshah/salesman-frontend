@@ -1,12 +1,16 @@
 "use client";
 
+import UserService from "@/app/components/services/userService";
+import { useUsers } from "@/hooks/useUsers";
+import { useParams } from "next/navigation";
 import { useState } from "react";
 import toast from "react-hot-toast";
 
 export default function BusinessDetail() {
 
   const [showDirectorForm, setShowDirectorForm] = useState(false);
-
+  const params=useParams();
+  const {data}=useUsers(params?.id as string);
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -17,15 +21,7 @@ export default function BusinessDetail() {
     password: ""
   });
 
-  const [profileImage, setProfileImage] = useState<File | null>(null);
-
-  const roles = {
-    directors: ["John Doe"],
-    admins: ["Admin 1"],
-    salesman: ["Sales 1"],
-    dispatcher: ["Dispatcher 1"],
-    accountants: ["Accountant 1"]
-  };
+  // const [profileImage, setProfileImage] = useState<File | null>(null);
 
   /* HANDLE CHANGE */
 
@@ -42,57 +38,51 @@ export default function BusinessDetail() {
 
   /* HANDLE FILE */
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      setProfileImage(e.target.files[0]);
-    }
-  };
+  // const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  //   if (e.target.files && e.target.files[0]) {
+  //     setProfileImage(e.target.files[0]);
+  //   }
+  // };
 
   /* SUBMIT */
 
   const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
 
-    e.preventDefault();
+  try {
 
-    try {
+    const payload = {
+      ...formData,
+      industry: params?.id,
+      user_type: "admin"
+    };
 
-      const payload = new FormData();
+    console.log("Payload:", payload);
 
-      Object.entries(formData).forEach(([key, value]) => {
-        payload.append(key, value);
-      });
+    const data = await UserService.createAdmin(payload);
 
-      if (profileImage) {
-        payload.append("profile_image", profileImage);
-      }
-
-      console.log("Director Data:", formData);
-
-      // await userService.createDirector(payload)
-
-      toast.success("Director added successfully");
-
-      setShowDirectorForm(false);
-
-      setFormData({
-        name: "",
-        email: "",
-        phone_number: "",
-        whatsapp_number: "",
-        city: "",
-        address: "",
-        password: ""
-      });
-
-      setProfileImage(null);
-
-    } catch (error) {
-
-      toast.error("Failed to add director");
-
+    if (!data?.success) {
+      return toast.error(data?.message || "Failed to add director");
     }
 
-  };
+    toast.success("Director added successfully");
+
+    setShowDirectorForm(false);
+
+    setFormData({
+      name: "",
+      email: "",
+      phone_number: "",
+      whatsapp_number: "",
+      city: "",
+      address: "",
+      password: ""
+    });
+
+  } catch (error) {
+    toast.error("Failed to add director");
+  }
+};
 
   return (
 
@@ -119,10 +109,10 @@ export default function BusinessDetail() {
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
 
-        <RoleCard title="Directors/Admins" data={roles.directors} />
-        <RoleCard title="Salesman" data={roles.salesman} />
-        <RoleCard title="Dispatcher" data={roles.dispatcher} />
-        <RoleCard title="Accountants" data={roles.accountants} />
+        
+        {data?.userByIndustry?.map((info:any)=>(
+          <RoleCard key={info?._id} name={info?.name} data={info?.user_type} />
+        ))}
 
       </div>
 
@@ -207,11 +197,11 @@ export default function BusinessDetail() {
 
               {/* IMAGE */}
 
-              <input
+              {/* <input
                 type="file"
                 onChange={handleFileChange}
                 className="border p-2 w-full"
-              />
+              /> */}
 
               <button
                 type="submit"
@@ -236,18 +226,17 @@ export default function BusinessDetail() {
 
 /* ROLE CARD */
 
-function RoleCard({ title, data }: any) {
+function RoleCard({ name, data }: any) {
 
   return (
     <div className="border border-black p-6 rounded-xl">
 
       <h3 className="font-bold mb-4">
-        {title}
+        {name}
       </h3>
 
-      {data.map((d: string, i: number) => (
-        <p key={i}>{d}</p>
-      ))}
+      
+        <p >{data}</p>
 
     </div>
   );

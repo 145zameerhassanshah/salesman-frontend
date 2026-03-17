@@ -3,7 +3,10 @@
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import {industry} from "../components/services/industryService";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
+import { clearUser } from "@/store/userSlice";
+import AuthService from "../components/services/authService";
+import { useRouter } from "next/navigation";
 
 type Industry = {
   _id: string;
@@ -65,7 +68,29 @@ export default function SuperAdminPage() {
     }));
 
   };
+  const dispatch=useDispatch();
+  const router=useRouter();
 
+ const logout = async () => {
+    try {
+
+      const signOut = await AuthService.logoutUser();
+
+      if (signOut?.success === false) {
+        toast.error(signOut?.message);
+        return;
+      }
+
+      toast.success(signOut?.message || "Logout successful");
+
+      dispatch(clearUser());
+
+      router.push("/login");
+
+    } catch (error) {
+      toast.error("Something went wrong");
+    }
+  };
   /* HANDLE FORM SUBMIT */
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -116,6 +141,13 @@ export default function SuperAdminPage() {
           className="bg-black text-white px-6 py-2 rounded-lg"
         >
           Add Business
+        </button>
+
+         <button
+          onClick={()=>logout()}
+          className="bg-black text-white px-6 py-2 rounded-lg"
+        >
+          Log out
         </button>
 
       </div>
