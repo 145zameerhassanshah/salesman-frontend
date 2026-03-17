@@ -47,7 +47,7 @@ const handleLogin = async (event:any) => {
       router.push("/dashboard");
     } 
     else if (role === USER_ROLES.SALESMAN) {
-      router.push("/dashboard/sales");
+      router.push("/saleman/salemanDashboard");
     } 
     else if (role === USER_ROLES.DISPATCHER) {
       router.push("/dashboard/dispatch");
