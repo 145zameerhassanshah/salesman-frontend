@@ -5,10 +5,16 @@ import toast from "react-hot-toast";
 import {industry} from "../components/services/industryService";
 import { useSelector } from "react-redux";
 
+type Industry = {
+  _id: string;
+  businessName: string;
+  city: string;
+  registrationNo: string;
+};
 
 export default function SuperAdminPage() {
     const user = useSelector((state: any) => state.user.user);
-    const [business,setBusiness]=useState([]);
+    const [business,setBusiness]=useState<Industry[]>([]);
 
     useEffect(()=>{
         async function getIndustry(){
@@ -72,6 +78,7 @@ export default function SuperAdminPage() {
       if(data?.success==false) return toast.error(data?.message);
 
       toast.success(data?.message)
+      setBusiness((prev) => [...prev, data?.industry]);
 
       setShowForm(false);
 
@@ -121,7 +128,7 @@ export default function SuperAdminPage() {
 
           <a
             key={b._id}
-            href={`/super-admin/industry/${b?._id}`}
+            href={`/super-admin/industry/details/${b?._id}`}
             className="border border-black p-6 rounded-xl hover:bg-black hover:text-white transition"
           >
 

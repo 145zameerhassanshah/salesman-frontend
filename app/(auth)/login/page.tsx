@@ -40,7 +40,7 @@ const handleLogin = async (event:any) => {
     const role = res?.user?.role;
 
     if (role === USER_ROLES.SUPER_ADMIN) {
-      router.push("/dashboard");
+      router.push("/super-admin");
     } 
     else if (role === USER_ROLES.ADMIN) {
       router.push("/dashboard");
