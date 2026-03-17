@@ -1,10 +1,94 @@
 "use client";
 
 import { useState } from "react";
-import { User, KeyRound, Settings } from "lucide-react";
+import { User, KeyRound } from "lucide-react";
+import { useSelector } from "react-redux";
+import toast from "react-hot-toast";
+import UserService from "@/app/components/services/userService";
+import { useRouter } from "next/navigation";
 
 export default function AddSalesman() {
-  const [active, setActive] = useState(false);
+  const router=useRouter();
+  const user = useSelector((state: any) => state.user.user);
+
+  const [form, setForm] = useState({
+    name: "",
+    email: "",
+    phone_number: "",
+    whatsapp_number: "",
+    city: "",
+    address: "",
+    password: "",
+  });
+
+  const cancel=()=>{
+    setForm({
+        name: "",
+        email: "",
+        phone_number: "",
+        whatsapp_number: "",
+        city: "",
+        address: "",
+        password: "",
+      });
+  }
+
+  /* ==============================
+     HANDLE CHANGE
+  ============================== */
+  const handleChange = (e: any) => {
+    const { name, value } = e.target;
+
+    setForm({
+      ...form,
+      [name]: value,
+    });
+  };
+
+  /* ==============================
+     SUBMIT
+  ============================== */
+  const handleSubmit = async () => {
+    if (
+      !form.name ||
+      !form.email ||
+      !form.phone_number ||
+      !form.whatsapp_number ||
+      !form.city ||
+      !form.address ||
+      !form.password
+    ) {
+      return toast.error("Please fill all required fields");
+    }
+
+    if (!user?.industry) {
+      return toast.error("Industry not found");
+    }
+
+    try {
+      const payload = {
+        ...form,
+        user_type: "salesman", // ✅ added
+        industry: user?.industry, // ✅ added
+      };
+
+      const res=await UserService.createTeamMember(payload);
+      if(!res.success) return toast.error(res?.message);
+      toast.success("Salesman created successfully");
+      router.push("/saleman")
+      setForm({
+        name: "",
+        email: "",
+        phone_number: "",
+        whatsapp_number: "",
+        city: "",
+        address: "",
+        password: "",
+      });
+    } catch (err: any) {
+      toast.error(err.message || "Failed to create salesman");
+    }
+  };
 
   return (
     <div className="bg-gray-100 min-h-screen p-4">
@@ -16,15 +100,13 @@ export default function AddSalesman() {
         </h1>
 
         <div className="flex flex-wrap gap-3 ">
-          <button className="flex items-center gap-2 bg-black text-white px-4 py-2 rounded-lg">
-            Save Salesman
+          <button
+            onClick={handleSubmit}
+            className="flex items-center gap-2 bg-black text-white px-4 py-2 rounded-lg"
+          >
+            Save
           </button>
-
-          <button className="flex items-center gap-2 border px-4 py-2 rounded-lg bg-white">
-            Save Draft
-          </button>
-
-          <button className="flex items-center gap-2 border px-4 py-2 rounded-lg bg-white">
+          <button onClick={cancel} className="flex items-center gap-2 border px-4 py-2 rounded-lg bg-white">
             Cancel
           </button>
         </div>
@@ -40,20 +122,15 @@ export default function AddSalesman() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+
             <div>
               <label className="text-sm text-gray-500">Full Name</label>
               <input
+                name="name"
+                value={form.name}
+                onChange={handleChange}
                 type="text"
-                placeholder="Admin"
-                className="w-full mt-1 bg-gray-100 rounded-lg px-3 py-2 outline-none"
-              />
-            </div>
-
-            <div>
-              <label className="text-sm text-gray-500">Phone Number</label>
-              <input
-                type="text"
-                placeholder="+1 (555) 000-0000"
+                placeholder="e.g John Doe"
                 className="w-full mt-1 bg-gray-100 rounded-lg px-3 py-2 outline-none"
               />
             </div>
@@ -61,83 +138,75 @@ export default function AddSalesman() {
             <div>
               <label className="text-sm text-gray-500">Email Address</label>
               <input
+                name="email"
+                value={form.email}
+                onChange={handleChange}
                 type="email"
                 placeholder="contact@client.com"
                 className="w-full mt-1 bg-gray-100 rounded-lg px-3 py-2 outline-none"
               />
             </div>
-          </div>
-        </div>
 
-        {/* Login Credentials */}
-        <div className="bg-white rounded-2xl p-6 shadow-sm mb-6">
-          <div className="flex items-center gap-2 mb-5">
-            <KeyRound size={18} />
-            <h2 className="font-medium">Login Credentials</h2>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
+              <label className="text-sm text-gray-500">Phone Number</label>
+              <input
+                name="phone_number"
+                value={form.phone_number}
+                onChange={handleChange}
+                type="text"
+                placeholder="+1 (555) 000-0000"
+                className="w-full mt-1 bg-gray-100 rounded-lg px-3 py-2 outline-none"
+              />
+            </div>
+
+            <div>
+              <label className="text-sm text-gray-500">WhatsApp Number</label>
+              <input
+                name="whatsapp_number"
+                value={form.whatsapp_number}
+                onChange={handleChange}
+                type="text"
+                placeholder="+92 (555) 000-0000"
+                className="w-full mt-1 bg-gray-100 rounded-lg px-3 py-2 outline-none"
+              />
+            </div>
+
+            <div>
+              <label className="text-sm text-gray-500">City</label>
+              <input
+                name="city"
+                value={form.city}
+                onChange={handleChange}
+                type="text"
+                placeholder="City"
+                className="w-full mt-1 bg-gray-100 rounded-lg px-3 py-2 outline-none"
+              />
+            </div>
+
+            <div>
+              <label className="text-sm text-gray-500">Address</label>
+              <input
+                name="address"
+                value={form.address}
+                onChange={handleChange}
+                type="text"
+                placeholder="Street, House etc"
+                className="w-full mt-1 bg-gray-100 rounded-lg px-3 py-2 outline-none"
+              />
+            </div>
+             <div>
               <label className="text-sm text-gray-500">Password</label>
               <input
+                name="password"
+                value={form.password}
+                onChange={handleChange}
                 type="password"
                 className="w-full mt-1 bg-gray-100 rounded-lg px-3 py-2 outline-none"
               />
             </div>
 
-            <div>
-              <label className="text-sm text-gray-500">Confirm Password</label>
-              <input
-                type="password"
-                className="w-full mt-1 bg-gray-100 rounded-lg px-3 py-2 outline-none"
-              />
-            </div>
           </div>
         </div>
-
-        {/* Settings */}
-        <div className="bg-white rounded-2xl p-6 shadow-sm">
-          <div className="flex items-center gap-2 mb-5">
-            <Settings size={18} />
-            <h2 className="font-medium">Settings</h2>
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-center">
-            {/* Max Discount */}
-            <div>
-              <label className="text-sm text-gray-500">Max Discount</label>
-              <input
-                type="text"
-                placeholder="10%"
-                className="w-full mt-1 bg-gray-100 rounded-lg px-3 py-2 outline-none"
-              />
-            </div>
-
-            {/* Active Status */}
-            <div className="flex items-center justify-between bg-gray-100 p-4 rounded-xl">
-              <div>
-                <p className="font-medium">Active Status</p>
-                <p className="text-sm text-gray-500">
-                  Enable or disable Salesman access immediately.
-                </p>
-              </div>
-
-              <button
-                onClick={() => setActive(!active)}
-                className={`w-12 h-6 flex items-center rounded-full p-1 transition-colors duration-300 ${
-                  active ? "bg-blue-600" : "bg-gray-300"
-                }`}
-              >
-                <div
-                  className={`bg-white w-4 h-4 rounded-full shadow transform transition-transform duration-300 ${
-                    active ? "translate-x-6" : "translate-x-0"
-                  }`}
-                />
-              </button>
-            </div>
-          </div>
-        </div>
-
       </div>
     </div>
   );

@@ -27,7 +27,7 @@ export default function SuperAdminPage() {
         }
 
         getIndustry();
-    },[]);
+    },[user?._id]);
 
 
   const [showForm, setShowForm] = useState(false);
