@@ -55,25 +55,28 @@ class CategoryService {
   }
 }
 
-async updateCategory(data,id){
-    try {
-        const res=await fetch(`${API.productCategory}/${id}`,{
-            method:"PATCH",
-            headers:{
-                "Content-Type":"application/json"
-            },
-            credentials:"include",
-            body:JSON.stringify(data)
-        });
-        const result=await res.json();
-        if(!res.ok){
-            return false;
-        }
-         return result.updatedCategory;
+async updateCategory(data, id) {
+  try {
+    const res = await fetch(`${API.productCategory}/${id}`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      credentials: "include",
+      body: JSON.stringify(data)
+    });
 
-    } catch (error) {
-        throw error.message;
+    const result = await res.json();
+
+    if (!res.ok) {
+      return { success: false, message: result.message };
     }
+
+    return { success: true, data: result.category }
+
+  } catch (error) {
+    return { success: false, message: error.message };
+  }
 }
 
 async removeCategory(id){
@@ -83,9 +86,9 @@ async removeCategory(id){
             credentials:"include",
         });
         const result=await res.json();
-        if(!res.ok) return false;
+        if(!res.ok) return result;
 
-        return result.message;
+        return result;
     } catch (error) {
         throw error.message;
     }

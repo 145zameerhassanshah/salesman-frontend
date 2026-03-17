@@ -1,10 +1,12 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useSelector } from "react-redux";
 
 export default function DashboardHeader() {
+  const router=useRouter();
   const user = useSelector((state: any) => state.user.user);
-
+  if(user?.user_type==="super_admin") router.push("/super-admin")
   return (
     <div className="mb-6">
       <p className="text-gray-600 text-sm">Welcome Back!</p>
