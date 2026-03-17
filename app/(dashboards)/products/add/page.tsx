@@ -127,7 +127,6 @@ formData.append("discount_percent",String(Number(form.discount_percent || 0)));
 formData.append("order_no",String(Number(form.order_no || 0)));
 formData.append("description",form.description);
 formData.append("category_id",form.category_id);
-formData.append("subcategory_id",form.subcategory_id);
 formData.append("is_active",String(form.is_active));
 
 if(form.image){
