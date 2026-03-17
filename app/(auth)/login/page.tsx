@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import AuthService from "@/app/components/services/authService";
 import { USER_ROLES } from "@/app/components/lib/roles";
+
 export default function LoginPage() {
   const router = useRouter();
 
@@ -40,7 +41,7 @@ const handleLogin = async (event:any) => {
     const role = res?.user?.role;
 
     if (role === USER_ROLES.SUPER_ADMIN) {
-      router.push("/dashboard");
+      router.push("/super-admin");
     } 
     else if (role === USER_ROLES.ADMIN) {
       router.push("/dashboard");
