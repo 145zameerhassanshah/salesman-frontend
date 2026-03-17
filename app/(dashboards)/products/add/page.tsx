@@ -1,10 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
+import { useRouter } from "next/navigation";
 import ProductService from "@/app/components/services/productService";
+import { category } from "@/app/components/services/categoryService";
 
 export default function AddProduct() {
+  const router = useRouter();
+
+const [categories, setCategories] = useState<any[]>([]);
 
 const [form,setForm] = useState({
 name:"",
@@ -14,10 +19,28 @@ discount_percent:"",
 order_no:"",
 description:"",
 category_id:"",
-subcategory_id:"",
 image:null as File | null,
 is_active:true
 });
+
+const [loading,setLoading] = useState(false);
+
+/* ================= FETCH CATEGORIES ================= */
+
+useEffect(()=>{
+  async function fetchCategories(){
+    try{
+      const res = await category.getAllCategories();
+      if(res) setCategories(res);
+    }catch{
+      toast.error("Failed to load categories");
+    }
+  }
+
+  fetchCategories();
+},[]);
+
+/* ================= HANDLE CHANGE ================= */
 
 const handleChange = (e:any)=>{
 const {name,value,type,checked} = e.target;
@@ -28,24 +51,80 @@ setForm({
 });
 };
 
+/* ================= IMAGE ================= */
+
 const handleImageChange = (e:any)=>{
+
+const file = e.target.files[0];
+
+if(!file) return;
+
+// validation
+if(!file.type.startsWith("image/")){
+  toast.error("Only image allowed");
+  return;
+}
+
+if(file.size > 2 * 1024 * 1024){
+  toast.error("Image must be < 2MB");
+  return;
+}
+
 setForm({
 ...form,
-image:e.target.files[0]
+image:file
 });
 };
 
+/* ================= VALIDATION ================= */
+
+const validate = ()=>{
+
+if(!form.name.trim()){
+  toast.error("Product name is required");
+  return false;
+}
+
+if(!form.sku.trim()){
+  toast.error("SKU is required");
+  return false;
+}
+
+if(!form.mrp || Number(form.mrp) <= 0){
+  toast.error("MRP must be greater than 0");
+  return false;
+}
+
+if(!form.category_id){
+  toast.error("Select category");
+  return false;
+}
+
+if(!form.image){
+  toast.error("Product image required");
+  return false;
+}
+
+return true;
+};
+
+/* ================= SUBMIT ================= */
+
 const handleSubmit = async ()=>{
+
+if(!validate()) return;
 
 try{
 
+setLoading(true);
+
 const formData = new FormData();
 
-formData.append("name",form.name);
-formData.append("sku",form.sku);
-formData.append("mrp",form.mrp);
-formData.append("discount_percent",form.discount_percent);
-formData.append("order_no",form.order_no);
+formData.append("name",form.name.trim());
+formData.append("sku",form.sku.trim());
+formData.append("mrp",String(Number(form.mrp)));
+formData.append("discount_percent",String(Number(form.discount_percent || 0)));
+formData.append("order_no",String(Number(form.order_no || 0)));
 formData.append("description",form.description);
 formData.append("category_id",form.category_id);
 formData.append("subcategory_id",form.subcategory_id);
@@ -63,10 +142,25 @@ return;
 }
 
 toast.success("Product added successfully");
+router.push("/products");
+// reset
+setForm({
+name:"",
+sku:"",
+mrp:"",
+discount_percent:"",
+order_no:"",
+description:"",
+category_id:"",
+image:null,
+is_active:true
+});
 
-}catch(err){
+}catch(err:any){
 console.log(err);
-toast.error("Failed to add product");
+toast.error(err.message || "Failed to add product");
+}finally{
+setLoading(false);
 }
 
 };
@@ -91,23 +185,21 @@ Add Product
 <button
 type="button"
 onClick={handleSubmit}
-className="bg-black text-white px-3 md:px-5 py-2 rounded-lg text-xs md:text-sm flex items-center gap-2"
+disabled={loading}
+className="bg-black text-white px-3 md:px-5 py-2 rounded-lg text-xs md:text-sm  cursor-pointer flex items-center gap-2"
 >
-✓ Save Product
+{loading ? "Saving..." : "✓ Save Product"}
 </button>
 
-<button className="border border-gray-300 px-3 md:px-5 py-2 rounded-lg text-xs md:text-sm text-gray-600 hover:bg-gray-200">
-Save Draft
-</button>
-
-<button className="border border-gray-300 px-3 md:px-5 py-2 rounded-lg text-xs md:text-sm text-red-500 hover:bg-red-100">
+<button
+onClick={() => router.push("/products")}
+className="border border-gray-300 px-3 md:px-5 py-2 rounded-lg cursor-pointer text-xs md:text-sm text-red-500 hover:bg-red-100"
+>
 Cancel
 </button>
-
 </div>
 
 </div>
-
 
 {/* BASIC INFO */}
 
@@ -185,7 +277,6 @@ className="w-full mt-1 bg-gray-200 rounded-xl px-4 py-3 outline-none focus:ring-
 
 </div>
 
-
 {/* RIGHT */}
 
 <div className="flex flex-col gap-4">
@@ -199,18 +290,13 @@ onChange={handleChange}
 className="w-full mt-1 bg-gray-200 rounded-xl px-4 py-3 outline-none"
 >
 <option value="">Select Category</option>
-</select>
-</div>
 
-<div>
-<label className="text-xs text-gray-500">Subcategory</label>
-<select
-name="subcategory_id"
-value={form.subcategory_id}
-onChange={handleChange}
-className="w-full mt-1 bg-gray-200 rounded-xl px-4 py-3 outline-none"
->
-<option value="">Select Subcategory</option>
+{categories.map((c:any)=>(
+<option key={c._id} value={c._id}>
+{c.name}
+</option>
+))}
+
 </select>
 </div>
 
@@ -241,7 +327,6 @@ className="w-full mt-1 bg-gray-200 rounded-xl px-4 py-3 outline-none resize-none
 </div>
 
 </div>
-
 
 {/* ACTIVE STATUS */}
 

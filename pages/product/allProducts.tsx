@@ -1,168 +1,148 @@
 "use client";
 
-import { Pencil, Eye, MoreVertical } from "lucide-react";
+import { Pencil, Trash2 } from "lucide-react";
+import { useRouter } from "next/navigation";
+import ProductService from "@/app/components/services/productService";
+import toast from "react-hot-toast";
 
-type Product = {
-  name: string;
-  sku: string;
-  size: string;
-  category: string;
-  selling: string;
-  cost: string;
-  status: string;
-};
+export default function ProductsTable({ products, refresh }: any) {
+  const router = useRouter();
 
-export default function ProductsTable({ products }: { products: Product[] }) {
+  const handleDelete = async (id: string) => {
+    if (!confirm("Delete this product?")) return;
 
-const statusColor = (status:string)=>{
+    try {
+      const res = await ProductService.deleteProduct(id);
+      toast.success(res.message);
+      refresh();
+    } catch {
+      toast.error("Delete failed");
+    }
+  };
 
-switch(status){
+  const toggleStatus = async (item: any) => {
+    try {
+      await ProductService.updateProduct(
+        { is_active: !item.is_active },
+        item._id
+      );
+      toast.success("Status updated");
+      refresh();
+    } catch {
+      toast.error("Failed to update");
+    }
+  };
 
-case "Active":
-return "bg-green-100 text-green-600"
+  const statusColor = (status: boolean) => {
+    return status
+      ? "bg-green-100 text-green-600"
+      : "bg-red-100 text-red-600";
+  };
 
-case "Low Stock":
-return "bg-orange-100 text-orange-600"
+  return (
+    <>
+      <div className="overflow-x-auto">
 
-case "Out of Stock":
-return "bg-gray-200 text-gray-600"
+        <table className="w-full text-sm">
 
-case "Draft":
-return "bg-yellow-100 text-yellow-600"
+          <thead className="text-gray-500 border-b">
+            <tr>
+              <th className="text-left py-3">Product</th>
+              <th>SKU</th>
+              <th>Category</th>
+              <th>MRP</th>
+              <th>Status</th>
+              <th>Action</th>
+            </tr>
+          </thead>
 
-default:
-return "bg-gray-200 text-gray-600"
+          <tbody>
 
-}
+            {products.map((p: any) => (
 
-}
+              <tr key={p._id} className="border-b hover:bg-gray-50">
 
-return (
+                {/* PRODUCT */}
+                <td className="flex items-center gap-3 py-4">
 
-<div className="bg-gray-100 border border-gray-200 rounded-3xl p-4 md:p-6">
+                  <img
+                    src={
+                      p.image
+                        ? `${process.env.NEXT_PUBLIC_API_URL}/uploads/${p.image}`
+                        : "/placeholder.png"
+                    }
+                    className="w-10 h-10 rounded-lg object-cover"
+                  />
 
-<div className="overflow-x-auto">
+                  <p className="font-medium">{p.name}</p>
 
-<table className="w-full min-w-[900px] text-sm">
+                </td>
 
-{/* Header */}
+                <td>{p.sku}</td>
 
-<thead className="text-gray-500 border-b">
+                <td>
+                  <span className="bg-blue-100 text-blue-600 px-2 py-1 rounded-md text-xs">
+                    {p.category_id?.name}
+                  </span>
+                </td>
 
-<tr className="text-left">
+                <td>{p.mrp}</td>
 
-<th className="py-3 w-[30%]">Product</th>
-<th className="w-[12%]">SKU</th>
-<th className="w-[8%]">Size</th>
-<th className="w-[12%]">Category</th>
-<th className="w-[12%]">Selling Price</th>
-<th className="w-[12%]">Cost Price</th>
-<th className="w-[8%]">Status</th>
-<th className="w-[10%]">Action</th>
+                <td>
+                  <span className={`px-2 py-1 rounded-md text-xs ${statusColor(p.is_active)}`}>
+                    {p.is_active ? "Active" : "Inactive"}
+                  </span>
+                </td>
 
-</tr>
+                <td className="flex gap-2">
 
-</thead>
+                  <button
+                    onClick={() => router.push(`/products/edit/${p._id}`)}
+                    className="bg-gray-100 p-2 rounded-lg"
+                  >
+                    <Pencil size={14} />
+                  </button>
 
-{/* Rows */}
+                  <button
+                    onClick={() => handleDelete(p._id)}
+                    className="bg-red-100 text-red-600 p-2 rounded-lg"
+                  >
+                    <Trash2 size={14} />
+                  </button>
 
-<tbody>
+                  <button
+                    onClick={() => toggleStatus(p)}
+                    className="text-xs px-2 py-1 border rounded-lg"
+                  >
+                    {p.is_active ? "Deactivate" : "Activate"}
+                  </button>
 
-{products.map((p,i)=>(
-<tr key={i} className="border-b hover:bg-gray-200 transition">
+                </td>
 
-{/* Product */}
+              </tr>
 
-<td className="flex items-center gap-2 py-4">
+            ))}
 
-<img
-src="/product.png"
-className="w-10 h-10 rounded-lg"
-/>
+          </tbody>
 
-<p className="text-gray-700 text-sm leading-tight">
-{p.name}
-</p>
+        </table>
 
-</td>
+      </div>
 
-{/* SKU */}
+      {/* PAGINATION */}
+      <div className="flex flex-col md:flex-row justify-between items-center mt-4 text-sm gap-3">
 
-<td className="text-gray-600">
-{p.sku}
-</td>
+        {/* <p className="text-gray-500">
+          Total Products: {products.length}
+        </p> */}
 
-{/* Size */}
+        <div className="flex gap-2">
+          <button className="px-3 py-1 border rounded">1</button>
+          <button className="px-3 py-1">2</button>
+          <button className="px-3 py-1">3</button>
+        </div>
 
-<td className="text-gray-600">
-{p.size}
-</td>
-
-{/* Category */}
-
-<td>
-
-<span className="bg-blue-100 text-blue-600 px-2 py-1 rounded-md text-xs">
-{p.category}
-</span>
-
-</td>
-
-{/* Selling */}
-
-<td className="text-gray-700">
-{p.selling}
-</td>
-
-{/* Cost */}
-
-<td className="text-gray-700">
-{p.cost}
-</td>
-
-{/* Status */}
-
-<td>
-
-<span className={`px-2 py-1 rounded-md text-xs ${statusColor(p.status)}`}>
-{p.status}
-</span>
-
-</td>
-
-{/* Actions */}
-
-<td>
-
-<div className="flex gap-2">
-
-<button className="bg-gray-200 p-2 rounded-md hover:bg-gray-300">
-<Pencil size={14}/>
-</button>
-
-<button className="bg-gray-200 p-2 rounded-md hover:bg-gray-300">
-<Eye size={14}/>
-</button>
-
-<button className="bg-gray-200 p-2 rounded-md hover:bg-gray-300">
-<MoreVertical size={14}/>
-</button>
-
-</div>
-
-</td>
-
-</tr>
-))}
-
-</tbody>
-
-</table>
-
-</div>
-
-</div>
-
-)
-
+      </div>
+    </>
+  );
 }
