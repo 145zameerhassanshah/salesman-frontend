@@ -4,9 +4,11 @@ import { category } from "@/app/components/services/categoryService";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import toast from "react-hot-toast";
+import { useSelector } from "react-redux";
 
 export default function AddCategory() {
 const router=useRouter();
+const user = useSelector((state: any) => state.user.user);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -25,7 +27,7 @@ const router=useRouter();
 
   const handleSubmit = async () => {
     try {
-        const data=await category.addCategory(formData);
+        const data=await category.addCategory(formData,user?.industry);
         if(data.message) return toast.error(data?.message);
         toast.success(data);
         router.push("/categories");

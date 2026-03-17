@@ -3,12 +3,21 @@
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import {industry} from "../components/services/industryService";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
+import { clearUser } from "@/store/userSlice";
+import AuthService from "../components/services/authService";
+import { useRouter } from "next/navigation";
 
+type Industry = {
+  _id: string;
+  businessName: string;
+  city: string;
+  registrationNo: string;
+};
 
 export default function SuperAdminPage() {
     const user = useSelector((state: any) => state.user.user);
-    const [business,setBusiness]=useState([]);
+    const [business,setBusiness]=useState<Industry[]>([]);
 
     useEffect(()=>{
         async function getIndustry(){
@@ -59,7 +68,29 @@ export default function SuperAdminPage() {
     }));
 
   };
+  const dispatch=useDispatch();
+  const router=useRouter();
 
+ const logout = async () => {
+    try {
+
+      const signOut = await AuthService.logoutUser();
+
+      if (signOut?.success === false) {
+        toast.error(signOut?.message);
+        return;
+      }
+
+      toast.success(signOut?.message || "Logout successful");
+
+      dispatch(clearUser());
+
+      router.push("/login");
+
+    } catch (error) {
+      toast.error("Something went wrong");
+    }
+  };
   /* HANDLE FORM SUBMIT */
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -72,6 +103,7 @@ export default function SuperAdminPage() {
       if(data?.success==false) return toast.error(data?.message);
 
       toast.success(data?.message)
+      setBusiness((prev) => [...prev, data?.industry]);
 
       setShowForm(false);
 
@@ -111,6 +143,13 @@ export default function SuperAdminPage() {
           Add Business
         </button>
 
+         <button
+          onClick={()=>logout()}
+          className="bg-black text-white px-6 py-2 rounded-lg"
+        >
+          Log out
+        </button>
+
       </div>
 
       {/* BUSINESS GRID */}
@@ -121,7 +160,7 @@ export default function SuperAdminPage() {
 
           <a
             key={b._id}
-            href={`/super-admin/industry/${b?._id}`}
+            href={`/super-admin/industry/details/${b?._id}`}
             className="border border-black p-6 rounded-xl hover:bg-black hover:text-white transition"
           >
 

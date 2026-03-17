@@ -4,9 +4,7 @@ class UserService {
 
 
   static async createAdmin(data){
-    try{
-
-      const res = await fetch(API.createAdmin,{
+      const res = await fetch(`${API.users}/create-user`,{
         method:"POST",
         headers:{
           "Content-Type":"application/json"
@@ -18,15 +16,10 @@ class UserService {
       const result = await res.json();
 
       if(!res.ok){
-        throw new Error(result.message || "Failed to create admin");
+        return result;
       }
 
       return result;
-
-    }catch(err){
-      console.error("Create admin error:",err);
-      throw err;
-    }
   }
 
   static async createTeamMember(data){
@@ -55,10 +48,10 @@ class UserService {
     }
   }
 
-  async fetchUsers(){
+  static async fetchUsers(id){
     try{
 
-      const res = await fetch(API.users,{
+      const res = await fetch(`${API.users}/industry/${id}`,{
         method:"GET",
         credentials:"include"
       });
@@ -66,7 +59,7 @@ class UserService {
       const result = await res.json();
 
       if(!res.ok){
-        throw new Error(result.message || "Failed to fetch users");
+        return result;
       }
 
       return result;
@@ -200,4 +193,4 @@ class UserService {
 
 }
 
-export const user=new UserService();
+export default UserService;

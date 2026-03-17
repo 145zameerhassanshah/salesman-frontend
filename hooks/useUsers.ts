@@ -1,11 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
-import { user } from "@/app/components/services/userService";
+import UserService from "@/app/components/services/userService";
 
-export const useUsers = () => {
-
+export const useUsers = (id: string) => {
   return useQuery({
-    queryKey: ["users"],
-    queryFn: user.fetchUsers
+    queryKey: ["users", id], 
+    queryFn: () => UserService.fetchUsers(id), 
+    enabled: !!id
   });
-
 };

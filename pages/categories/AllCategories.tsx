@@ -4,18 +4,32 @@ import { category } from "@/app/components/services/categoryService";
 import { Search, Filter, Plus, Pencil, Eye, MoreVertical } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { useSelector } from "react-redux";
 
 export default function AllCategories() {
-  const router=useRouter();
-  const [categories,setCategories]=useState([]);
+ const [categories, setCategories] = useState<any[]>([]);
+const user = useSelector((state: any) => state.user.user);
 
-  useEffect(()=>{
-    async function getMyCategory(){
-      const data=await category.getMyCategories();
+useEffect(() => {
+
+  if (!user?.industry) return; // ✅ prevent undefined call
+
+  async function getMyCategory() {
+
+    try {
+
+      const data = await category.getIndustryCategories(user.industry);
       setCategories(data);
+
+    } catch (error) {
+      console.error(error);
     }
-    getMyCategory()
-  },[])
+
+  }
+
+  getMyCategory();
+
+}, [user?.industry]); // ✅ dependency added
 
 
   const statusColor = (status: boolean) => {

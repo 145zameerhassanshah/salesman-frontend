@@ -1,8 +1,8 @@
 import { API } from "@/app/components/lib/endpoints";
 
 class CategoryService {
-  async addCategory(data) {
-      const res = await fetch(API.productCategory, {
+  async addCategory(data,id) {
+      const res = await fetch(`${API.productCategory}/${id}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -33,16 +33,27 @@ class CategoryService {
     }
   }
 
-  async getMyCategories(){
-    try {
-        const res=await fetch(API.myadded,{method:"GET",credentials:"include"});
-        const result=await res.json();
+  async getIndustryCategories(id) {
+  try {
 
-        return result.category;
-    } catch (error) {
-        return [];
+    const res = await fetch(`${API.productCategory}/my-added/${id}`, {
+      method: "GET",
+      credentials: "include"
+    });
+
+    const result = await res.json();
+
+    if (!res.ok) {
+      throw new Error(result.message || "Failed to fetch");
     }
+
+    return result.category;
+
+  } catch (error) {
+    console.error(error);
+    return [];
   }
+}
 
 async updateCategory(data,id){
     try {
