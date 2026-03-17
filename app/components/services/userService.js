@@ -25,7 +25,7 @@ class UserService {
   static async createTeamMember(data){
     try{
 
-      const res = await fetch(API.createUser,{
+      const res = await fetch(`${API.users}/create-user`,{
         method:"POST",
         headers:{
           "Content-Type":"application/json"
@@ -37,10 +37,10 @@ class UserService {
       const result = await res.json();
 
       if(!res.ok){
-        throw new Error(result.message || "Failed to create user");
+        return {success:false,message:result?.message}
       }
 
-      return result;
+      return {success:true,message:result?.message};
 
     }catch(err){
       console.error("Create team member error:",err);

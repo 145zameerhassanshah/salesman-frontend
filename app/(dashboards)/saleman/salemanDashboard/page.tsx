@@ -1,6 +1,4 @@
-import SalesmanHeader from "@/components/dashboard/SalesmanHeader";
-import StatCard from "@/components/dashboard/StatCard";
-import RevenueChart from "@/components/dashboard/RevenueChart";
+
 
 import {
   DollarSign,
@@ -8,6 +6,10 @@ import {
   Target,
   Handshake
 } from "lucide-react";
+import PendingApprovals from "@/pages/dashboard/PendingApprovals";
+import SalesmanHeader from "@/pages/saleman/SalesmanHeader";
+import StatCard from "@/pages/saleman/StatCard";
+import Dispatched from "@/pages/saleman/Dispatched";
 
 export default function SalesmanPage() {
 
@@ -47,10 +49,13 @@ export default function SalesmanPage() {
 
       </div>
 
-      {/* Chart */}
+<div className="grid grid-cols-1 xl:grid-cols-2 gap-6 mt-6">
 
-      <RevenueChart />
+        <PendingApprovals />
+        <Dispatched />
+      {/* <RevenueChart /> */}
 
+    </div>
     </div>
 
   );

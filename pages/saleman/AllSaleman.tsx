@@ -1,6 +1,9 @@
 "use client";
 import Link from "next/link";
 import { Search, Plus, SlidersHorizontal, Pencil, Eye, MoreVertical } from "lucide-react";
+import { useUsers } from "@/hooks/useUsers";
+import { useSelector } from "react-redux";
+import { useMemo } from "react";
 
 type Salesman = {
   name: string;
@@ -47,12 +50,22 @@ const salesmen: Salesman[] = [
 ];
 
 const statusStyle = {
-  Pending: "bg-yellow-100 text-yellow-600",
-  Approved: "bg-green-100 text-green-600",
-  Blocked: "bg-red-100 text-red-600",
+  Active: "bg-green-100 text-green-600",
+  Left: "bg-red-100 text-red-600",
 };
 
 export default function AllSaleman() {
+   const user = useSelector((state: any) => state.user.user);
+  const { data } = useUsers(user?.industry);
+const users = data?.userByIndustry || [];
+
+/* ==============================
+   FILTER SALESMAN
+============================== */
+const salesman = useMemo(() => {
+  return users.filter((u: any) => u.user_type === "salesman");
+}, [users]);
+
   return (
     <div className="p-4 bg-gray-100 min-h-screen">
 
@@ -104,9 +117,8 @@ export default function AllSaleman() {
               <th className="py-3">Saleman Name</th>
               <th>Phone No.</th>
               <th>Email</th>
-              <th>Max Disc. %</th>
               <th>Status</th>
-              <th>Date</th>
+              <th>Joined</th>
               <th className="text-center">Action</th>
             </tr>
 
@@ -114,7 +126,7 @@ export default function AllSaleman() {
 
           <tbody>
 
-            {salesmen.map((salesman, index) => (
+            {salesman.map((salesman:any, index:any) => (
 
               <tr key={index} className="border-b last:border-none">
 
@@ -129,21 +141,21 @@ export default function AllSaleman() {
                   </div>
                 </td>
 
-                <td>{salesman.phone}</td>
+                <td>{salesman.phone_number}</td>
 
                 <td>{salesman.email}</td>
 
-                <td>{salesman.discount}</td>
+                {/* <td>{salesman.discount}</td> */}
 
                 <td>
                   <span
-                    className={`px-3 py-1 text-xs rounded-md font-medium ${statusStyle[salesman.status]}`}
+                    className={`px-3 py-1 text-xs rounded-md font-medium ${statusStyle[salesman?.status]}`}
                   >
-                    {salesman.status}
+                    {salesman?.status}
                   </span>
                 </td>
 
-                <td>{salesman.date}</td>
+                <td>{new Date(salesman.createdAt).toLocaleDateString("en-GB")}</td>
 
                 {/* Actions */}
                 <td>
