@@ -8,7 +8,6 @@ class DealerService {
 
   async getAllDealers() {
     try {
-
       const res = await fetch(API.dealers, {
         method: "GET",
         credentials: "include"
@@ -16,43 +15,37 @@ class DealerService {
 
       const result = await res.json();
 
-      if (!res.ok) return false;
-
-      return result.dealers;
+      return result;
 
     } catch (error) {
-      throw error.message;
+      throw error;
     }
   }
-
 
   /* =========================
      CREATE DEALER
   ========================= */
 
-  async createDealer(data) {
+  async createDealer(data, isFormData = false) {
     try {
 
       const res = await fetch(`${API.dealers}/create`, {
         method: "POST",
-        headers: {
+        credentials: "include",
+        headers: isFormData ? undefined : {
           "Content-Type": "application/json"
         },
-        credentials: "include",
-        body: JSON.stringify(data)
+        body: isFormData ? data : JSON.stringify(data)
       });
 
       const result = await res.json();
 
-      if (!res.ok) return false;
-
-      return result.message;
+      return result;
 
     } catch (error) {
-      throw error.message;
+      throw error;
     }
   }
-
 
   /* =========================
      GET DEALER BY ID
@@ -68,15 +61,12 @@ class DealerService {
 
       const result = await res.json();
 
-      if (!res.ok) return false;
-
-      return result.dealer;
+      return result;
 
     } catch (error) {
-      throw error.message;
+      throw error;
     }
   }
-
 
   /* =========================
      UPDATE DEALER
@@ -87,24 +77,21 @@ class DealerService {
 
       const res = await fetch(`${API.dealers}/${id}`, {
         method: "PUT",
+        credentials: "include",
         headers: {
           "Content-Type": "application/json"
         },
-        credentials: "include",
         body: JSON.stringify(data)
       });
 
       const result = await res.json();
 
-      if (!res.ok) return false;
-
-      return result.message;
+      return result;
 
     } catch (error) {
-      throw error.message;
+      throw error;
     }
   }
-
 
   /* =========================
      DELETE DEALER
@@ -120,12 +107,10 @@ class DealerService {
 
       const result = await res.json();
 
-      if (!res.ok) return false;
-
-      return result.message;
+      return result;
 
     } catch (error) {
-      throw error.message;
+      throw error;
     }
   }
 
