@@ -4,9 +4,9 @@ class ProductService {
 
   /* ================= GET ALL ================= */
 
-  static async getProducts() {
-    try {
-      const res = await fetch(API.products, {
+  static async getProducts(id) {
+    
+      const res = await fetch(`${API.products}/${id}`, {
         method: "GET",
         credentials: "include"
       });
@@ -19,10 +19,6 @@ class ProductService {
 
       return result;
 
-    } catch (err) {
-      console.error("Fetch products error:", err);
-      throw err;
-    }
   }
 
   /* ================= GET BY ID ================= */
@@ -50,9 +46,9 @@ class ProductService {
 
   /* ================= ADD ================= */
 
-  static async addProduct(data) {
+  static async addProduct(data, id) {
     try {
-      const res = await fetch(API.products, {
+      const res = await fetch(`${API.products}/create${id}`, {
         method: "POST",
         credentials: "include",
         body: data

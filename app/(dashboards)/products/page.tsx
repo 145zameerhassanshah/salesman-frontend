@@ -6,9 +6,12 @@ import ProductService from "@/app/components/services/productService";
 import { category } from "@/app/components/services/categoryService";
 import { Search, Filter, Plus } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useSelector } from "react-redux";
 import toast from "react-hot-toast";
 
 export default function Page() {
+  const user=useSelector((state:any)=>state.user);
+  console.log(user);
   const router = useRouter();
 
   const [products, setProducts] = useState<any[]>([]);
@@ -21,17 +24,18 @@ export default function Page() {
 
   const [loading, setLoading] = useState(true);
 
+
   /* FETCH */
 
   const fetchProducts = async () => {
     try {
-      const res = await ProductService.getProducts();
+      const res = await ProductService.getProducts(user?._industry);
+      console.log(res);
       if (res.success) {
         setProducts(res.products);
         setFiltered(res.products);
       }
     } catch {
-      toast.error("Failed to load products");
     } finally {
       setLoading(false);
     }
@@ -74,7 +78,6 @@ export default function Page() {
   return (
     <div className="space-y-6">
 
-      {/* HEADER */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
 
         <h1 className="text-3xl md:text-4xl font-semibold">
@@ -83,7 +86,6 @@ export default function Page() {
 
         <div className="flex items-center gap-2 flex-wrap">
 
-          {/* Search */}
           <div className="flex items-center bg-white/60 rounded-xl px-3 py-2">
             <Search size={16} className="text-gray-500 mr-2" />
             <input
@@ -94,7 +96,6 @@ export default function Page() {
             />
           </div>
 
-          {/* Category Filter */}
           <select
             value={categoryFilter}
             onChange={(e) => setCategoryFilter(e.target.value)}
@@ -108,7 +109,6 @@ export default function Page() {
             ))}
           </select>
 
-          {/* Status Filter */}
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
@@ -119,7 +119,6 @@ export default function Page() {
             <option value="inactive">Inactive</option>
           </select>
 
-          {/* Add Product */}
           <button
             onClick={() => router.push("/products/add")}
             className="bg-black text-white flex items-center cursor-pointer gap-2 px-3 py-2 rounded-xl text-sm"
@@ -131,7 +130,6 @@ export default function Page() {
         </div>
       </div>
 
-      {/* TABLE CARD */}
       <div className="bg-white/60 backdrop-blur rounded-3xl p-4 md:p-6">
 
         {loading ? (

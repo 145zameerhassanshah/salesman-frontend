@@ -1,5 +1,5 @@
 "use client";
-
+import { useSelector } from "react-redux";
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
@@ -8,6 +8,7 @@ import { category } from "@/app/components/services/categoryService";
 
 export default function AddProduct() {
   const router = useRouter();
+  const user=useSelector((state:any)=>state.user);
 
 const [categories, setCategories] = useState<any[]>([]);
 
@@ -25,7 +26,6 @@ is_active:true
 
 const [loading,setLoading] = useState(false);
 
-/* ================= FETCH CATEGORIES ================= */
 
 useEffect(()=>{
   async function fetchCategories(){
@@ -40,7 +40,6 @@ useEffect(()=>{
   fetchCategories();
 },[]);
 
-/* ================= HANDLE CHANGE ================= */
 
 const handleChange = (e:any)=>{
 const {name,value,type,checked} = e.target;
@@ -51,7 +50,6 @@ setForm({
 });
 };
 
-/* ================= IMAGE ================= */
 
 const handleImageChange = (e:any)=>{
 
@@ -59,7 +57,6 @@ const file = e.target.files[0];
 
 if(!file) return;
 
-// validation
 if(!file.type.startsWith("image/")){
   toast.error("Only image allowed");
   return;
@@ -76,7 +73,6 @@ image:file
 });
 };
 
-/* ================= VALIDATION ================= */
 
 const validate = ()=>{
 
@@ -108,7 +104,6 @@ if(!form.image){
 return true;
 };
 
-/* ================= SUBMIT ================= */
 
 const handleSubmit = async ()=>{
 
@@ -127,14 +122,13 @@ formData.append("discount_percent",String(Number(form.discount_percent || 0)));
 formData.append("order_no",String(Number(form.order_no || 0)));
 formData.append("description",form.description);
 formData.append("category_id",form.category_id);
-formData.append("subcategory_id",form.subcategory_id);
 formData.append("is_active",String(form.is_active));
 
 if(form.image){
 formData.append("image",form.image);
 }
 
-const res = await ProductService.addProduct(formData);
+const res = await ProductService.addProduct(formData,user?.industry);
 
 if(!res.success){
 toast.error(res.message);
@@ -143,7 +137,6 @@ return;
 
 toast.success("Product added successfully");
 router.push("/products");
-// reset
 setForm({
 name:"",
 sku:"",
@@ -211,7 +204,6 @@ Basic Info
 
 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
-{/* LEFT */}
 
 <div className="flex flex-col gap-4">
 
@@ -328,7 +320,6 @@ className="w-full mt-1 bg-gray-200 rounded-xl px-4 py-3 outline-none resize-none
 
 </div>
 
-{/* ACTIVE STATUS */}
 
 <div className="bg-gray-100 rounded-3xl p-4 md:p-6 shadow-sm border border-gray-200 flex items-center justify-between w-full">
 
