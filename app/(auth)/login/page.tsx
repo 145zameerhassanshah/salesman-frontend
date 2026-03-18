@@ -7,6 +7,8 @@ import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import AuthService from "@/app/components/services/authService";
 import { USER_ROLES } from "@/app/components/lib/roles";
+import { setUser } from "@/store/userSlice";
+import { useDispatch } from "react-redux";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -19,6 +21,7 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
+  const dispatch=useDispatch();
 const handleLogin = async (event:any) => {
   event.preventDefault();
 
@@ -37,6 +40,8 @@ const handleLogin = async (event:any) => {
     }   
 
     toast.success("Login successful");
+
+    dispatch(setUser(res.isUser));
 
     const role = res?.user?.role;
 

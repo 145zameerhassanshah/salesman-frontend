@@ -41,21 +41,6 @@ export default function SuperAdminPage() {
     taxId: ""
   });
 
-  const businesses = [
-    {
-      id: "1",
-      name: "ABC Industries",
-      city: "Lahore",
-      registrationNo: "REG-001"
-    },
-    {
-      id: "2",
-      name: "Tech Manufacturing",
-      city: "Karachi",
-      registrationNo: "REG-002"
-    }
-  ];
-
   /* HANDLE INPUT CHANGE */
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -123,6 +108,8 @@ export default function SuperAdminPage() {
     }
 
   };
+
+  // if(!user) return <h2>Loading ...</h2>
 
   return (
     <div className="min-h-screen bg-white text-black p-8">

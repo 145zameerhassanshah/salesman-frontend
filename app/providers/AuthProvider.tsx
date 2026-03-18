@@ -19,6 +19,7 @@ export default function AuthProvider({ children }: any) {
     }
 
   }, [data]);
+  
 
   return children;
 }
