@@ -10,7 +10,7 @@ export const API = {
     changePassword: `${API_URL}/users/auth/change-password`,
   logout:`${API_URL}/users/auth/logout`,
   productCategory:`${API_URL}/category`,
-  products:`${API_URL}/products/create`,
+  products:`${API_URL}/products`,
   subCategory:`${API_URL}/sub-category`,
   orders:`${API_URL}/order`,
   industry:`${API_URL}/industry`,
