@@ -8,7 +8,7 @@ import { category } from "@/app/components/services/categoryService";
 
 export default function AddProduct() {
   const router = useRouter();
-  const user=useSelector((state:any)=>state.user);
+  const user=useSelector((state:any)=>state.user.user);
 
 const [categories, setCategories] = useState<any[]>([]);
 
