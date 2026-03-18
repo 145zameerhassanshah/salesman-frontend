@@ -9,8 +9,9 @@ import toast from "react-hot-toast";
 export default function BusinessDetail() {
 
   const [showDirectorForm, setShowDirectorForm] = useState(false);
-  const params=useParams();
-  const {data}=useUsers(params?.id as string);
+  const params = useParams();
+  const { data } = useUsers(params?.id as string);
+
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -18,78 +19,88 @@ export default function BusinessDetail() {
     whatsapp_number: "",
     city: "",
     address: "",
-    password: ""
+    password: "",
   });
 
-  // const [profileImage, setProfileImage] = useState<File | null>(null);
+  const [profileImage, setProfileImage] = useState<File | null>(null);
 
-  /* HANDLE CHANGE */
+  /* ================= HANDLE CHANGE ================= */
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-
     const { name, value } = e.target;
 
     setFormData((prev) => ({
       ...prev,
       [name]: value
     }));
-
   };
 
-  /* HANDLE FILE */
+  /* ================= HANDLE IMAGE ================= */
 
-  // const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-  //   if (e.target.files && e.target.files[0]) {
-  //     setProfileImage(e.target.files[0]);
-  //   }
-  // };
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setProfileImage(e.target.files[0]);
+    }
+  };
 
-  /* SUBMIT */
+  /* ================= SUBMIT ================= */
 
   const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
+    e.preventDefault();
 
-  try {
+    try {
 
-    const payload = {
-      ...formData,
-      industry: params?.id,
-      user_type: "admin"
-    };
+      const fd = new FormData();
 
-    console.log("Payload:", payload);
+      fd.append("name", formData.name);
+      fd.append("email", formData.email);
+      fd.append("phone_number", formData.phone_number);
+      fd.append("whatsapp_number", formData.whatsapp_number);
+      fd.append("city", formData.city);
+      fd.append("address", formData.address);
+      fd.append("password", formData.password);
 
-    const data = await UserService.createAdmin(payload);
+      fd.append("industry", params?.id as string);
+      fd.append("user_type", "admin");
 
-    if (!data?.success) {
-      return toast.error(data?.message || "Failed to add director");
+      if (profileImage) {
+        fd.append("profile_image", profileImage);
+      }
+
+      console.log(fd)
+
+      const res = await UserService.createAdmin(fd);
+
+      if (!res?.success) {
+        return toast.error(res?.message || "Failed to add director");
+      }
+
+      toast.success("Director added successfully");
+
+      setShowDirectorForm(false);
+
+      setFormData({
+        name: "",
+        email: "",
+        phone_number: "",
+        whatsapp_number: "",
+        city: "",
+        address: "",
+        password: "",
+      });
+
+      setProfileImage(null);
+
+    } catch (error) {
+      toast.error("Failed to add director");
     }
-
-    toast.success("Director added successfully");
-
-    setShowDirectorForm(false);
-
-    setFormData({
-      name: "",
-      email: "",
-      phone_number: "",
-      whatsapp_number: "",
-      city: "",
-      address: "",
-      password: ""
-    });
-
-  } catch (error) {
-    toast.error("Failed to add director");
-  }
-};
+  };
 
   return (
 
     <div className="p-8 bg-white min-h-screen text-black">
 
       {/* HEADER */}
-
       <div className="flex justify-between items-center mb-8">
 
         <h1 className="text-2xl font-bold">
@@ -105,19 +116,21 @@ export default function BusinessDetail() {
 
       </div>
 
-      {/* ROLES */}
-
+      {/* USERS GRID */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
 
-        
-        {data?.userByIndustry?.map((info:any)=>(
-          <RoleCard key={info?._id} name={info?.name} data={info?.user_type} />
+        {data?.userByIndustry?.map((info: any) => (
+          <RoleCard
+            key={info?._id}
+            name={info?.name}
+            role={info?.user_type}
+            image={info?.profile_image}
+          />
         ))}
 
       </div>
 
-
-      {/* DIRECTOR FORM */}
+      {/* ================= MODAL ================= */}
 
       {showDirectorForm && (
 
@@ -195,13 +208,12 @@ export default function BusinessDetail() {
                 required
               />
 
-              {/* IMAGE */}
-
-              {/* <input
+              {/* IMAGE UPLOAD */}
+              <input
                 type="file"
                 onChange={handleFileChange}
                 className="border p-2 w-full"
-              /> */}
+              />
 
               <button
                 type="submit"
@@ -223,20 +235,25 @@ export default function BusinessDetail() {
   );
 }
 
+/* ================= ROLE CARD ================= */
 
-/* ROLE CARD */
-
-function RoleCard({ name, data }: any) {
-
+function RoleCard({ name, role, image }: any) {
   return (
-    <div className="border border-black p-6 rounded-xl">
+    <div className="border border-black p-4 rounded-xl flex items-center gap-3">
 
-      <h3 className="font-bold mb-4">
-        {name}
-      </h3>
+      <img
+        src={
+          image
+            ? `${process.env.NEXT_PUBLIC_API_URL}/uploads/${image}`
+            : "/profile.png"
+        }
+        className="w-10 h-10 rounded-full object-cover border"
+      />
 
-      
-        <p >{data}</p>
+      <div>
+        <h3 className="font-semibold">{name}</h3>
+        <p className="text-sm text-gray-600">{role}</p>
+      </div>
 
     </div>
   );

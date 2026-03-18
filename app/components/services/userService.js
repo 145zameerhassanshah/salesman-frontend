@@ -6,11 +6,8 @@ class UserService {
   static async createAdmin(data){
       const res = await fetch(`${API.users}/create-user`,{
         method:"POST",
-        headers:{
-          "Content-Type":"application/json"
-        },
         credentials:"include",
-        body:JSON.stringify(data)
+        body:data
       });
 
       const result = await res.json();
@@ -27,11 +24,8 @@ class UserService {
 
       const res = await fetch(`${API.users}/create-user`,{
         method:"POST",
-        headers:{
-          "Content-Type":"application/json"
-        },
         credentials:"include",
-        body:JSON.stringify(data)
+        body:data
       });
 
       const result = await res.json();
@@ -98,20 +92,13 @@ class UserService {
   static async updateUser(id,data){
     try{
 
-      const res = await fetch(`${API.users}/${id}`,{
-        method:"PUT",
-        headers:{
-          "Content-Type":"application/json"
-        },
+      const res = await fetch(`${API.users}/update/${id}`,{
+        method:"PATCH",
         credentials:"include",
-        body:JSON.stringify(data)
+        body:data
       });
 
       const result = await res.json();
-
-      if(!res.ok){
-        throw new Error(result.message || "Failed to update user");
-      }
 
       return result;
 

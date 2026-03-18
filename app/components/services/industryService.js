@@ -33,11 +33,8 @@ class IndustryService {
   async createIndustry(data) {
       const res = await fetch(API.industry, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
         credentials: "include",
-        body: JSON.stringify(data)
+        body: data
       });
 
       const result = await res.json();
