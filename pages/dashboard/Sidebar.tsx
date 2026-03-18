@@ -19,7 +19,7 @@ import {
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 
 export default function Sidebar({
   expanded,
@@ -31,6 +31,7 @@ export default function Sidebar({
 
   const router = useRouter();
   const dispatch = useDispatch();
+   const user = useSelector((state: any) => state.user.user);
 
   const logout = async () => {
     try {
@@ -69,6 +70,14 @@ export default function Sidebar({
     { icon: LogOut, label: "Logout", action: logout }
   ];
 
+  const filteredMenu =
+  user?.user_type === "salesman" ? [] : menu;
+
+const filteredSystem =
+  user?.user_type === "salesman"
+    ? system.filter((item) => item.label === "Logout")
+    : system;
+
   return (
     <div
       className={`
@@ -95,10 +104,8 @@ export default function Sidebar({
           />
 
         </div>
-
-        {/* MAIN MENU */}
-
-        {menu.map((item, i) => {
+        {filteredMenu
+        .map((item, i) => {
           const Icon = item.icon;
 
           return (
@@ -126,7 +133,7 @@ export default function Sidebar({
 
         {/* SYSTEM MENU */}
 
-        {system.map((item, i) => {
+        {filteredSystem.map((item, i) => {
 
           const Icon = item.icon;
 
