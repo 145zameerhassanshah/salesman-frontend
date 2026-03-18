@@ -48,7 +48,7 @@ class ProductService {
 
   static async addProduct(data, id) {
     try {
-      const res = await fetch(`${API.products}/create${id}`, {
+      const res = await fetch(`${API.products}/create/${id}`, {
         method: "POST",
         credentials: "include",
         body: data

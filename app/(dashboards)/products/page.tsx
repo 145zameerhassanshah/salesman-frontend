@@ -10,8 +10,7 @@ import { useSelector } from "react-redux";
 import toast from "react-hot-toast";
 
 export default function Page() {
-  const user=useSelector((state:any)=>state.user);
-  console.log(user);
+  const user=useSelector((state:any)=>state.user.user);
   const router = useRouter();
 
   const [products, setProducts] = useState<any[]>([]);
@@ -29,7 +28,7 @@ export default function Page() {
 
   const fetchProducts = async () => {
     try {
-      const res = await ProductService.getProducts(user?._industry);
+      const res = await ProductService.getProducts(user?.industry);
       console.log(res);
       if (res.success) {
         setProducts(res.products);
