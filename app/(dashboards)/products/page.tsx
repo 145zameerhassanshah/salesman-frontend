@@ -29,7 +29,6 @@ export default function Page() {
   const fetchProducts = async () => {
     try {
       const res = await ProductService.getProducts(user?.industry);
-      console.log(res);
       if (res.success) {
         setProducts(res.products);
         setFiltered(res.products);
@@ -45,11 +44,13 @@ export default function Page() {
     if (res) setCategories(res);
   };
 
-  useEffect(() => {
-    fetchProducts();
-    fetchCategories();
-  }, []);
+ useEffect(() => {
+  if (!user?.industry) return;
 
+  fetchProducts();
+  fetchCategories();
+
+}, [user?.industry]);
   /* FILTER */
 
   useEffect(() => {
