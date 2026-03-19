@@ -2,131 +2,93 @@ import { API } from "@/app/components/lib/endpoints";
 
 class QuotationService {
 
-  /* =========================
-     GET ALL QUOTATIONS
-  ========================= */
-
-  async getAllQuotations() {
+  async createQuotation(data, businessId) {
     try {
-
-      const res = await fetch(API.quotations, {
-        method: "GET",
-        credentials: "include"
-      });
-
-      const result = await res.json();
-
-      if (!res.ok) return false;
-
-      return result.quotations;
-
-    } catch (error) {
-      throw error.message;
-    }
-  }
-
-
-  /* =========================
-     CREATE QUOTATION
-  ========================= */
-
-  async createQuotation(data) {
-    try {
-
-      const res = await fetch(API.quotations, {
+      const res = await fetch(`${API.quotations}/create/${businessId}`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
+        headers: { "Content-Type": "application/json" },
         credentials: "include",
         body: JSON.stringify(data)
       });
 
       const result = await res.json();
 
-      if (!res.ok) return false;
+      if (!res.ok) throw new Error(result.message);
 
       return result.message;
-
-    } catch (error) {
-      throw error.message;
-    }
-  }
-
-
-  /* =========================
-     UPDATE QUOTATION
-  ========================= */
-
-  async updateQuotation(data, id) {
-    try {
-
-      const res = await fetch(`${API.quotations}/${id}`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        credentials: "include",
-        body: JSON.stringify(data)
-      });
-
-      const result = await res.json();
-
-      if (!res.ok) return false;
-
-      return result.message;
-
-    } catch (error) {
-      throw error.message;
-    }
-  }
-
-
-  /* =========================
-     DELETE QUOTATION
-  ========================= */
-
-  async deleteQuotation(id) {
-    try {
-
-      const res = await fetch(`${API.quotations}/${id}`, {
-        method: "DELETE",
-        credentials: "include"
-      });
-
-      const result = await res.json();
-
-      if (!res.ok) return false;
-
-      return result.message;
-
-    } catch (error) {
-      throw error.message;
+    } catch (err) {
+      return err.message;
     }
   }
 
   async getProductsByCategory(categoryId) {
     try {
-
-      const res = await fetch(
-        `${API.quotations}/products/${categoryId}`,
-        {
-          method: "GET",
-          credentials: "include"
-        }
-      );
+      const res = await fetch(`${API.quotations}/products/${categoryId}`, {
+        credentials: "include"
+      });
 
       const result = await res.json();
 
-      if (!res.ok) return false;
+      if (!res.ok) throw new Error(result.message);
 
-      return result;
-
-    } catch (error) {
-      throw error.message;
+      return result.products || result;
+    } catch (err) {
+      return [];
     }
+  }
+
+
+
+  async updateQuotation(data, id) {
+
+    const res = await fetch(`${API.quotations}/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify(data)
+    });
+
+    const result = await res.json();
+
+    if (!res.ok) throw new Error(result.message);
+
+    return result.message;
+  }
+
+
+  /* ================= DELETE ================= */
+
+  async deleteQuotation(id) {
+
+    const res = await fetch(`${API.quotations}/${id}`, {
+      method: "DELETE",
+      credentials: "include"
+    });
+
+    const result = await res.json();
+
+    if (!res.ok) throw new Error(result.message);
+
+    return result.message;
+  }
+
+
+  /* ================= PRODUCTS BY CATEGORY ================= */
+
+  async getProductsByCategory(categoryId) {
+
+    const res = await fetch(
+      `${API.quotations}/products/${categoryId}`,
+      { method: "GET", credentials: "include" }
+    );
+
+    const result = await res.json();
+
+    if (!res.ok) throw new Error(result.message);
+
+    return result;
   }
 
 }
 
-export const quotation = new QuotationService();
+export default new QuotationService(); 
