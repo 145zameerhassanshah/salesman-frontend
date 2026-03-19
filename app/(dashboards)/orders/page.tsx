@@ -1,75 +1,23 @@
 "use client";
 
+import { useOrders } from "@/hooks/useOrders";
 import { Check, X, Eye, Plus, Search, SlidersHorizontal } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useSelector } from "react-redux";
 
-type Order = {
-  id: string;
-  client: string;
-  salesman: string;
-  total: string;
-  discount: string;
-  status: "Pending" | "Active" | "Rejected" | "Delivered" | "Cancelled";
-  date: string;
-};
-
-const orders: Order[] = [
-  {
-    id: "#ORD-3387",
-    client: "Jon Doe",
-    salesman: "Admin",
-    total: "$250,000.00",
-    discount: "$500.00 (5%)",
-    status: "Pending",
-    date: "24/2/2026",
-  },
-  {
-    id: "#INV-3387",
-    client: "Jon Doe",
-    salesman: "Admin",
-    total: "$250,000.00",
-    discount: "$500.00 (5%)",
-    status: "Active",
-    date: "24/2/2026",
-  },
-  {
-    id: "#ORD-3387",
-    client: "Jon Doe",
-    salesman: "Admin",
-    total: "$250,000.00",
-    discount: "$500.00 (5%)",
-    status: "Rejected",
-    date: "24/2/2026",
-  },
-  {
-    id: "#ORD-3387",
-    client: "Jon Doe",
-    salesman: "Admin",
-    total: "$250,000.00",
-    discount: "$500.00 (5%)",
-    status: "Delivered",
-    date: "24/2/2026",
-  },
-  {
-    id: "#ORD-3387",
-    client: "Jon Doe",
-    salesman: "Admin",
-    total: "$250,000.00",
-    discount: "$500.00 (5%)",
-    status: "Cancelled",
-    date: "24/2/2026",
-  },
-];
 
 const statusStyle = {
   Pending: "bg-yellow-100 text-yellow-600",
-  Active: "bg-blue-100 text-blue-600",
+  Unapproved: "bg-gray-100 text-blue-600",
   Rejected: "bg-red-100 text-red-600",
   Delivered: "bg-green-100 text-green-600",
+  Approved:"bg-green-100 text-green-600",
   Cancelled: "bg-orange-100 text-orange-600",
 };
 
 export default function OrdersPage() {
+  const user=useSelector((state:any)=>state.user.user);
+  const {data}=useOrders(user?.industry);
   const router=useRouter();
   return (
     <div className="p-4 md:p-8 bg-gray-100 min-h-screen">
@@ -113,22 +61,22 @@ export default function OrdersPage() {
           <thead className="text-gray-500 border-b">
             <tr className="text-left">
               <th className="py-3">Invoice #</th>
-              <th>Client</th>
-              <th>Salesman</th>
+              <th>Dealer</th>
+              <th>Salesman/Director</th>
               <th>Total</th>
               <th>Discount</th>
               <th>Status</th>
-              <th>Date</th>
+              <th>Due Date</th>
               <th className="text-center">Action</th>
             </tr>
           </thead>
 
           <tbody>
 
-            {orders.map((order, i) => (
+            {data?.map((order:any, i:number) => (
               <tr key={i} className="border-b last:border-none">
 
-                <td className="py-4 font-medium">{order.id}</td>
+                <td className="py-4 font-medium">{order?.order_number}</td>
 
                 <td>
                   <div className="flex items-center gap-2">
@@ -136,7 +84,7 @@ export default function OrdersPage() {
                       src="https://i.pravatar.cc/40"
                       className="w-8 h-8 rounded-full"
                     />
-                    {order.client}
+                    {order?.dealer_id?.name}
                   </div>
                 </td>
 
@@ -146,23 +94,23 @@ export default function OrdersPage() {
                       src="https://i.pravatar.cc/41"
                       className="w-8 h-8 rounded-full"
                     />
-                    {order.salesman}
+                    {order?.createdBy?.name}
                   </div>
                 </td>
 
-                <td>{order.total}</td>
+                <td>{order?.total}</td>
 
-                <td>{order.discount}</td>
+                <td>{order?.discount}</td>
 
                 <td>
                   <span
-                    className={`px-3 py-1 text-xs rounded-md font-medium ${statusStyle[order.status]}`}
+                    className={`px-3 py-1 text-xs rounded-md font-medium ${statusStyle[order?.status?.charAt(0).toUpperCase() + order?.status?.slice(1)]}`}
                   >
-                    {order.status}
+                    {order?.status?.charAt(0).toUpperCase() + order?.status?.slice(1)}
                   </span>
                 </td>
 
-                <td>{order.date}</td>
+                <td>{new Date(order?.due_date).toLocaleDateString("en-GB")}</td>
 
                 <td>
                   <div className="flex justify-center gap-2">

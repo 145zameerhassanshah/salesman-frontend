@@ -52,17 +52,6 @@ export default function Sidebar({
   };
 
   const menu = [
-<<<<<<< HEAD
-  { icon: LayoutGrid, label: "Dashboard", href: "/dashboard" },
-  { icon: ShoppingCart, label: "Orders", href: "/orders" },
-  { icon: Wallet, label: "Payments", href: "/payments" },
-  { icon: Shapes, label: "Categories", href: "/categories" },
-  { icon: Box, label: "Products", href: "/products" },
-  { icon: Package, label: "Clients", href: "/clients" },
-  { icon: Users, label: "Salesman", href: "/saleman" },
-  { icon: ClipboardList, label: "Report", href: "/reports" }
-];
-=======
     { icon: LayoutGrid, label: "Dashboard", href: "/dashboard" },
     { icon: ShoppingCart, label: "Orders", href: "/orders" },
     { icon: ShoppingCart, label: "Quotations", href: "/quotations" },
@@ -73,7 +62,6 @@ export default function Sidebar({
     { icon: Users, label: "Salesman", href: "/saleman" },
     { icon: ClipboardList, label: "Report", href: "/reports" },
   ];
->>>>>>> 7dd8ed18ba5e5b8fbbf00bcf7eccb1a5a960bfe3
 
   const system = [
     { icon: BarChart3, label: "Audit Trail", href: "/audit-trail" },
