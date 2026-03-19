@@ -1,9 +1,12 @@
 
+<<<<<<< HEAD
 import PendingApprovals from "@/pages/dashboard/PendingApprovals";
 import StatsCard from "@/pages/dashboard/StatsCard";
 import Dispatched from "@/pages/saleman/Dispatched";
 import SalesmanHeader from "@/pages/saleman/SalesmanHeader";
 import { ShoppingCart, Clock,} from "lucide-react";
+=======
+>>>>>>> 7dd8ed18ba5e5b8fbbf00bcf7eccb1a5a960bfe3
 
 import {
   DollarSign,
@@ -11,6 +14,10 @@ import {
   Target,
   Handshake
 } from "lucide-react";
+import PendingApprovals from "@/pages/dashboard/PendingApprovals";
+import SalesmanHeader from "@/pages/saleman/SalesmanHeader";
+import StatCard from "@/pages/saleman/StatCard";
+import Dispatched from "@/pages/saleman/Dispatched";
 
 export default function SalesmanPage() {
 
@@ -50,6 +57,7 @@ export default function SalesmanPage() {
 
       </div> */}
 
+<<<<<<< HEAD
     <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
     
             <StatsCard
@@ -77,7 +85,15 @@ export default function SalesmanPage() {
     
           </div>
 
+=======
+<div className="grid grid-cols-1 xl:grid-cols-2 gap-6 mt-6">
 
+        <PendingApprovals />
+        <Dispatched />
+      {/* <RevenueChart /> */}
+>>>>>>> 7dd8ed18ba5e5b8fbbf00bcf7eccb1a5a960bfe3
+
+    </div>
     </div>
 
   );

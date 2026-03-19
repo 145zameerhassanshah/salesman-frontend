@@ -1,135 +1,154 @@
 "use client";
 
+import { category } from "@/app/components/services/categoryService";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import toast from "react-hot-toast";
+import { useSelector } from "react-redux";
+
 export default function AddCategory() {
+const router=useRouter();
+const user = useSelector((state: any) => state.user.user);
 
-return (
+  const [formData, setFormData] = useState({
+    name: "",
+    order_no: 0,
+    is_active: true,
+  });
 
-<div className="p-4 md:p-8 bg-gray-100  min-h-screen">
+  const handleChange = (e: any) => {
+    const { name, value, type, checked } = e.target;
 
-{/* Header */}
+    setFormData((prev) => ({
+      ...prev,
+      [name]: type === "checkbox" ? checked : value,
+    }));
+  };
 
-<div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6 mb-6">
+  const handleSubmit = async () => {
+    try {
+        const data=await category.addCategory(formData,user?.industry);
+        if(data.message) return toast.error(data?.message);
+        toast.success(data);
+        router.push("/categories");
+    } catch (error) {
+        toast.error("Something went wrong");
+    }
+  };
 
-<div>
-<p className="text-sm text-gray-400">Categories ›</p>
-<h1 className="text-2xl md:text-3xl font-bold text-gray-800">
-Add Category
-</h1>
-</div>
+  return (
+    <div className="p-4 md:p-8 bg-gray-100 min-h-screen">
 
-<div className="flex flex-wrap gap-2 md:gap-3">
+      {/* Header */}
 
-<button className="bg-black text-white px-3 md:px-5 py-2 rounded-lg text-xs md:text-sm flex items-center gap-2">
-✓ Save Category
-</button>
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6 mb-6">
 
-<button className="border border-gray-300 px-3 md:px-5 py-2 rounded-lg text-xs md:text-sm text-gray-600 hover:bg-gray-200">
-Save Draft
-</button>
+        <div>
+          <p className="text-sm text-gray-400">Categories ›</p>
+          <h1 className="text-2xl md:text-3xl font-bold text-gray-800">
+            Add Category
+          </h1>
+        </div>
 
-<button className="border border-gray-300 px-3 md:px-5 py-2 rounded-lg text-xs md:text-sm text-red-500 hover:bg-red-100">
-Cancel
-</button>
+        <div className="flex flex-wrap gap-2 md:gap-3">
 
-</div>
+          <button
+            onClick={handleSubmit}
+            className="bg-black text-white px-3 md:px-5 py-2 rounded-lg text-xs md:text-sm flex items-center gap-2"
+          >
+            ✓ Save Changes
+          </button>
 
-</div>
+        </div>
 
+      </div>
 
-{/* Basic Info Card */}
+      {/* Basic Info Card */}
 
-<div className="bg-gray-100 rounded-3xl p-4 md:p-6 shadow-sm mb-4 border border-gray-200 w-full">
+      <div className="bg-gray-100 rounded-3xl p-4 md:p-6 shadow-sm mb-4 border border-gray-200 w-full">
 
-<h3 className="text-sm font-semibold text-gray-700 mb-5">
-Basic Info
-</h3>
+        <h3 className="text-sm font-semibold text-gray-700 mb-5">
+          Basic Info
+        </h3>
 
-<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
-{/* Left Side */}
+          {/* Left Side */}
 
-<div className="flex flex-col gap-4">
+          <div className="flex flex-col gap-4">
 
-<div>
-<label className="text-xs text-gray-500">
-Category Name
-</label>
+            <div>
+              <label className="text-xs text-gray-500">
+                Category Name
+              </label>
 
-<input
-type="text"
-placeholder="Category Name"
-className="w-full mt-1 bg-gray-200 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-gray-400"
-/>
-</div>
+              <input
+                type="text"
+                name="name"
+                required
+                value={formData.name}
+                onChange={handleChange}
+                placeholder="Category Name"
+                className="w-full mt-1 bg-gray-200 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-gray-400"
+              />
+            </div>
 
+            <div>
+              <label className="text-xs text-gray-500">
+                Sequence No (No at which you want to show this category)
+              </label>
 
-<div>
-<label className="text-xs text-gray-500">
-Sort Order
-</label>
+              <input
+                type="number"
+                name="order_no"
+                required
+                value={formData.order_no}
+                onChange={handleChange}
+                placeholder="0"
+                min={1}
+                className="w-full mt-1 bg-gray-200 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-gray-400"
+              />
+            </div>
 
-<input
-type="number"
-placeholder="0"
-className="w-full mt-1 bg-gray-200 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-gray-400"
-/>
-</div>
+          </div>
 
-</div>
+        </div>
 
+      </div>
 
-{/* Right Side */}
+      {/* Active Status */}
 
-<div className="flex flex-col">
+      <div className="bg-gray-100 rounded-3xl p-4 md:p-6 shadow-sm border border-gray-200 flex items-center justify-between w-full">
 
-<label className="text-xs text-gray-500">
-Description
-</label>
+        <div>
+          <h4 className="text-sm font-semibold text-gray-700">
+            Active
+          </h4>
+          <p className="text-xs text-gray-400">
+            Enable or disable this category globally.
+          </p>
+        </div>
 
-<textarea
-rows={6}
-placeholder="Enter a detailed description for this category..."
-className="w-full mt-1 bg-gray-200 rounded-xl px-4 py-3 outline-none resize-none focus:ring-2 focus:ring-gray-400"
-/>
+        <label className="relative inline-flex items-center cursor-pointer">
 
-</div>
+          <input
+            type="checkbox"
+            name="is_active"
+            required
+            checked={formData.is_active}
+            onChange={handleChange}
+            className="sr-only peer"
+          />
 
-</div>
+          <div className="w-11 h-6 bg-gray-300 rounded-full peer peer-checked:bg-gray-800
+          after:content-[''] after:absolute after:top-[2px] after:left-[2px]
+          after:bg-white after:h-5 after:w-5 after:rounded-full
+          after:transition-all peer-checked:after:translate-x-full"></div>
 
-</div>
+        </label>
 
+      </div>
 
-{/* Active Status */}
-
-<div className="bg-gray-100 rounded-3xl p-4 md:p-6 shadow-sm border border-gray-200 flex items-center justify-between w-full">
-
-<div>
-<h4 className="text-sm font-semibold text-gray-700">
-Active Status
-</h4>
-
-<p className="text-xs text-gray-400">
-Enable or disable this category globally.
-</p>
-</div>
-
-
-{/* Toggle */}
-
-<label className="relative inline-flex items-center cursor-pointer">
-
-<input type="checkbox" className="sr-only peer" defaultChecked />
-
-<div className="w-11 h-6 bg-gray-300 rounded-full peer peer-checked:bg-gray-800
-after:content-[''] after:absolute after:top-[2px] after:left-[2px]
-after:bg-white after:h-5 after:w-5 after:rounded-full
-after:transition-all peer-checked:after:translate-x-full"></div>
-
-</label>
-
-</div>
-
-</div>
-
-)
+    </div>
+  );
 }

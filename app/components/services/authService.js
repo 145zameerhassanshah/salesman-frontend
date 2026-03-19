@@ -16,11 +16,6 @@ class AuthService {
       });
 
       const result = await res.json();
-
-      if(!res.ok){
-        throw new Error(result.message || "Login failed");
-      }
-
       return result;
 
     }catch(err){
@@ -36,7 +31,7 @@ class AuthService {
     try{
 
       const res = await fetch(API.logout,{
-        method:"POST",
+        method:"GET",
         credentials:"include"
       });
 
@@ -58,8 +53,6 @@ class AuthService {
   /* CURRENT USER */
 
   static async getCurrentUser(){
-    try{
-
       const res = await fetch(API.me,{
         method:"GET",
         credentials:"include"
@@ -72,11 +65,6 @@ class AuthService {
       }
 
       return result;
-
-    }catch(err){
-      console.error("Get current user error:",err);
-      throw err;
-    }
   }
 
 

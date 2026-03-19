@@ -11,8 +11,7 @@ export default function AuthProvider({ children }: any) {
 
 
   const dispatch = useDispatch();
-  const { data } = useCurrentUser(!!user);
-
+  const { data } = useCurrentUser(!user);
   useEffect(() => {
 
     if (data) {
@@ -20,6 +19,7 @@ export default function AuthProvider({ children }: any) {
     }
 
   }, [data]);
+  
 
   return children;
 }

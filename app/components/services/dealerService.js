@@ -1,134 +1,55 @@
 import { API } from "@/app/components/lib/endpoints";
-
 class DealerService {
 
-  /* =========================
-     GET ALL DEALERS
-  ========================= */
+  /* GET ALL */
+  static async getAllDealers(businessId) {
+    const res = await fetch(`${API.dealers}/business/${businessId}`, {
+      credentials: "include"
+    });
 
-  async getAllDealers() {
-    try {
-
-      const res = await fetch(API.dealers, {
-        method: "GET",
-        credentials: "include"
-      });
-
-      const result = await res.json();
-
-      if (!res.ok) return false;
-
-      return result.dealers;
-
-    } catch (error) {
-      throw error.message;
-    }
+    return await res.json();
   }
 
+  /* GET ONE */
+  static async getDealerById(id) {
+    const res = await fetch(`${API.dealers}/${id}`, {
+      credentials: "include"
+    });
 
-  /* =========================
-     CREATE DEALER
-  ========================= */
-
-  async createDealer(data) {
-    try {
-
-      const res = await fetch(`${API.dealers}/create`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        credentials: "include",
-        body: JSON.stringify(data)
-      });
-
-      const result = await res.json();
-
-      if (!res.ok) return false;
-
-      return result.message;
-
-    } catch (error) {
-      throw error.message;
-    }
+    return await res.json();
   }
 
+  /* CREATE */
+  static async createDealer(data, businessId) {
+    const res = await fetch(`${API.dealers}/create/${businessId}`, {
+      method: "POST",
+      credentials: "include",
+      body: data
+    });
 
-  /* =========================
-     GET DEALER BY ID
-  ========================= */
-
-  async getDealerById(id) {
-    try {
-
-      const res = await fetch(`${API.dealers}/${id}`, {
-        method: "GET",
-        credentials: "include"
-      });
-
-      const result = await res.json();
-
-      if (!res.ok) return false;
-
-      return result.dealer;
-
-    } catch (error) {
-      throw error.message;
-    }
+    return await res.json();
   }
 
+  /* UPDATE */
+  static async updateDealer(data, id) {
+    const res = await fetch(`${API.dealers}/${id}`, {
+      method: "PUT", // ✅ FIXED
+      credentials: "include",
+      body: data
+    });
 
-  /* =========================
-     UPDATE DEALER
-  ========================= */
-
-  async updateDealer(data, id) {
-    try {
-
-      const res = await fetch(`${API.dealers}/${id}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        credentials: "include",
-        body: JSON.stringify(data)
-      });
-
-      const result = await res.json();
-
-      if (!res.ok) return false;
-
-      return result.message;
-
-    } catch (error) {
-      throw error.message;
-    }
+    return await res.json();
   }
 
+  /* DELETE */
+  static async deleteDealer(id) {
+    const res = await fetch(`${API.dealers}/${id}`, {
+      method: "DELETE",
+      credentials: "include"
+    });
 
-  /* =========================
-     DELETE DEALER
-  ========================= */
-
-  async deleteDealer(id) {
-    try {
-
-      const res = await fetch(`${API.dealers}/${id}`, {
-        method: "DELETE",
-        credentials: "include"
-      });
-
-      const result = await res.json();
-
-      if (!res.ok) return false;
-
-      return result.message;
-
-    } catch (error) {
-      throw error.message;
-    }
+    return await res.json();
   }
-
 }
 
-export const dealer = new DealerService();
+export default DealerService;
