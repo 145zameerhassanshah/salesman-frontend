@@ -44,14 +44,27 @@ export default function Sidebar({
       toast.success(signOut?.message || "Logout successful");
 
       dispatch(clearUser());
-
       router.push("/login");
     } catch (error) {
       toast.error("Something went wrong");
     }
   };
 
+  /* ================= MENU ================= */
+
   const menu = [
+<<<<<<< HEAD
+    { icon: LayoutGrid, label: "Dashboard", href: "/dashboard", roles: ["admin"] },
+    { icon: ShoppingCart, label: "Orders", href: "/orders", roles: ["admin", "salesman"] },
+    { icon: ShoppingCart, label: "Quotations", href: "/quotations", roles: ["admin", "salesman"] },
+    { icon: Wallet, label: "Payments", href: "/payments", roles: ["admin"] },
+    { icon: Shapes, label: "Categories", href: "/categories", roles: ["admin"] },
+    { icon: Box, label: "Products", href: "/products", roles: ["admin"] },
+    { icon: Package, label: "Dealers", href: "/dealers", roles: ["admin"] },
+    { icon: Users, label: "Salesman", href: "/saleman", roles: ["admin"] },
+    { icon: ClipboardList, label: "Report", href: "/reports", roles: ["admin"] },
+  ];
+=======
   { icon: LayoutGrid, label: "Dashboard", href: "/dashboard" },
   { icon: ShoppingCart, label: "Orders", href: "/orders" },
     { icon: ShoppingCart, label: "Quotations", href: "/quotations" },
@@ -63,18 +76,24 @@ export default function Sidebar({
   { icon: Users, label: "Salesman", href: "/saleman" },
   { icon: ClipboardList, label: "Report", href: "/reports" }
 ];
+>>>>>>> 03fc75db717f235a02623e24187c247ee629487d
 
   const system = [
-    { icon: BarChart3, label: "Audit Trail", href: "/audit-trail" },
-    { icon: LogOut, label: "Logout", action: logout },
+    { icon: BarChart3, label: "Audit Trail", href: "/audit-trail", roles: ["admin"] },
+    { icon: LogOut, label: "Logout", action: logout, roles: ["admin", "salesman"] },
   ];
 
-  const filteredMenu = user?.user_type === "salesman" ? [] : menu;
+  /* ================= FILTER ================= */
 
-  const filteredSystem =
-    user?.user_type === "salesman"
-      ? system.filter((item) => item.label === "Logout")
-      : system;
+  const filteredMenu = menu.filter((item) =>
+    item.roles.includes(user?.user_type)
+  );
+
+  const filteredSystem = system.filter((item) =>
+    item.roles.includes(user?.user_type)
+  );
+
+  /* ================= UI ================= */
 
   return (
     <div
@@ -86,7 +105,8 @@ export default function Sidebar({
       `}
     >
       <div className="flex flex-col items-center">
-        {/* Logo */}
+
+        {/* LOGO */}
         <div className="flex items-center justify-between w-full px-3 mb-3">
           <div className="bg-orange-500 w-10 h-10 rounded flex items-center justify-center text-white text-sm font-bold">
             IM
@@ -98,6 +118,8 @@ export default function Sidebar({
             onClick={() => setExpanded(!expanded)}
           />
         </div>
+
+        {/* MENU */}
         {filteredMenu.map((item, i) => {
           const Icon = item.icon;
 
@@ -120,8 +142,7 @@ export default function Sidebar({
           );
         })}
 
-        {/* SYSTEM MENU */}
-
+        {/* SYSTEM */}
         {filteredSystem.map((item, i) => {
           const Icon = item.icon;
 
@@ -166,11 +187,13 @@ export default function Sidebar({
       </div>
 
       {/* PROFILE */}
-
       <div className="absolute bottom-3 flex items-center gap-2 px-3">
         <img src="/profile.png" className="w-8 h-8 rounded-full" />
-
-        {expanded && <span className="text-sm">Admin</span>}
+        {expanded && (
+          <span className="text-sm capitalize">
+            {user?.user_type || "User"}
+          </span>
+        )}
       </div>
     </div>
   );
