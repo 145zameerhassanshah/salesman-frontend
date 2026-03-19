@@ -1,3 +1,5 @@
+
+
 "use client";
 
 import AuthService from "@/app/components/services/authService";
@@ -50,50 +52,42 @@ export default function Sidebar({
     }
   };
 
-  /* ================= MENU ================= */
-
-  const menu = [
-<<<<<<< HEAD
-    { icon: LayoutGrid, label: "Dashboard", href: "/dashboard", roles: ["admin"] },
-    { icon: ShoppingCart, label: "Orders", href: "/orders", roles: ["admin", "salesman"] },
-    { icon: ShoppingCart, label: "Quotations", href: "/quotations", roles: ["admin", "salesman"] },
-    { icon: Wallet, label: "Payments", href: "/payments", roles: ["admin"] },
-    { icon: Shapes, label: "Categories", href: "/categories", roles: ["admin"] },
-    { icon: Box, label: "Products", href: "/products", roles: ["admin"] },
-    { icon: Package, label: "Dealers", href: "/dealers", roles: ["admin"] },
-    { icon: Users, label: "Salesman", href: "/saleman", roles: ["admin"] },
-    { icon: ClipboardList, label: "Report", href: "/reports", roles: ["admin"] },
+  // ✅ ADMIN MENU
+  const adminMenu = [
+    { icon: LayoutGrid, label: "Dashboard", href: "/dashboard" },
+    { icon: ShoppingCart, label: "Orders", href: "/orders" },
+    { icon: Wallet, label: "Payments", href: "/payments" },
+    { icon: Shapes, label: "Categories", href: "/categories" },
+    { icon: Box, label: "Products", href: "/products" },
+    { icon: Package, label: "Dealers", href: "/dealers" },
+    { icon: Users, label: "Salesman", href: "/saleman" },
+    { icon: ClipboardList, label: "Reports", href: "/reports" },
   ];
-=======
-  { icon: LayoutGrid, label: "Dashboard", href: "/dashboard" },
-  { icon: ShoppingCart, label: "Orders", href: "/orders" },
-    { icon: ShoppingCart, label: "Quotations", href: "/quotations" },
 
-  { icon: Wallet, label: "Payments", href: "/payments" },
-  { icon: Shapes, label: "Categories", href: "/categories" },
-  { icon: Box, label: "Products", href: "/products" },
-  { icon: Package, label: "Dealers", href: "/Dealer" },
-  { icon: Users, label: "Salesman", href: "/saleman" },
-  { icon: ClipboardList, label: "Report", href: "/reports" }
-];
->>>>>>> 03fc75db717f235a02623e24187c247ee629487d
+  // ✅ SALESMAN MENU
+  const salesmanMenu = [
+    { icon: ShoppingCart, label: "Orders", href: "/orders" },
+    { icon: ClipboardList, label: "Quotations", href: "/quotations" },
+  ];
 
+  // ✅ SYSTEM MENU
   const system = [
-    { icon: BarChart3, label: "Audit Trail", href: "/audit-trail", roles: ["admin"] },
-    { icon: LogOut, label: "Logout", action: logout, roles: ["admin", "salesman"] },
+    { icon: BarChart3, label: "Audit Trail", href: "/audit-trail" },
+    { icon: LogOut, label: "Logout", action: logout },
   ];
 
-  /* ================= FILTER ================= */
+  // ✅ ROLE BASED MENU
+  const roleMenus: any = {
+    admin: adminMenu,
+    salesman: salesmanMenu,
+  };
 
-  const filteredMenu = menu.filter((item) =>
-    item.roles.includes(user?.user_type)
-  );
+  const filteredMenu = roleMenus[user?.user_type] || [];
 
-  const filteredSystem = system.filter((item) =>
-    item.roles.includes(user?.user_type)
-  );
-
-  /* ================= UI ================= */
+  const filteredSystem =
+    user?.user_type === "salesman"
+      ? system.filter((item) => item.label === "Logout")
+      : system;
 
   return (
     <div
@@ -105,8 +99,7 @@ export default function Sidebar({
       `}
     >
       <div className="flex flex-col items-center">
-
-        {/* LOGO */}
+        {/* Logo */}
         <div className="flex items-center justify-between w-full px-3 mb-3">
           <div className="bg-orange-500 w-10 h-10 rounded flex items-center justify-center text-white text-sm font-bold">
             IM
@@ -114,13 +107,15 @@ export default function Sidebar({
 
           <ChevronRight
             size={18}
-            className={`cursor-pointer transition ${expanded ? "rotate-180" : ""}`}
+            className={`cursor-pointer transition ${
+              expanded ? "rotate-180" : ""
+            }`}
             onClick={() => setExpanded(!expanded)}
           />
         </div>
 
         {/* MENU */}
-        {filteredMenu.map((item, i) => {
+        {filteredMenu.map((item: any, i: number) => {
           const Icon = item.icon;
 
           return (
@@ -142,8 +137,8 @@ export default function Sidebar({
           );
         })}
 
-        {/* SYSTEM */}
-        {filteredSystem.map((item, i) => {
+        {/* SYSTEM MENU */}
+        {filteredSystem.map((item: any, i: number) => {
           const Icon = item.icon;
 
           if (item.action) {
@@ -169,7 +164,7 @@ export default function Sidebar({
           return (
             <Link
               key={i}
-              href={item.href!}
+              href={item.href}
               className="group relative flex items-center gap-3 p-2 rounded-lg hover:bg-gray-300 w-full"
             >
               <Icon size={18} />
@@ -189,9 +184,10 @@ export default function Sidebar({
       {/* PROFILE */}
       <div className="absolute bottom-3 flex items-center gap-2 px-3">
         <img src="/profile.png" className="w-8 h-8 rounded-full" />
+
         {expanded && (
-          <span className="text-sm capitalize">
-            {user?.user_type || "User"}
+          <span className="text-sm">
+            {user?.user_type === "salesman" ? "Salesman" : "Admin"}
           </span>
         )}
       </div>
