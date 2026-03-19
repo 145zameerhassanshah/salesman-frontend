@@ -8,7 +8,7 @@ export default function Dispatched() {
     <div className="bg-white/60 backdrop-blur rounded-3xl p-6 shadow-sm">
 
       <div className="flex justify-between items-center mb-6">
-        <h3 className="font-semibold">Dispatched</h3>
+        <h3 className="font-semibold">Dispatched Orders</h3>
 
         <button className="bg-black text-white text-sm px-4 py-2 rounded-lg">
           View All

@@ -12,14 +12,35 @@ export default function StatCard({ title, value, icon }: Props) {
 
   return (
 
-    <div className="bg-gray-100 rounded-2xl p-5 flex flex-col gap-2 shadow-sm">
+    <div
+      className="
+      bg-gray-100
+      rounded-3xl
+      px-6 py-5
+      flex flex-col
+      justify-center
+      gap-3
+      transition-all
+      duration-200
+      hover:shadow-md
+      "
+    >
 
-      <div className="flex items-center gap-2 text-gray-500 text-sm">
-        {icon}
-        {title}
+      {/* Title Row */}
+
+      <div className="flex items-center gap-2 text-gray-500 text-sm font-medium">
+
+        <div className="text-gray-400">
+          {icon}
+        </div>
+
+        <span>{title}</span>
+
       </div>
 
-      <p className="text-2xl font-semibold text-gray-800">
+      {/* Value */}
+
+      <p className="text-3xl md:text-2xl lg:text-3xl font-semibold text-gray-900 tracking-tight">
         {value}
       </p>
 

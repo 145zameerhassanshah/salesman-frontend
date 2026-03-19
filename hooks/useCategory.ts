@@ -1,11 +1,12 @@
 import { useQuery } from "@tanstack/react-query";
 import { category } from "@/app/components/services/categoryService";
 
-export const useCategory = () => {
+export const useCategory = (id:string) => {
 
   return useQuery({
     queryKey: ["categories"],
-    queryFn: category.getAllCategories
+    queryFn:()=> category.getIndustryCategories(id),
+    enabled:!!id
   });
 
 };

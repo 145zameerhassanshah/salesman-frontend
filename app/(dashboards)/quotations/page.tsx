@@ -1,6 +1,7 @@
 "use client";
 
 import { Check, X, Eye, Plus, Search, SlidersHorizontal } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 type Quotation = {
   id: string;
@@ -69,6 +70,7 @@ const statusStyle = {
 };
 
 export default function Quotationspage() {
+  const router=useRouter();
   return (
     <div className="p-4 md:p-8 bg-gray-100 min-h-screen">
 
@@ -96,7 +98,7 @@ export default function Quotationspage() {
           </button>
 
           {/* Add Order */}
-          <button className="flex items-center gap-2 bg-black text-white px-4 py-2 rounded-lg">
+          <button onClick={()=>router.push("/quotations/add")} className="flex items-center gap-2 bg-black text-white px-4 py-2 rounded-lg">
             Add Quotation
             
             <Plus size={16} />

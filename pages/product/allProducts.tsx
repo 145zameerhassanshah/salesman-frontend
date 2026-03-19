@@ -58,7 +58,7 @@ export default function ProductsTable({ products, refresh,onEdit }: any) {
 
           <tbody>
 
-            {products.map((p: any) => (
+            {products?.map((p: any) => (
 
               <tr key={p._id} className="border-b hover:bg-gray-50">
 

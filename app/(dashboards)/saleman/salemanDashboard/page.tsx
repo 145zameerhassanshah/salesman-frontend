@@ -1,4 +1,12 @@
 
+<<<<<<< HEAD
+import PendingApprovals from "@/pages/dashboard/PendingApprovals";
+import StatsCard from "@/pages/dashboard/StatsCard";
+import Dispatched from "@/pages/saleman/Dispatched";
+import SalesmanHeader from "@/pages/saleman/SalesmanHeader";
+import { ShoppingCart, Clock,} from "lucide-react";
+=======
+>>>>>>> 7dd8ed18ba5e5b8fbbf00bcf7eccb1a5a960bfe3
 
 import {
   DollarSign,
@@ -21,11 +29,11 @@ export default function SalesmanPage() {
 
       {/* Stats */}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+      {/* <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
 
         <StatCard
           title="Total Revenue"
-          value="$425,000.00"
+          value={425000}
           icon={<DollarSign size={16} />}
         />
 
@@ -47,13 +55,43 @@ export default function SalesmanPage() {
           icon={<Handshake size={16} />}
         />
 
-      </div>
+      </div> */}
 
+<<<<<<< HEAD
+    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+    
+            <StatsCard
+              title="Total Revenue"
+              value={425000}
+              Icon={DollarSign}
+            />
+    
+            <StatsCard
+              title="Conversion Rate"
+              value={18.5}
+              Icon={TrendingUp}
+            />
+    
+            <StatsCard
+              title="Quota Progress"
+              value={96}
+              Icon={Target}
+            />
+            </div>
+            <div className="grid grid-cols-1 xl:grid-cols-2 mt-6 gap-6">
+            
+                    <PendingApprovals />
+                    <Dispatched />
+    
+          </div>
+
+=======
 <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 mt-6">
 
         <PendingApprovals />
         <Dispatched />
       {/* <RevenueChart /> */}
+>>>>>>> 7dd8ed18ba5e5b8fbbf00bcf7eccb1a5a960bfe3
 
     </div>
     </div>
