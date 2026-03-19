@@ -27,20 +27,16 @@ is_active:true
 const [loading,setLoading] = useState(false);
 
 
-useEffect(()=>{
-  async function fetchCategories(){
-    try{
-      const res = await category.getAllCategories();
-      if(res) setCategories(res);
-    }catch{
-      toast.error("Failed to load categories");
-    }
+useEffect(() => {
+  if (!user?.industry) return; 
+
+  async function fetchCategories() {
+    const res = await category.getIndustryCategories(user.industry);
+    setCategories(res || []);
   }
 
   fetchCategories();
-},[]);
-
-
+}, [user?.industry]);
 const handleChange = (e:any)=>{
 const {name,value,type,checked} = e.target;
 

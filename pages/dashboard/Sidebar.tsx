@@ -53,6 +53,7 @@ export default function Sidebar({
   /* ================= MENU ================= */
 
   const menu = [
+<<<<<<< HEAD
     { icon: LayoutGrid, label: "Dashboard", href: "/dashboard", roles: ["admin"] },
     { icon: ShoppingCart, label: "Orders", href: "/orders", roles: ["admin", "salesman"] },
     { icon: ShoppingCart, label: "Quotations", href: "/quotations", roles: ["admin", "salesman"] },
@@ -63,6 +64,19 @@ export default function Sidebar({
     { icon: Users, label: "Salesman", href: "/saleman", roles: ["admin"] },
     { icon: ClipboardList, label: "Report", href: "/reports", roles: ["admin"] },
   ];
+=======
+  { icon: LayoutGrid, label: "Dashboard", href: "/dashboard" },
+  { icon: ShoppingCart, label: "Orders", href: "/orders" },
+    { icon: ShoppingCart, label: "Quotations", href: "/quotations" },
+
+  { icon: Wallet, label: "Payments", href: "/payments" },
+  { icon: Shapes, label: "Categories", href: "/categories" },
+  { icon: Box, label: "Products", href: "/products" },
+  { icon: Package, label: "Dealers", href: "/Dealer" },
+  { icon: Users, label: "Salesman", href: "/saleman" },
+  { icon: ClipboardList, label: "Report", href: "/reports" }
+];
+>>>>>>> 03fc75db717f235a02623e24187c247ee629487d
 
   const system = [
     { icon: BarChart3, label: "Audit Trail", href: "/audit-trail", roles: ["admin"] },

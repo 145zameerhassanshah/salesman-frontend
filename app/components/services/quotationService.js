@@ -21,22 +21,22 @@ class QuotationService {
     }
   }
 
-  async getProductsByCategory(categoryId) {
-    try {
-      const res = await fetch(`${API.quotations}/products/${categoryId}`, {
-        credentials: "include"
-      });
+async getProductsByCategory(categoryId) {
+  try {
+    const res = await fetch(`${API.quotations}/products/${categoryId}`, {
+      method: "GET",
+      credentials: "include"
+    });
 
-      const result = await res.json();
+    const result = await res.json();
 
-      if (!res.ok) throw new Error(result.message);
+    if (!res.ok) throw new Error(result.message);
 
-      return result.products || result;
-    } catch (err) {
-      return [];
-    }
+    return result.products || [];
+  } catch (err) {
+    return [];
   }
-
+}
 
 
   async updateQuotation(data, id) {
@@ -72,23 +72,5 @@ class QuotationService {
     return result.message;
   }
 
-
-  /* ================= PRODUCTS BY CATEGORY ================= */
-
-  async getProductsByCategory(categoryId) {
-
-    const res = await fetch(
-      `${API.quotations}/products/${categoryId}`,
-      { method: "GET", credentials: "include" }
-    );
-
-    const result = await res.json();
-
-    if (!res.ok) throw new Error(result.message);
-
-    return result;
-  }
-
 }
-
 export default QuotationService; 
