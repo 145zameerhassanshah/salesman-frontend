@@ -31,7 +31,7 @@ export default function Sidebar({
   { icon: Shapes, label: "Categories", href: "/categories" },
   { icon: Box, label: "Products", href: "/products" },
   { icon: Package, label: "Clients", href: "/clients" },
-  { icon: Users, label: "Salesman", href: "/salesman" },
+  { icon: Users, label: "Salesman", href: "/saleman" },
   { icon: ClipboardList, label: "Report", href: "/reports" }
 ];
 
