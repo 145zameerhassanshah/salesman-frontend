@@ -27,14 +27,13 @@ const handleLogin = async (event:any) => {
 
   setLoading(true);
 
-  try {
     const res = await AuthService.loginUser({
       email,
       password,
     });
 
     if (!res.success) {
-      toast.error(res.message || "Login failed");
+      toast.error(res.message);
       setLoading(false);
       return;
     }   
@@ -63,11 +62,6 @@ const handleLogin = async (event:any) => {
     else {
       router.push("/dashboard");
     }
-
-  } catch (err) {
-    console.error(err);
-    toast.error("Server error. Try again.");
-  }
 
   setLoading(false);
 };  return (

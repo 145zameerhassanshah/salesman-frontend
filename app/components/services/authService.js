@@ -16,12 +16,6 @@ class AuthService {
       });
 
       const result = await res.json();
-
-      if(!res.ok){
-        throw new Error(result.message || "Login failed");
-      }
-      console.log(result)
-
       return result;
 
     }catch(err){

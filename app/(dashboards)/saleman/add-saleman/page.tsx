@@ -19,6 +19,7 @@ export default function AddSalesman() {
     city: "",
     address: "",
     password: "",
+    profile_image: null as File | null,
   });
 
   const cancel=()=>{
@@ -30,8 +31,30 @@ export default function AddSalesman() {
         city: "",
         address: "",
         password: "",
+        profile_image:null
       });
   }
+
+  const handleImageChange = (e: any) => {
+  const file = e.target.files[0];
+
+  if (!file) return;
+
+  if (!file.type.startsWith("image/")) {
+    toast.error("Only image allowed");
+    return;
+  }
+  if(file.size > 2 * 1024 * 1024){
+  toast.error("Image must be < 2MB");
+  return;
+}
+
+
+  setForm({
+    ...form,
+    profile_image: file,
+  });
+};
 
   /* ==============================
      HANDLE CHANGE
@@ -66,14 +89,24 @@ export default function AddSalesman() {
     }
 
     try {
-      const payload = {
-        ...form,
-        user_type: "salesman", // ✅ added
-        industry: user?.industry, // ✅ added
-      };
+     const formData = new FormData();
 
-      const res=await UserService.createTeamMember(payload);
-      if(!res.success) return toast.error(res?.message);
+    formData.append("name", form.name);
+    formData.append("email", form.email);
+    formData.append("phone_number", form.phone_number);
+    formData.append("whatsapp_number", form.whatsapp_number);
+    formData.append("city", form.city);
+    formData.append("address", form.address);
+    formData.append("password", form.password);
+    formData.append("user_type", "salesman");
+    formData.append("industry", user.industry);
+
+    if (form.profile_image) {
+      formData.append("profile_image", form.profile_image);
+    }
+     const res = await UserService.createTeamMember(formData);
+
+    if (!res.success) return toast.error(res.message);
       toast.success("Salesman created successfully");
       router.push("/saleman")
       setForm({
@@ -84,6 +117,7 @@ export default function AddSalesman() {
         city: "",
         address: "",
         password: "",
+        profile_image:null,
       });
     } catch (err: any) {
       toast.error(err.message || "Failed to create salesman");
@@ -130,6 +164,7 @@ export default function AddSalesman() {
                 value={form.name}
                 onChange={handleChange}
                 type="text"
+                required
                 placeholder="e.g John Doe"
                 className="w-full mt-1 bg-gray-100 rounded-lg px-3 py-2 outline-none"
               />
@@ -141,6 +176,7 @@ export default function AddSalesman() {
                 name="email"
                 value={form.email}
                 onChange={handleChange}
+                required
                 type="email"
                 placeholder="contact@client.com"
                 className="w-full mt-1 bg-gray-100 rounded-lg px-3 py-2 outline-none"
@@ -153,11 +189,22 @@ export default function AddSalesman() {
                 name="phone_number"
                 value={form.phone_number}
                 onChange={handleChange}
+                required
                 type="text"
                 placeholder="+1 (555) 000-0000"
                 className="w-full mt-1 bg-gray-100 rounded-lg px-3 py-2 outline-none"
               />
             </div>
+            <div>
+  <label className="text-sm text-gray-500">Profile Image</label>
+  <input
+    type="file"
+    accept="image/*"
+    onChange={handleImageChange}
+    required
+    className="w-full mt-1 bg-gray-100 rounded-lg px-3 py-2 outline-none"
+  />
+</div>
 
             <div>
               <label className="text-sm text-gray-500">WhatsApp Number</label>
@@ -166,6 +213,7 @@ export default function AddSalesman() {
                 value={form.whatsapp_number}
                 onChange={handleChange}
                 type="text"
+                required
                 placeholder="+92 (555) 000-0000"
                 className="w-full mt-1 bg-gray-100 rounded-lg px-3 py-2 outline-none"
               />
@@ -177,6 +225,7 @@ export default function AddSalesman() {
                 name="city"
                 value={form.city}
                 onChange={handleChange}
+                required
                 type="text"
                 placeholder="City"
                 className="w-full mt-1 bg-gray-100 rounded-lg px-3 py-2 outline-none"
@@ -189,6 +238,7 @@ export default function AddSalesman() {
                 name="address"
                 value={form.address}
                 onChange={handleChange}
+                required
                 type="text"
                 placeholder="Street, House etc"
                 className="w-full mt-1 bg-gray-100 rounded-lg px-3 py-2 outline-none"
@@ -199,6 +249,7 @@ export default function AddSalesman() {
               <input
                 name="password"
                 value={form.password}
+                required
                 onChange={handleChange}
                 type="password"
                 className="w-full mt-1 bg-gray-100 rounded-lg px-3 py-2 outline-none"
