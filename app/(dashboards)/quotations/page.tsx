@@ -1,7 +1,9 @@
 "use client";
 
+import { useQuotations } from "@/hooks/useQuotations";
 import { Check, X, Eye, Plus, Search, SlidersHorizontal } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useSelector } from "react-redux";
 
 type Quotation = {
   id: string;
@@ -70,7 +72,10 @@ const statusStyle = {
 };
 
 export default function Quotationspage() {
+  const user=useSelector((state:any)=>state.user.user);
   const router=useRouter();
+  const { data   } = useQuotations(user?.industry);
+  console.log("QUOTATIONS:", data); 
   return (
     <div className="p-4 md:p-8 bg-gray-100 min-h-screen">
 
@@ -113,7 +118,7 @@ export default function Quotationspage() {
 
           <thead className="text-gray-500 border-b">
             <tr className="text-left">
-              <th className="py-3">Invoice #</th>
+              <th className="py-3">Quotation #</th>
               <th>Dealer</th>
               <th>Salesman</th>
               <th>Total</th>
@@ -126,44 +131,36 @@ export default function Quotationspage() {
 
           <tbody>
 
-            {orders.map((order, i) => (
+            {data?.map((quotation:any, i:number) => (
               <tr key={i} className="border-b last:border-none">
 
-                <td className="py-4 font-medium">{order.id}</td>
+                <td className="py-4 font-medium">{quotation?.quotation_number}</td>
 
                 <td>
                   <div className="flex items-center gap-2">
-                    <img
-                      src="https://i.pravatar.cc/40"
-                      className="w-8 h-8 rounded-full"
-                    />
-                    {order.client}
+                    {quotation?.dealer_id?.name}
                   </div>
                 </td>
 
                 <td>
                   <div className="flex items-center gap-2">
-                    <img
-                      src="https://i.pravatar.cc/41"
-                      className="w-8 h-8 rounded-full"
-                    />
-                    {order.salesman}
+                    {quotation?.createdBy?.name}
                   </div>
                 </td>
 
-                <td>{order.total}</td>
+                <td>{quotation?.total}</td>
 
-                <td>{order.discount}</td>
+                <td>{quotation?.discount}</td>
 
                 <td>
                   <span
-                    className={`px-3 py-1 text-xs rounded-md font-medium ${statusStyle[order.status]}`}
+                    className={`px-3 py-1 text-xs rounded-md font-medium ${statusStyle[quotation?.status?.charAt(0).toUpperCase() + quotation?.status?.slice(1)]}`}
                   >
-                    {order.status}
+                    {quotation?.status?.charAt(0).toUpperCase() + quotation?.status?.slice(1)}
                   </span>
                 </td>
 
-                <td>{order.date}</td>
+                <td>{new Date(quotation?.quotation_date).toLocaleDateString("en-GB")}</td>
 
                 <td>
                   <div className="flex justify-center gap-2">
@@ -191,20 +188,6 @@ export default function Quotationspage() {
         </table>
 
         {/* Footer */}
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mt-6 text-sm text-gray-500">
-
-          <p>Total Orders: 480</p>
-
-          <div className="flex items-center gap-2">
-            <button className="px-3 py-1 border rounded">1</button>
-            <button className="px-3 py-1 border rounded bg-gray-100">2</button>
-            <button className="px-3 py-1 border rounded">3</button>
-            <span>...</span>
-            <button className="px-3 py-1 border rounded">14</button>
-            <button className="px-3 py-1 border rounded">15</button>
-          </div>
-
-        </div>
 
       </div>
     </div>

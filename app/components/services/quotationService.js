@@ -20,6 +20,35 @@ class QuotationService {
       return err.message;
     }
   }
+static async getQuotations(businessId) {
+  try {
+    const res = await fetch(`${API.quotations}/${businessId}`, {
+      method: "GET",
+      credentials: "include"
+    });
+    const result = await res.json();
+
+    if (!res.ok) throw new Error(result.message);
+    return result.quotations || [];
+  } catch (err) {
+    return [];
+  }
+}
+
+async getQuotationById(id) {
+  try {
+    const res = await fetch(`${API.quotations}/${id}`, {
+      method: "GET",
+      credentials: "include"
+    }); 
+    const result = await res.json();
+
+    if (!res.ok) throw new Error(result.message);
+    return result.quotation || null;
+  } catch (err) {
+    return null;
+  }
+}
 
 async getProductsByCategory(categoryId) {
   try {
@@ -73,4 +102,4 @@ async getProductsByCategory(categoryId) {
   }
 
 }
-export default new QuotationService(); 
+export default  QuotationService; 
