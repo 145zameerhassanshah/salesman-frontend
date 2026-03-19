@@ -1,114 +1,89 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import ProductsTable from "@/pages/product/allProducts";
-import ProductService from "@/app/components/services/productService";
-import { category } from "@/app/components/services/categoryService";
-import { Search, Filter, Plus } from "lucide-react";
+import { Search, Plus } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useSelector } from "react-redux";
+import DealerService from "@/app/components/services/dealerService";
+import DealersTable from "@/pages/dealer/allDealers";
 import toast from "react-hot-toast";
 
 export default function Page() {
-  const user=useSelector((state:any)=>state.user.user);
+  const user = useSelector((state:any)=>state.user.user);
   const router = useRouter();
 
-  const [products, setProducts] = useState<any[]>([]);
+  const [dealers, setDealers] = useState<any[]>([]);
   const [filtered, setFiltered] = useState<any[]>([]);
-  const [categories, setCategories] = useState<any[]>([]);
+  const [editDealer, setEditDealer] = useState<any>(null);
 
   const [search, setSearch] = useState("");
-  const [categoryFilter, setCategoryFilter] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
-
   const [loading, setLoading] = useState(true);
 
-
   /* FETCH */
-
-  const fetchProducts = async () => {
+  const fetchDealers = async () => {
     try {
-      const res = await ProductService.getProducts(user?.industry);
+      const res = await DealerService.getAllDealers(user?.industry);
+
       if (res.success) {
-        setProducts(res.products);
-        setFiltered(res.products);
+        setDealers(res.dealers);
+        setFiltered(res.dealers);
       }
-    } catch {
-    } finally {
+    } catch {}
+    finally {
       setLoading(false);
     }
   };
 
-  const fetchCategories = async () => {
-    const res = await category.getAllCategories();
-    if (res) setCategories(res);
-  };
-
- useEffect(() => {
-  if (!user?.industry) return;
-
-  fetchProducts();
-  fetchCategories();
-
-}, [user?.industry]);
-  /* FILTER */
-
   useEffect(() => {
-    let data = [...products];
+    if (!user?.industry) return;
+    fetchDealers();
+  }, [user?.industry]);
+
+  /* FILTER */
+  useEffect(() => {
+    let data = [...dealers];
 
     if (search) {
-      data = data.filter((p) =>
-        p.name.toLowerCase().includes(search.toLowerCase())
+      data = data.filter((d) =>
+        d.name?.toLowerCase().includes(search.toLowerCase()) ||
+        d.company_name?.toLowerCase().includes(search.toLowerCase())
       );
     }
 
-    if (categoryFilter) {
-      data = data.filter((p) => p.category_id?._id === categoryFilter);
-    }
-
     if (statusFilter) {
-      data = data.filter((p) =>
-        statusFilter === "active" ? p.is_active : !p.is_active
+      data = data.filter((d) =>
+        statusFilter === "active" ? d.is_active : !d.is_active
       );
     }
 
     setFiltered(data);
-  }, [search, categoryFilter, statusFilter, products]);
+  }, [search, statusFilter, dealers]);
 
   return (
     <div className="space-y-6">
 
+      {/* HEADER */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
 
         <h1 className="text-3xl md:text-4xl font-semibold">
-          Products
+          Dealers
         </h1>
 
         <div className="flex items-center gap-2 flex-wrap">
 
+          {/* SEARCH */}
           <div className="flex items-center bg-white/60 rounded-xl px-3 py-2">
             <Search size={16} className="text-gray-500 mr-2" />
             <input
-              placeholder="Search product..."
+              placeholder="Search dealer..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="bg-transparent outline-none text-sm w-32 md:w-48"
             />
           </div>
 
-          <select
-            value={categoryFilter}
-            onChange={(e) => setCategoryFilter(e.target.value)}
-            className="bg-white/60 px-3 py-2 rounded-xl text-sm"
-          >
-            <option value="">All Categories</option>
-            {categories.map((c: any) => (
-              <option key={c._id} value={c._id}>
-                {c.name}
-              </option>
-            ))}
-          </select>
-
+          {/* STATUS FILTER */}
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
@@ -119,42 +94,45 @@ export default function Page() {
             <option value="inactive">Inactive</option>
           </select>
 
+          {/* ADD BUTTON */}
           <button
-            onClick={() => router.push("/products/add")}
-            className="bg-black text-white flex items-center cursor-pointer gap-2 px-3 py-2 rounded-xl text-sm"
+            onClick={() => router.push("/dealers/add")}
+            className="bg-black text-white flex items-center gap-2 px-3 py-2 rounded-xl text-sm"
           >
-            Add Product
+            Add Dealer
             <Plus size={16} />
           </button>
 
         </div>
       </div>
 
+      {/* TABLE */}
       <div className="bg-white/60 backdrop-blur rounded-3xl p-4 md:p-6">
 
         {loading ? (
           <p>Loading...</p>
         ) : (
-          <ProductsTable
-            products={filtered}
-            refresh={fetchProducts}
+          <DealersTable
+            dealers={filtered}
+            refresh={fetchDealers}
+            onEdit={(dealer:any)=> setEditDealer(dealer)}
           />
         )}
 
       </div>
+
       {/* MODAL */}
-      {editProduct && (
-        <ProductEditModal
-          dealer={editProduct}
+      {editDealer && (
+        <DealerEditModal
+          dealer={editDealer}
           onClose={() => setEditDealer(null)}
-          refresh={fetchProduct}
+          refresh={fetchDealers}
         />
       )}
 
     </div>
   );
 }
-
 
 
 /* ================= EDIT MODAL ================= */

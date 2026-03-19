@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import ProductService from "@/app/components/services/productService";
 import toast from "react-hot-toast";
 
-export default function ProductsTable({ products, refresh }: any) {
+export default function ProductsTable({ products, refresh,onEdit }: any) {
   const router = useRouter();
 
   const handleDelete = async (id: string) => {
@@ -96,12 +96,12 @@ export default function ProductsTable({ products, refresh }: any) {
 
                 <td className="flex gap-2">
 
-                  <button
-                    onClick={() => router.push(`/products/edit/${p._id}`)}
-                    className="bg-gray-100 p-2 rounded-lg"
-                  >
-                    <Pencil size={14} />
-                  </button>
+                <button
+                  onClick={() => onEdit(p)}
+                  className="p-1 hover:bg-gray-200 rounded"
+                >
+                  <Pencil size={16} />
+                </button>
 
                   <button
                     onClick={() => handleDelete(p._id)}
@@ -110,12 +110,6 @@ export default function ProductsTable({ products, refresh }: any) {
                     <Trash2 size={14} />
                   </button>
 
-                  <button
-                    onClick={() => toggleStatus(p)}
-                    className="text-xs px-2 py-1 border rounded-lg"
-                  >
-                    {p.is_active ? "Deactivate" : "Activate"}
-                  </button>
 
                 </td>
 
