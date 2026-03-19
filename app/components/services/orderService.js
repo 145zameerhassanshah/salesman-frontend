@@ -6,10 +6,10 @@ class OrderService {
      GET ALL ORDERS
   ========================= */
 
-  async getAllOrders() {
+  async getAllOrders(id) {
     try {
 
-      const res = await fetch(API.orders, {
+      const res = await fetch(`${API.orders}/${id}`, {
         method: "GET",
         credentials: "include"
       });
@@ -31,8 +31,6 @@ class OrderService {
   ========================= */
 
   async createOrder(data) {
-    try {
-
       const res = await fetch(API.orders, {
         method: "POST",
         headers: {
@@ -44,13 +42,9 @@ class OrderService {
 
       const result = await res.json();
 
-      if (!res.ok) return false;
+      if (!res.ok) return {success:false,message:result?.message};
 
-      return result.message;
-
-    } catch (error) {
-      throw error.message;
-    }
+      return {success:true,message:result?.message};
   }
 
 
