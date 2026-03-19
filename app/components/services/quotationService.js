@@ -91,4 +91,4 @@ class QuotationService {
 
 }
 
-export default new QuotationService(); 
+export default QuotationService; 
