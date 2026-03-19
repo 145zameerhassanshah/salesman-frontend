@@ -17,6 +17,7 @@ export default function AddOrder() {
   const { data: categories = [] } = useCategory(user?.industry);
   const { data } = useDealers(user?.industry);
   const dealers = data?.dealers || [];
+  console.log(data)
 
   /* ACTIVE CATEGORY */
   const [activeCategory, setActiveCategory] = useState("");
@@ -186,7 +187,7 @@ export default function AddOrder() {
             className={field}
           >
             <option value="">Select Dealer</option>
-            {dealers.map((d:any)=>(
+            {data?.map((d:any)=>(
               <option key={d._id} value={d._id}>{d.name}</option>
             ))}
           </select>
