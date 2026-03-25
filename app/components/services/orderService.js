@@ -146,6 +146,18 @@ class OrderService {
     }
   }
 
+  async getOrderById(id) {
+  try {
+    const res = await fetch(`${API.orders}/details/${id}`, {
+      method: "GET",
+      credentials: "include",
+    });
+    return await res.json();
+  } catch (error) {
+    throw error.message;
+  }
+}
+
 }
 
 export const order = new OrderService();

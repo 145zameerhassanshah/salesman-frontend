@@ -1,14 +1,12 @@
 "use client";
 
 import { Pencil, Trash2, X } from "lucide-react";
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 import ProductService from "@/app/components/services/productService";
 import toast from "react-hot-toast";
 import { useSelector } from "react-redux";
 
 export default function ProductsTable({ products, refetch }: any) {
-  const router = useRouter();
   const user = useSelector((state: any) => state.user.user);
 
   const [editProduct, setEditProduct] = useState<any>(null);
