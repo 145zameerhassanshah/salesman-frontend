@@ -53,8 +53,7 @@ class OrderService {
   ========================= */
 
   async updateOrder(data, id) {
-    try {
-
+  
       const res = await fetch(`${API.orders}/${id}`, {
         method: "PATCH",
         headers: {
@@ -66,13 +65,7 @@ class OrderService {
 
       const result = await res.json();
 
-      if (!res.ok) return false;
-
-      return result.message;
-
-    } catch (error) {
-      throw error.message;
-    }
+      return result;
   }
 
 
@@ -81,22 +74,14 @@ class OrderService {
   ========================= */
 
   async deleteOrder(id) {
-    try {
-
-      const res = await fetch(`${API.orders}/${id}`, {
+        const res = await fetch(`${API.orders}/${id}`, {
         method: "DELETE",
         credentials: "include"
       });
 
       const result = await res.json();
 
-      if (!res.ok) return false;
-
-      return result.message;
-
-    } catch (error) {
-      throw error.message;
-    }
+      return result;
   }
 
 
