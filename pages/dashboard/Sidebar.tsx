@@ -55,6 +55,8 @@ export default function Sidebar({
   // ✅ ADMIN MENU
   const adminMenu = [
     { icon: LayoutGrid, label: "Dashboard", href: "/dashboard" },
+        { icon: ShoppingCart, label: "Quotations", href: "/quotations" },
+
     { icon: ShoppingCart, label: "Orders", href: "/orders" },
     { icon: Wallet, label: "Payments", href: "/payments" },
     { icon: Shapes, label: "Categories", href: "/categories" },

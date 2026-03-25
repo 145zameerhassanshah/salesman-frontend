@@ -2,7 +2,7 @@ import { API } from "@/app/components/lib/endpoints";
 
 class QuotationService {
 
-  async createQuotation(data, businessId) {
+  static async createQuotation(data, businessId) {
     try {
       const res = await fetch(`${API.quotations}/create/${businessId}`, {
         method: "POST",
@@ -35,7 +35,7 @@ static async getQuotations(businessId) {
   }
 }
 
-async getQuotationById(id) {
+static async getQuotationById(id) {
   try {
     const res = await fetch(`${API.quotations}/${id}`, {
       method: "GET",
@@ -50,7 +50,7 @@ async getQuotationById(id) {
   }
 }
 
-async getProductsByCategory(categoryId) {
+static async getProductsByCategory(categoryId) {
   try {
     const res = await fetch(`${API.quotations}/products/${categoryId}`, {
       method: "GET",
@@ -66,7 +66,6 @@ async getProductsByCategory(categoryId) {
     return [];
   }
 }
-
 
   async updateQuotation(data, id) {
 

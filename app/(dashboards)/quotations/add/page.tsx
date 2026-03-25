@@ -82,7 +82,7 @@ export default function AddQuotation() {
       }
 
       const products = await QuotationService.getProductsByCategory(categoryId);
-
+console.log("Fetched products for category", categoryId, products);
       setProductsMap((prev) => ({
         ...prev,
         [index]: products || [],

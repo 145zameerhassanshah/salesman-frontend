@@ -1,14 +1,14 @@
 "use client";
 import Image from "next/image";
 import { Eye, EyeOff } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import AuthService from "@/app/components/services/authService";
 import { USER_ROLES } from "@/app/components/lib/roles";
 import { setUser } from "@/store/userSlice";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -21,11 +21,38 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const dispatch=useDispatch();
-const handleLogin = async (event:any) => {
-  event.preventDefault();
+  const dispatch = useDispatch();
+  const user = useSelector((state: any) => state.user.user);
 
-  setLoading(true);
+  useEffect(() => {
+    if (user) {
+      const role = user?.role;
+
+      if (role === USER_ROLES.SUPER_ADMIN) {
+        router.push("/super-admin");
+      } 
+      else if (role === USER_ROLES.ADMIN) {
+        router.push("/dashboard");
+      } 
+      else if (role === USER_ROLES.SALESMAN) {
+        router.push("/saleman/salemanDashboard");
+      } 
+      else if (role === USER_ROLES.DISPATCHER) {
+        router.push("/dashboard/dispatch");
+      } 
+      else if (role === USER_ROLES.ACCOUNTANT) {
+        router.push("/dashboard/accounts");
+      } 
+      else {
+        router.push("/dashboard");
+      }
+    }
+  }, [user, router]);
+
+  const handleLogin = async (event: any) => {
+    event.preventDefault();
+
+    setLoading(true);
 
     const res = await AuthService.loginUser({
       email,
@@ -36,11 +63,11 @@ const handleLogin = async (event:any) => {
       toast.error(res.message);
       setLoading(false);
       return;
-    }   
+    }
 
     toast.success("Login successful");
 
-    dispatch(setUser(res.isUser));
+    dispatch(setUser(res.user));
 
     const role = res?.user?.role;
 
@@ -63,8 +90,10 @@ const handleLogin = async (event:any) => {
       router.push("/dashboard");
     }
 
-  setLoading(false);
-};  return (
+    setLoading(false);
+  };
+
+  return (
     <div className="min-h-screen flex flex-col lg:flex-row bg-[#d7dbd9]">
       {/* RIGHT SECTION */}
       <div className="order-1 lg:order-2 flex w-full lg:w-1/2 items-center justify-center px-6 py-10">
