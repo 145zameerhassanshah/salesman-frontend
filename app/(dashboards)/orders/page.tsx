@@ -1,6 +1,4 @@
 "use client";
-
-import API_URL from "@/app/components/lib/apiConfig";
 import { useOrders } from "@/hooks/useOrders";
 import {
   Check,
