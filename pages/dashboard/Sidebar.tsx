@@ -46,7 +46,7 @@ export default function Sidebar({
       toast.success(signOut?.message || "Logout successful");
 
       dispatch(clearUser());
-      router.push("/login");
+      router.push("/");
     } catch (error) {
       toast.error("Something went wrong");
     }
