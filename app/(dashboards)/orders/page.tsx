@@ -128,19 +128,24 @@ export default function OrdersPage() {
                   <td>
                     <div className="flex justify-center gap-2">
 
-                      {/* ✔ ✖ ONLY FOR NON-SALESMAN */}
-                      {user?.user_type !== "salesman" && (
-                        <>
-                          <button className="p-2 bg-green-100 text-green-600 rounded-md">
-                            <Check size={16} />
-                          </button>
+                     {/* Salesman: sees X only when unapproved */}
+{user?.user_type === "salesman" && order.status === "unapproved" && (
+  <button className="p-2 bg-red-100 text-red-600 rounded-md">
+    <X size={16} />
+  </button>
+)}
 
-                          <button className="p-2 bg-red-100 text-red-600 rounded-md">
-                            <X size={16} />
-                          </button>
-                        </>
-                      )}
-
+{/* Admin: sees Check + X only when order is unapproved */}
+{user?.user_type === "admin" && order.status === "unapproved" && (
+  <>
+    <button className="p-2 bg-green-100 text-green-600 rounded-md">
+      <Check size={16} />
+    </button>
+    <button className="p-2 bg-red-100 text-red-600 rounded-md">
+      <X size={16} />
+    </button>
+  </>
+)}
                       {/* 👁 VIEW (ALL USERS) */}
                       <button
                         // onClick={() => router.push(`/orders/view/${order._id}`)}
