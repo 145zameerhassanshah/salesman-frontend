@@ -75,7 +75,6 @@ export default function Quotationspage() {
   const user=useSelector((state:any)=>state.user.user);
   const router=useRouter();
   const { data   } = useQuotations(user?.industry);
-  console.log("QUOTATIONS:", data); 
   return (
     <div className="p-4 md:p-8 bg-gray-100 min-h-screen">
 

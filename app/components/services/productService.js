@@ -71,7 +71,6 @@ class ProductService {
   /* ================= UPDATE ================= */
 
   static async updateProduct(data, id) {
-    try {
       const res = await fetch(`${API.products}/${id}`, {
         method: "PATCH", 
         credentials: "include",
@@ -80,39 +79,19 @@ class ProductService {
 
       const result = await res.json();
 
-      if (!res.ok) {
-        throw new Error(result.message || "Failed to update product");
-      }
-
       return result;
-
-    } catch (err) {
-      console.error("Update product error:", err);
-      throw err;
-    }
   }
 
   /* ================= DELETE ================= */
 
   static async deleteProduct(id) {
-    try {
       const res = await fetch(`${API.products}/${id}`, {
         method: "DELETE",
         credentials: "include"
       });
 
       const result = await res.json();
-
-      if (!res.ok) {
-        throw new Error(result.message || "Failed to delete product");
-      }
-
       return result;
-
-    } catch (err) {
-      console.error("Delete product error:", err);
-      throw err;
-    }
   }
 
 }
