@@ -1,4 +1,7 @@
 "use client";
+
+import API_URL from "@/app/components/lib/apiConfig";
+import { order } from "@/app/components/services/orderService";
 import { useOrders } from "@/hooks/useOrders";
 import {
   Check,
@@ -10,6 +13,8 @@ import {
   Pencil,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
+import toast from "react-hot-toast";
 import { useSelector } from "react-redux";
 
 const statusStyle: any = {
@@ -23,17 +28,78 @@ const statusStyle: any = {
 
 export default function OrdersPage() {
   const user = useSelector((state: any) => state.user.user);
-  const { data } = useOrders(user?.industry);
+  const { data, refetch } = useOrders(user?.industry);
   const router = useRouter();
 
+  const [confirmOrderId, setConfirmOrderId] = useState<string | null>(null);
+  const [confirmAction, setConfirmAction] = useState<"approve" | "reject" | null>(null);
+
   const formatStatus = (status: string) => {
-    return status
-      ? status.charAt(0).toUpperCase() + status.slice(1)
-      : "-";
+    return status ? status.charAt(0).toUpperCase() + status.slice(1) : "-";
+  };
+
+  const handleAction = (orderId: string, action: "approve" | "reject") => {
+    setConfirmOrderId(orderId);
+    setConfirmAction(action);
+  };
+
+  const handleConfirm = async  () => {
+    if (confirmAction === "approve") {
+      const res=await order.updateStatus(confirmOrderId,"approved");
+      if(!res.success) return toast.error(res?.message || "Problem approving order");
+      toast.success(res?.message);
+      await refetch();
+    } else if (confirmAction === "reject") {
+      const res=await order.updateStatus(confirmOrderId,"rejected");
+      if(!res.success) return toast.error(res?.message || "Problem rejecting order");
+      toast.success(res?.message);
+      await refetch();
+    }
+    setConfirmOrderId(null);
+    setConfirmAction(null);
+  };
+
+  const handleCancel = () => {
+    setConfirmOrderId(null);
+    setConfirmAction(null);
   };
 
   return (
     <div className="p-4 md:p-8 bg-gray-100 min-h-screen">
+
+      {/* CONFIRMATION MODAL */}
+      {confirmOrderId && confirmAction && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+          <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-sm">
+            <h2 className="text-lg font-semibold text-gray-800 mb-2">
+              {confirmAction === "approve" ? "Approve Order?" : "Reject Order?"}
+            </h2>
+            <p className="text-sm text-gray-500 mb-6">
+              {confirmAction === "approve"
+                ? "Are you sure you want to approve this order?"
+                : "Are you sure you want to reject this order? This action cannot be undone."}
+            </p>
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={handleCancel}
+                className="px-4 py-2 rounded-lg border text-gray-600 hover:bg-gray-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleConfirm}
+                className={`px-4 py-2 rounded-lg text-white ${
+                  confirmAction === "approve"
+                    ? "bg-green-500 hover:bg-green-600"
+                    : "bg-red-500 hover:bg-red-600"
+                }`}
+              >
+                {confirmAction === "approve" ? "Approve" : "Reject"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* HEADER */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
@@ -89,7 +155,6 @@ export default function OrdersPage() {
           </thead>
 
           <tbody>
-
             {data?.map((order: any, i: number) => {
               const formattedStatus = formatStatus(order?.status);
 
@@ -100,7 +165,10 @@ export default function OrdersPage() {
 
                   <td>{order?.dealer_id?.name}</td>
 
-                  <td>{order?.createdBy?.name} ({order?.createdBy?.user_type==="admin"?"Director":"Salesman"})</td>
+                  <td>
+                    {order?.createdBy?.name} (
+                    {order?.createdBy?.user_type === "admin" ? "Director" : "Salesman"})
+                  </td>
 
                   <td>{order?.total}</td>
 
@@ -108,9 +176,7 @@ export default function OrdersPage() {
 
                   <td>
                     <span
-                      className={`px-3 py-1 text-xs rounded-md font-medium ${
-                        statusStyle[formattedStatus]
-                      }`}
+                      className={`px-3 py-1 text-xs rounded-md font-medium ${statusStyle[formattedStatus]}`}
                     >
                       {formattedStatus}
                     </span>
@@ -126,44 +192,45 @@ export default function OrdersPage() {
                   <td>
                     <div className="flex justify-center gap-2">
 
-                     {/* Salesman: sees X only when unapproved */}
-{user?.user_type === "salesman" && order.status === "unapproved" && (
-  <button className="p-2 bg-red-100 text-red-600 rounded-md">
-    <X size={16} />
-  </button>
-)}
+                      {/* Salesman: X only when unapproved */}
+                      {user?.user_type === "salesman" && order.status === "unapproved" && (
+                        <button
+                          onClick={() => handleAction(order?._id, "reject")}
+                          className="p-2 bg-red-100 text-red-600 rounded-md"
+                        >
+                          <X size={16} />
+                        </button>
+                      )}
 
-{/* Admin: sees Check + X only when order is unapproved */}
-{user?.user_type === "admin" && order.status === "unapproved" && (
-  <>
-    <button className="p-2 bg-green-100 text-green-600 rounded-md">
-      <Check size={16} />
-    </button>
-    <button className="p-2 bg-red-100 text-red-600 rounded-md">
-      <X size={16} />
-    </button>
-  </>
-)}
-                      {/* 👁 VIEW (ALL USERS) */}
-                      <button
-                        // onClick={() => router.push(`/orders/view/${order._id}`)}
-                        className="p-2 bg-gray-100 text-gray-600 rounded-md"
-                      >
+                      {/* Admin: Check + X only when unapproved */}
+                      {user?.user_type === "admin" && order.status === "unapproved" && (
+                        <>
+                          <button
+                            onClick={() => handleAction(order?._id, "approve")}
+                            className="p-2 bg-green-100 text-green-600 rounded-md"
+                          >
+                            <Check size={16} />
+                          </button>
+                          <button
+                            onClick={() => handleAction(order._id, "reject")}
+                            className="p-2 bg-red-100 text-red-600 rounded-md"
+                          >
+                            <X size={16} />
+                          </button>
+                        </>
+                      )}
+
+                      {/* VIEW (ALL USERS) */}
+                      <button className="p-2 bg-gray-100 text-gray-600 rounded-md">
                         <Eye size={16} />
                       </button>
 
-                      {/* ✏️ EDIT ONLY FOR SALESMAN + UNAPPROVED */}
-                      {user?.user_type === "salesman" &&
-                        order?.status === "unapproved" && (
-                          <button
-                            // onClick={() =>
-                              // router.push(`/orders/edit/${order._id}`)
-                            // }
-                            className="p-2 bg-blue-100 text-blue-600 rounded-md"
-                          >
-                            <Pencil size={16} />
-                          </button>
-                        )}
+                      {/* EDIT: SALESMAN + UNAPPROVED ONLY */}
+                      {user?.user_type === "salesman" && order?.status === "unapproved" && (
+                        <button className="p-2 bg-blue-100 text-blue-600 rounded-md">
+                          <Pencil size={16} />
+                        </button>
+                      )}
 
                     </div>
                   </td>
@@ -171,7 +238,6 @@ export default function OrdersPage() {
                 </tr>
               );
             })}
-
           </tbody>
 
         </table>

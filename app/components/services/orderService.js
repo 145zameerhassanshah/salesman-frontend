@@ -126,6 +126,26 @@ class OrderService {
     }
   }
 
+  async updateStatus(id,status){
+    try {
+
+      const res = await fetch(
+        `${API.orders}/update-status/${id}`,
+        {
+          method: "PATCH",
+          headers:{"Content-Type":"application/json"},
+          body:JSON.stringify({status}),
+          credentials: "include"
+        }
+      );
+
+      return await res.json();
+
+       } catch (error) {
+      throw error.message;
+    }
+  }
+
 }
 
 export const order = new OrderService();
