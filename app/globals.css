@@ -5,7 +5,17 @@
   --sidebar-icon-bg: #e6e9e8;
   --sidebar-active: #cfd4d2;
 }
+@media print {
+  body {
+    margin: 0;
+    padding: 0;
+  }
 
+  @page {
+    size: A4;
+    margin: 10mm;
+  }
+}
 
 
 
