@@ -17,6 +17,9 @@ import {
   LogOut,
   ChevronRight,
   Box,
+    FileText,      // ✅ for Quotations
+  Truck,         // ✅ for Dispatcher
+  Calculator 
 } from "lucide-react";
 
 import Link from "next/link";
@@ -55,17 +58,22 @@ export default function Sidebar({
 
   // ✅ ADMIN MENU
   const adminMenu = [
-    { icon: LayoutGrid, label: "Dashboard", href: "/dashboard" },
-        { icon: ShoppingCart, label: "Quotations", href: "/quotations" },
+  { icon: LayoutGrid, label: "Dashboard", href: "/dashboard" },
 
-    { icon: ShoppingCart, label: "Orders", href: "/orders" },
-    { icon: Wallet, label: "Payments", href: "/payments" },
-    { icon: Shapes, label: "Categories", href: "/categories" },
-    { icon: Box, label: "Products", href: "/products" },
-    { icon: Package, label: "Dealers", href: "/dealers" },
-    { icon: Users, label: "Salesman", href: "/saleman" },
-    { icon: ClipboardList, label: "Reports", href: "/reports" },
-  ];
+  { icon: FileText, label: "Quotations", href: "/quotations" }, // ✅ changed
+  { icon: ShoppingCart, label: "Orders", href: "/orders" },     // ✅ kept
+
+  { icon: Wallet, label: "Payments", href: "/payments" },
+  { icon: Shapes, label: "Categories", href: "/categories" },
+  { icon: Box, label: "Products", href: "/products" },
+  { icon: Package, label: "Dealers", href: "/dealers" },
+
+  { icon: Users, label: "Salesman", href: "/saleman" },
+  { icon: Truck, label: "Dispatcher", href: "/dispatcher" },     // ✅ NEW
+  { icon: Calculator, label: "Accountant", href: "/accountant" }, // ✅ NEW
+
+  { icon: ClipboardList, label: "Reports", href: "/reports" },
+];
 
   // ✅ SALESMAN MENU
   const salesmanMenu = [
