@@ -1,11 +1,12 @@
 import { useQuery } from "@tanstack/react-query";
-import { quotation } from "@/app/components/services/quotationService";
+import  QuotationService  from "@/app/components/services/quotationService";
 
-export const useQuotations = () => {
+export const useQuotations = (id:string) => {
 
   return useQuery({
     queryKey: ["quotations"],
-    queryFn: quotation.getAllQuotations
+    queryFn: () => QuotationService.getQuotations(id),
+    enabled: !!id,
   });
 
 };

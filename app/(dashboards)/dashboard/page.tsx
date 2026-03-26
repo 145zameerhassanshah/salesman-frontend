@@ -1,12 +1,18 @@
+"use client"
 import DashboardHeader from "@/pages/dashboard/DashboardHeader";
 import StatsCard from "@/pages/dashboard/StatsCard";
 import PendingApprovals from "@/pages/dashboard/PendingApprovals";
 import AuditLog from "@/pages/dashboard/AuditLog";
 
 import { ShoppingCart, Clock, FileWarning } from "lucide-react";
+import { useSelector } from "react-redux";
+import { useRouter } from "next/navigation";
 
 export default function DashboardPage() {
 
+  const router=useRouter()
+  const user=useSelector((state:any)=>state?.user.user);
+  if(!user) return router.push("/");
   return (
     <div className="space-y-8">
 

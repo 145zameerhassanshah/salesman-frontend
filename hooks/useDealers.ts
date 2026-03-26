@@ -1,9 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
-import { dealer } from "@/app/components/services/dealerService";
+import DealerService from "@/app/components/services/dealerService";
 
-export const useDealers = () => {
+export const useDealers = (id:string) => {
   return useQuery({
     queryKey: ["dealers"],
-    queryFn: dealer.getAllDealers,
+    queryFn: () => DealerService.getAllDealers(id),
+    enabled: !!id
   });
 };

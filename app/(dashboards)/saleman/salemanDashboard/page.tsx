@@ -1,8 +1,4 @@
 
-<<<<<<< HEAD
-import StatsCard from "@/pages/dashboard/StatsCard";
-=======
->>>>>>> 7dd8ed18ba5e5b8fbbf00bcf7eccb1a5a960bfe3 
 
 
 import {

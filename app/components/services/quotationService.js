@@ -2,131 +2,103 @@ import { API } from "@/app/components/lib/endpoints";
 
 class QuotationService {
 
-  /* =========================
-     GET ALL QUOTATIONS
-  ========================= */
-
-  async getAllQuotations() {
+  static async createQuotation(data, businessId) {
     try {
-
-      const res = await fetch(API.quotations, {
-        method: "GET",
-        credentials: "include"
-      });
-
-      const result = await res.json();
-
-      if (!res.ok) return false;
-
-      return result.quotations;
-
-    } catch (error) {
-      throw error.message;
-    }
-  }
-
-
-  /* =========================
-     CREATE QUOTATION
-  ========================= */
-
-  async createQuotation(data) {
-    try {
-
-      const res = await fetch(API.quotations, {
+      const res = await fetch(`${API.quotations}/create/${businessId}`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
+        headers: { "Content-Type": "application/json" },
         credentials: "include",
         body: JSON.stringify(data)
       });
 
       const result = await res.json();
 
-      if (!res.ok) return false;
+      if (!res.ok) throw new Error(result.message);
 
       return result.message;
-
-    } catch (error) {
-      throw error.message;
+    } catch (err) {
+      return err.message;
     }
   }
+static async getQuotations(businessId) {
+  try {
+    const res = await fetch(`${API.quotations}/${businessId}`, {
+      method: "GET",
+      credentials: "include"
+    });
+    const result = await res.json();
 
+    if (!res.ok) throw new Error(result.message);
+    return result.quotations || [];
+  } catch (err) {
+    return [];
+  }
+}
 
-  /* =========================
-     UPDATE QUOTATION
-  ========================= */
+static async getQuotationById(id) {
+  try {
+    const res = await fetch(`${API.quotations}/${id}`, {
+      method: "GET",
+      credentials: "include"
+    }); 
+    const result = await res.json();
+
+    if (!res.ok) throw new Error(result.message);
+    return result.quotation || null;
+  } catch (err) {
+    return null;
+  }
+}
+
+static async getProductsByCategory(categoryId) {
+  try {
+    const res = await fetch(`${API.quotations}/products/${categoryId}`, {
+      method: "GET",
+      credentials: "include"
+    });
+
+    const result = await res.json();
+
+    if (!res.ok) throw new Error(result.message);
+
+    return result.products || [];
+  } catch (err) {
+    return [];
+  }
+}
 
   async updateQuotation(data, id) {
-    try {
 
-      const res = await fetch(`${API.quotations}/${id}`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        credentials: "include",
-        body: JSON.stringify(data)
-      });
+    const res = await fetch(`${API.quotations}/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify(data)
+    });
 
-      const result = await res.json();
+    const result = await res.json();
 
-      if (!res.ok) return false;
+    if (!res.ok) throw new Error(result.message);
 
-      return result.message;
-
-    } catch (error) {
-      throw error.message;
-    }
+    return result.message;
   }
 
 
-  /* =========================
-     DELETE QUOTATION
-  ========================= */
+  /* ================= DELETE ================= */
 
   async deleteQuotation(id) {
-    try {
 
-      const res = await fetch(`${API.quotations}/${id}`, {
-        method: "DELETE",
-        credentials: "include"
-      });
+    const res = await fetch(`${API.quotations}/${id}`, {
+      method: "DELETE",
+      credentials: "include"
+    });
 
-      const result = await res.json();
+    const result = await res.json();
 
-      if (!res.ok) return false;
+    if (!res.ok) throw new Error(result.message);
 
-      return result.message;
-
-    } catch (error) {
-      throw error.message;
-    }
-  }
-
-  async getProductsByCategory(categoryId) {
-    try {
-
-      const res = await fetch(
-        `${API.quotations}/products/${categoryId}`,
-        {
-          method: "GET",
-          credentials: "include"
-        }
-      );
-
-      const result = await res.json();
-
-      if (!res.ok) return false;
-
-      return result;
-
-    } catch (error) {
-      throw error.message;
-    }
+    return result.message;
   }
 
 }
-
-export const quotation = new QuotationService();
+export default  QuotationService; 

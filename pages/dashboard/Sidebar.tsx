@@ -1,3 +1,5 @@
+
+
 "use client";
 
 import AuthService from "@/app/components/services/authService";
@@ -45,31 +47,45 @@ export default function Sidebar({
       toast.success(signOut?.message || "Logout successful");
 
       dispatch(clearUser());
-
-      router.push("/login");
+      router.push("/");
     } catch (error) {
       toast.error("Something went wrong");
     }
   };
 
-  const menu = [
+  // ✅ ADMIN MENU
+  const adminMenu = [
     { icon: LayoutGrid, label: "Dashboard", href: "/dashboard" },
+        { icon: ShoppingCart, label: "Quotations", href: "/quotations" },
+
     { icon: ShoppingCart, label: "Orders", href: "/orders" },
-    { icon: ShoppingCart, label: "Quotations", href: "/quotations" },
     { icon: Wallet, label: "Payments", href: "/payments" },
     { icon: Shapes, label: "Categories", href: "/categories" },
     { icon: Box, label: "Products", href: "/products" },
     { icon: Package, label: "Dealers", href: "/dealers" },
     { icon: Users, label: "Salesman", href: "/saleman" },
-    { icon: ClipboardList, label: "Report", href: "/reports" },
+    { icon: ClipboardList, label: "Reports", href: "/reports" },
   ];
 
+  // ✅ SALESMAN MENU
+  const salesmanMenu = [
+    { icon: ShoppingCart, label: "Orders", href: "/orders" },
+    { icon: ClipboardList, label: "Quotations", href: "/quotations" },
+  ];
+
+  // ✅ SYSTEM MENU
   const system = [
     { icon: BarChart3, label: "Audit Trail", href: "/audit-trail" },
     { icon: LogOut, label: "Logout", action: logout },
   ];
 
-  const filteredMenu = user?.user_type === "salesman" ? [] : menu;
+  // ✅ ROLE BASED MENU
+  const roleMenus: any = {
+    admin: adminMenu,
+    salesman: salesmanMenu,
+  };
+
+  const filteredMenu = roleMenus[user?.user_type] || [];
 
   const filteredSystem =
     user?.user_type === "salesman"
@@ -106,13 +122,17 @@ export default function Sidebar({
     />
   </div>
 
-  <ChevronRight
-    size={18}
-    className={`cursor-pointer transition ${expanded ? "rotate-180" : ""}`}
-    onClick={() => setExpanded(!expanded)}
-  />
-</div>
-        {filteredMenu.map((item, i) => {
+          <ChevronRight
+            size={18}
+            className={`cursor-pointer transition ${
+              expanded ? "rotate-180" : ""
+            }`}
+            onClick={() => setExpanded(!expanded)}
+          />
+        </div>
+
+        {/* MENU */}
+        {filteredMenu.map((item: any, i: number) => {
           const Icon = item.icon;
 
           return (
@@ -135,8 +155,7 @@ export default function Sidebar({
         })}
 
         {/* SYSTEM MENU */}
-
-        {filteredSystem.map((item, i) => {
+        {filteredSystem.map((item: any, i: number) => {
           const Icon = item.icon;
 
           if (item.action) {
@@ -162,7 +181,7 @@ export default function Sidebar({
           return (
             <Link
               key={i}
-              href={item.href!}
+              href={item.href}
               className="group relative flex items-center gap-3 p-2 rounded-lg hover:bg-gray-300 w-full"
             >
               <Icon size={18} />
@@ -180,11 +199,14 @@ export default function Sidebar({
       </div>
 
       {/* PROFILE */}
-
       <div className="absolute bottom-3 flex items-center gap-2 px-3">
         <img src="/profile.png" className="w-8 h-8 rounded-full" />
 
-        {expanded && <span className="text-sm">Admin</span>}
+        {expanded && (
+          <span className="text-sm">
+            {user?.user_type === "salesman" ? "Salesman" : "Admin"}
+          </span>
+        )}
       </div>
     </div>
   );
