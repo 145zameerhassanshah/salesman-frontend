@@ -2,7 +2,9 @@
 
 import API_URL from "@/app/components/lib/apiConfig";
 import { order } from "@/app/components/services/orderService";
+import { useCategory } from "@/hooks/useCategory";
 import { useOrders } from "@/hooks/useOrders";
+import { useProductsByCategory } from "@/hooks/useProductByCategory";
 import {
   Check,
   X,
@@ -30,7 +32,11 @@ const statusStyle: any = {
 
 export default function OrdersPage() {
   const user = useSelector((state: any) => state.user.user);
+  const { data: categories = [] } = useCategory(user?.industry);
+const [activeCategory, setActiveCategory] = useState("");
+const { data: categoryProducts = [] } = useProductsByCategory(activeCategory);
   const { data, refetch } = useOrders(user?.industry);
+  console.log(data)
   const router = useRouter();
 
   const [search, setSearch] = useState("");
@@ -126,6 +132,24 @@ export default function OrdersPage() {
       return updated;
     });
   };
+
+  const handleAddItem = () => {
+  setEditItems((prev) => [
+    ...prev,
+    {
+      category_id: "",
+      product_id: "",
+      item_name: "",
+      quantity: 1,
+      unit_price: 0,
+      discount_percent: 0,
+      total: 0,
+    },
+  ]);
+};
+const handleRemoveItem = (index: number) => {
+  setEditItems((prev) => prev.filter((_, i) => i !== index));
+};
 
   const computedTotals = useMemo(() => {
     const subtotal = editItems.reduce((sum, item) => sum + (parseFloat(item.quantity) || 0) * (parseFloat(item.unit_price) || 0), 0);
@@ -225,7 +249,7 @@ export default function OrdersPage() {
                   </div>
                 )}
                 <div className="mb-5">
-                  <p className="text-sm font-semibold text-gray-700 mb-3">Order Items</p>
+                 <p className="text-sm font-semibold text-gray-700 mb-3">Order Items</p>
                   <div className="border rounded-xl overflow-hidden">
                     <table className="w-full text-sm">
                       <thead className="bg-gray-50 text-gray-500 text-xs">
@@ -321,40 +345,133 @@ export default function OrdersPage() {
 
                 {/* Items table */}
                 <div className="mb-6">
-                  <p className="text-sm font-semibold text-gray-700 mb-3">Order Items</p>
+                 <div className="flex items-center justify-between mb-3">
+  <p className="text-sm font-semibold text-gray-700">Order Items</p>
+  <button
+    onClick={handleAddItem}
+    className="flex items-center gap-1 text-xs bg-black text-white px-3 py-1 rounded-lg"
+  >
+    + Add Item
+  </button>
+</div>
                   <div className="border rounded-xl overflow-hidden">
                     <table className="w-full text-sm">
                       <thead className="bg-gray-50 text-gray-500 text-xs">
                         <tr>
-                          <th className="text-left px-4 py-3">Product</th>
-                          <th className="px-4 py-3 w-20">Qty</th>
-                          <th className="px-4 py-3 w-28">Unit Price</th>
-                          <th className="px-4 py-3 w-24">Discount %</th>
-                          <th className="px-4 py-3 text-right w-24">Total</th>
-                        </tr>
+  <th className="px-4 py-3">Category</th>
+  <th className="px-4 py-3">Product</th>
+  <th className="px-4 py-3">Qty</th>
+  <th className="px-4 py-3">Price</th>
+  <th className="px-4 py-3">Discount %</th>
+  <th className="px-4 py-3 text-right">Total</th>
+  <th className="px-4 py-3 text-center">Action</th>
+</tr>
                       </thead>
                       <tbody>
-                        {editItems?.map((item: any, i: number) => (
-                          <tr key={i} className="border-t">
-                            <td className="px-4 py-2 text-gray-700">{item?.item_name || item?.product_id?.name}</td>
-                            <td className="px-2 py-2">
-                              <input type="number" min={1} value={item.quantity}
-                                onChange={(e) => handleEditItemChange(i, "quantity", e.target.value)}
-                                className="w-full text-center border rounded-lg px-2 py-1 focus:outline-none focus:ring-1 focus:ring-gray-300 text-sm" />
-                            </td>
-                            <td className="px-2 py-2">
-                              <input type="number" min={0} value={item.unit_price}
-                                onChange={(e) => handleEditItemChange(i, "unit_price", e.target.value)}
-                                className="w-full text-center border rounded-lg px-2 py-1 focus:outline-none focus:ring-1 focus:ring-gray-300 text-sm" />
-                            </td>
-                            <td className="px-2 py-2">
-                              <input type="number" min={0} max={100} value={item.discount_percent}
-                                onChange={(e) => handleEditItemChange(i, "discount_percent", e.target.value)}
-                                className="w-full text-center border rounded-lg px-2 py-1 focus:outline-none focus:ring-1 focus:ring-gray-300 text-sm" />
-                            </td>
-                            <td className="px-4 py-2 text-right font-medium">{(item.total ?? 0).toFixed(2)}</td>
-                          </tr>
-                        ))}
+                       {editItems?.map((item: any, i: number) => {
+  const rowProducts =
+    item.category_id === activeCategory ? categoryProducts : [];
+
+  return (
+    <tr key={i} className="border-t">
+
+      {/* CATEGORY */}
+      <td className="px-2 py-2">
+        <select
+          value={item.category_id}
+          onChange={(e) => {
+            handleEditItemChange(i, "category_id", e.target.value);
+            setActiveCategory(e.target.value);
+          }}
+          className="w-full border rounded-lg px-2 py-1 text-sm"
+        >
+          <option value="">Category</option>
+          {categories.map((c: any) => (
+            <option key={c._id} value={c._id}>
+              {c.name}
+            </option>
+          ))}
+        </select>
+      </td>
+
+      {/* PRODUCT */}
+      <td className="px-2 py-2">
+        <select
+          value={item.product_id}
+          onChange={(e) => {
+            const product = rowProducts.find(
+              (p: any) => p._id === e.target.value
+            );
+
+            handleEditItemChange(i, "product_id", e.target.value);
+            handleEditItemChange(i, "item_name", product?.name || "");
+            handleEditItemChange(i, "unit_price", product?.mrp || 0);
+          }}
+          className="w-full border rounded-lg px-2 py-1 text-sm"
+        >
+          <option value="">Product</option>
+          {rowProducts.map((p: any) => (
+            <option key={p._id} value={p._id}>
+              {p.name}
+            </option>
+          ))}
+        </select>
+      </td>
+
+      {/* QTY */}
+      <td className="px-2 py-2">
+        <input
+          type="number"
+          value={item.quantity}
+          onChange={(e) =>
+            handleEditItemChange(i, "quantity", e.target.value)
+          }
+          className="w-full text-center border rounded-lg px-2 py-1 text-sm"
+        />
+      </td>
+
+      {/* PRICE */}
+      <td className="px-2 py-2">
+        <input
+          type="number"
+          value={item.unit_price}
+          onChange={(e) =>
+            handleEditItemChange(i, "unit_price", e.target.value)
+          }
+          className="w-full text-center border rounded-lg px-2 py-1 text-sm"
+        />
+      </td>
+
+      {/* DISCOUNT */}
+      <td className="px-2 py-2">
+        <input
+          type="number"
+          value={item.discount_percent}
+          onChange={(e) =>
+            handleEditItemChange(i, "discount_percent", e.target.value)
+          }
+          className="w-full text-center border rounded-lg px-2 py-1 text-sm"
+        />
+      </td>
+
+      {/* TOTAL */}
+      <td className="px-2 py-2 text-right font-medium">
+        {(item.total ?? 0).toFixed(2)}
+      </td>
+
+      {/* DELETE */}
+      <td className="px-2 py-2 text-center">
+        <button
+          onClick={() => handleRemoveItem(i)}
+          className="p-1 bg-red-100 text-red-600 rounded-md"
+        >
+          <X size={14} />
+        </button>
+      </td>
+
+    </tr>
+  );
+})}
                       </tbody>
                     </table>
                   </div>
