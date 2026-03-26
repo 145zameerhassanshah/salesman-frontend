@@ -1,6 +1,6 @@
-import InvoiceFooter from "@/pages/invoice/FooterInvoice";
-import HeaderInvoice from "@/pages/invoice/HeaderInvoice"
-import TableQuotation from "@/pages/invoice/TableQuotation";
+import InvoiceFooter from "@/app/components/invoice/FooterInvoice";
+import HeaderInvoice from "@/app/components/invoice/HeaderInvoice"
+import TableQuotation from "@/app/components/invoice/TableQuotation";
 
 export default function Quotation() {
   return (
