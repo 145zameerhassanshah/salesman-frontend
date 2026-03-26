@@ -1,5 +1,5 @@
 
-
+"use client"
 
 import {
   DollarSign,
@@ -7,8 +7,10 @@ import {
   Target,
   Handshake
 } from "lucide-react";
-import PendingApprovals from "@/pages/dashboard/PendingApprovals";
-import StatCard from "@/pages/saleman/StatCard";
+import PendingApprovals from "@/app/components/dashboard/PendingApprovals";
+import SalesmanHeader from "@/app/components/saleman/SalesmanHeader";
+import StatCard from "@/app/components/saleman/StatCard";
+import Dispatched from "@/app/components/saleman/Dispatched";
 
 export default function SalesmanPage() {
 

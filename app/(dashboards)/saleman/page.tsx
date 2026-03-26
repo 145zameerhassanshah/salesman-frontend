@@ -1,4 +1,4 @@
-import AllSaleman from "@/pages/saleman/AllSaleman";
+import AllSaleman from "@/app/components/saleman/AllSaleman";
 
 export default function SalemenPage() {
   return (
