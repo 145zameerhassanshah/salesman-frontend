@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import AuthService from "@/app/components/services/authService";
 import toast from "react-hot-toast";
 import UserService from "@/app/components/services/userService";
@@ -11,71 +11,86 @@ export default function StaffModal({
   role,
   onClose,
   onSave,
+  refetch,
 }: {
   data: any;
   role: string;
   onClose: () => void;
   onSave: (data: any) => void;
+  refetch:()=>Promise<any>;
 }) {
 
     const user=useSelector((state:any)=>state?.user.user)
-  const [form, setForm] = useState(
-    data || {
-      name: "",
-      email: "",
-      phone_number: "",
-      whatsapp_number: "",
-      city: "",
-      address: "",
-      password: "",
-      industry:user?.industry,
-      status: "Active",
-      profile_image: null,
-    }
-  );
+  const [form, setForm] = useState({
+  name: "",
+  email: "",
+  phone_number: "",
+  whatsapp_number: "",
+  city: "",
+  address: "",
+  password: "",
+  industry: user?.industry,
+  status: "Active",
+  profile_image: null,
+});
 
   const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
 
   /* ================= SUBMIT ================= */
   const handleSubmit = async () => {
-    try {
-      setLoading(true);
+  try {
+    setLoading(true);
 
-      const formData = new FormData();
+    const formData = new FormData();
 
-      // append fields
-      Object.keys(form).forEach((key) => {
-        if (key !== "profile_image") {
-          formData.append(key, form[key]);
-        }
-      });
+    if (form.name) formData.append("name", form.name);
+    if (form.email) formData.append("email", form.email);
+    if (form.status) formData.append("status", form.status);
 
-      // append role
-      formData.append("user_type", role);
-
-      // append image
-      if (file) {
-        formData.append("profile_image", file);
-      }
-
-      const res = await UserService.createTeamMember(formData);
-
-      if (!res.success) {
-        toast.error(res.message);
-        return;
-      }
-
-      toast.success(res.message);
-
-      onSave(form);
-    } catch (err) {
-      toast.error("Something went wrong");
-    } finally {
-      setLoading(false);
+    if (file) {
+      formData.append("profile_image", file);
     }
-  };
 
+    let res;
+
+    // ✅ UPDATE
+    if (data?._id || data?.id) {
+      const userId = data._id || data.id;
+      res = await UserService.updateUser(userId, formData);
+    } 
+    // ✅ CREATE
+    else {
+      formData.append("user_type", role);
+      res = await UserService.createTeamMember(formData);
+    }
+
+    if (!res.success) {
+      toast.error(res.message);
+      return;
+    }
+
+    toast.success(res.message);
+
+   await refetch();
+
+    onSave(res.updatedUser || form);
+  } catch (err) {
+    toast.error("Something went wrong");
+  } finally {
+    setLoading(false);
+  }
+};
+
+useEffect(() => {
+  if (data) {
+    setForm({
+      ...data,
+      profile_image: data.profile_image || null,
+      password: "", // never prefill password
+    });
+  }
+}, [data]);
   return (
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
       <div className="bg-white p-6 rounded-lg w-[400px] space-y-3 max-h-[90vh] overflow-y-auto">
@@ -186,13 +201,13 @@ export default function StaffModal({
             Cancel
           </button>
 
-          <button
-            onClick={handleSubmit}
-            disabled={loading}
-            className="px-4 py-2 bg-black text-white rounded"
-          >
-            {loading ? "Saving..." : "Save"}
-          </button>
+        <button
+  onClick={handleSubmit}   // ✅ HERE
+  disabled={loading}
+  className="px-4 py-2 bg-black text-white rounded"
+>
+  {loading ? "Saving..." : "Save"}
+</button>
         </div>
       </div>
     </div>

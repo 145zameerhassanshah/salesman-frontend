@@ -86,9 +86,6 @@ class UserService {
     }
   }
 
-
-
-
   static async updateUser(id,data){
     try{
 

@@ -13,11 +13,12 @@ export default function StaffPage({ role }: { role: string }) {
   const [editData, setEditData] = useState<any>(null);
 
   /* ================= FETCH USERS ================= */
-  const { data, isLoading } = useUsers(user?.industry);
+  const { data, refetch, isLoading } = useUsers(user?.industry);
   /* ================= FILTER BY ROLE ================= */
   const staff =
     data?.userByIndustry?.filter((u: any) => u.user_type === role) || [];
 
+    
   /* ================= EDIT ================= */
   const handleEdit = (data: any) => {
     setEditData(data);
@@ -55,15 +56,20 @@ export default function StaffPage({ role }: { role: string }) {
       ) : (
         <StaffTable
           data={staff.map((u: any) => ({
-            id: u._id,
-            name: u.name,
-            email: u.email,
-            status: u.status || "Active",
-            joined: new Date(u.createdAt).toLocaleDateString(),
-            image: u.profile_image
-              ? `${process.env.NEXT_PUBLIC_API_URL}/uploads/${u.profile_image}`
-              : "/profile.png",
-          }))}
+  id: u._id,
+  _id: u._id, // ✅ ADD THIS (VERY IMPORTANT)
+  name: u.name,
+  email: u.email,
+   phone_number: u.phone_number,        // ✅ ADD
+  whatsapp_number: u.whatsapp_number,  // ✅ ADD
+  city: u.city,                        // ✅ ADD
+  address: u.address, 
+  status: u.status || "Active",
+  joined: new Date(u.createdAt).toLocaleDateString(),
+  image: u.profile_image
+    ? `${process.env.NEXT_PUBLIC_API_URL}/uploads/${u.profile_image}`
+    : "/profile.png",
+}))}
           onEdit={handleEdit}
         />
       )}
@@ -72,6 +78,7 @@ export default function StaffPage({ role }: { role: string }) {
       {open && (
         <StaffModal
           role={role}
+          refetch={refetch}
           data={editData}
           onClose={() => setOpen(false)}
           onSave={handleSave}
