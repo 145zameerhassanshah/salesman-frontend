@@ -11,7 +11,7 @@ import { useRouter } from "next/navigation";
 export default function DashboardPage() {
 
   const router=useRouter()
-  const user=useSelector((state:any)=>state?.user.user);
+  const user=useSelector((state:any)=>state?.user?.user);
   if(!user) return router.push("/");
   return (
     <div className="space-y-8">

@@ -82,7 +82,6 @@ export default function AddQuotation() {
       }
 
       const products = await QuotationService.getProductsByCategory(categoryId);
-console.log("Fetched products for category", categoryId, products);
       setProductsMap((prev) => ({
         ...prev,
         [index]: products || [],
@@ -321,8 +320,7 @@ console.log("Fetched products for category", categoryId, products);
 
       const msg = await QuotationService.createQuotation(payload, businessId);
       toast.success(msg || "Quotation created successfully");
-      console.log(msg)
-      // resetForm();
+      resetForm();
     } catch (error: any) {
       toast.error(error?.message || "Failed to create quotation");
     } finally {
@@ -545,6 +543,7 @@ console.log("Fetched products for category", categoryId, products);
           <span>{subtotal.toFixed(2)}</span>
         </div>
 
+ <label htmlFor="discount">Discount</label>
         <div className="flex gap-2">
           <select
             className="border p-2 rounded"
