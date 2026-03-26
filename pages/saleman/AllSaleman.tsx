@@ -20,7 +20,7 @@ const statusStyle: any = {
 
 export default function AllSaleman() {
   const user = useSelector((state: any) => state.user.user);
-  const { data } = useUsers(user?.industry);
+  const { data,refetch } = useUsers(user?.industry);
   const users = data?.userByIndustry || [];
   const [editItem, setEditItem] = useState<any>(null);
   const [form, setForm] = useState<any>({
@@ -90,6 +90,7 @@ export default function AllSaleman() {
      const updateUser= await UserService.updateUser(editItem._id, formData);
      if(!updateUser?.success) return toast.error(updateUser?.message);
      toast.success(updateUser?.message)
+     await refetch();
       setEditItem(null);
 
     } catch (err) {
