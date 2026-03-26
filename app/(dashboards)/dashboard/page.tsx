@@ -1,15 +1,9 @@
-<<<<<<< HEAD
+"use client"
+
 import DashboardHeader from "@/app/components/dashboard/DashboardHeader";
 import StatsCard from "@/app/components/dashboard/StatsCard";
 import PendingApprovals from "@/app/components/dashboard/PendingApprovals";
 import AuditLog from "@/app/components/dashboard/AuditLog";
-=======
-"use client"
-import DashboardHeader from "@/pages/dashboard/DashboardHeader";
-import StatsCard from "@/pages/dashboard/StatsCard";
-import PendingApprovals from "@/pages/dashboard/PendingApprovals";
-import AuditLog from "@/pages/dashboard/AuditLog";
->>>>>>> 4142b85e089f783fe9d90dd9197a5ba7c9f93909
 
 import { ShoppingCart, Clock, FileWarning } from "lucide-react";
 import { useSelector } from "react-redux";

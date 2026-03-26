@@ -1,16 +1,10 @@
 "use client";
 
-<<<<<<< HEAD
-import { useEffect, useState } from "react";
+import { useEffect, useState,useMemo } from "react";
 import ProductsTable from "@/app/components/product/allProducts";
 import ProductService from "@/app/components/services/productService";
 import { category } from "@/app/components/services/categoryService";
 import { Search, Filter, Plus } from "lucide-react";
-=======
-import { useState, useMemo } from "react";
-import ProductsTable from "@/pages/product/allProducts";
-import { Search, Plus } from "lucide-react";
->>>>>>> 4142b85e089f783fe9d90dd9197a5ba7c9f93909
 import { useRouter } from "next/navigation";
 import { useSelector } from "react-redux";
 import { useProducts } from "@/hooks/useProducts";
