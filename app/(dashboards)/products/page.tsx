@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import ProductsTable from "@/pages/product/allProducts";
+import ProductsTable from "@/app/components/product/allProducts";
 import ProductService from "@/app/components/services/productService";
 import { category } from "@/app/components/services/categoryService";
 import { Search, Filter, Plus } from "lucide-react";

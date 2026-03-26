@@ -5,7 +5,7 @@ import { Search, Plus } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useSelector } from "react-redux";
 import DealerService from "@/app/components/services/dealerService";
-import DealersTable from "@/pages/dealer/allDealers";
+import DealersTable from "@/app/components/dealers/allDealers";
 import toast from "react-hot-toast";
 
 export default function Page() {
@@ -152,10 +152,13 @@ function DealerEditModal({ dealer, onClose, refresh }: any) {
     dealer?.business_logo || null
   );
 
-  useEffect(()=>{
-    document.body.style.overflow = "hidden";
-    return ()=> document.body.style.overflow = "auto";
-  },[]);
+  useEffect(() => {
+  document.body.style.overflow = "hidden";
+
+  return () => {
+    document.body.style.overflow = "auto";
+  };
+}, []);
 
   const handleChange = (e:any)=>{
     const {name,value,type,checked} = e.target;

@@ -1,7 +1,7 @@
-import CategoryBasicInfo from "@/pages/categories/CategoryBasicInfo";
-import CategoryHeader from "@/pages/categories/CategoryHeader";
-import CategoryItems from "@/pages/categories/CategoryItems";
-import CategoryStatus from "@/pages/categories/CategoryStatus";
+import CategoryBasicInfo from "@/app/components/categories/CategoryBasicInfo";
+import CategoryHeader from "@/app/components/categories/CategoryHeader";
+import CategoryItems from "@/app/components/categories/CategoryItems";
+import CategoryStatus from "@/app/components/categories/CategoryStatus";
 export default function Page() {
 
 return (
