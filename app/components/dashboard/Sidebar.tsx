@@ -3,6 +3,7 @@
 "use client";
 
 import AuthService from "@/app/components/services/authService";
+import Image from "next/image";
 import { clearUser } from "@/store/userSlice";
 import {
   LayoutGrid,
@@ -46,7 +47,7 @@ export default function Sidebar({
       toast.success(signOut?.message || "Logout successful");
 
       dispatch(clearUser());
-      router.push("/login");
+      router.push("/");
     } catch (error) {
       toast.error("Something went wrong");
     }
@@ -93,19 +94,33 @@ export default function Sidebar({
 
   return (
     <div
-      className={`
-        fixed top-0 left-0 h-screen
-        ${expanded ? "w-56" : "w-16"}
-        bg-black text-white
-        transition-all duration-300
-      `}
-    >
+  className={`
+    fixed top-0 left-0 h-screen
+    ${expanded ? "w-56" : "w-16"}
+    bg-black text-white
+    transition-all duration-300
+    z-50
+    overflow-y-auto
+  `}
+>
       <div className="flex flex-col items-center">
         {/* Logo */}
-        <div className="flex items-center justify-between w-full px-3 mb-3">
-          <div className="bg-orange-500 w-10 h-10 rounded flex items-center justify-center text-white text-sm font-bold">
-            IM
-          </div>
+        <div className="flex items-center justify-between w-full px-3 mb-4">
+
+  <div
+    className={`
+      flex items-center justify-center overflow-hidden transition-all duration-300
+      ${expanded ? "w-12 h-12" : "w-10 h-10"}
+    `}
+  >
+    <Image
+      src="/images/Logo.webp"
+      alt="Logo"
+      width={48}
+      height={48}
+      className="object-contain"
+    />
+  </div>
 
           <ChevronRight
             size={18}

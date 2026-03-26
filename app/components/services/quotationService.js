@@ -36,18 +36,13 @@ static async getQuotations(businessId) {
 }
 
 static async getQuotationById(id) {
-  try {
-    const res = await fetch(`${API.quotations}/${id}`, {
+    const res = await fetch(`${API.quotations}/details/${id}`, {
       method: "GET",
       credentials: "include"
     }); 
     const result = await res.json();
 
-    if (!res.ok) throw new Error(result.message);
-    return result.quotation || null;
-  } catch (err) {
-    return null;
-  }
+   return result;
 }
 
 static async getProductsByCategory(categoryId) {
@@ -67,7 +62,7 @@ static async getProductsByCategory(categoryId) {
   }
 }
 
-  async updateQuotation(data, id) {
+ static async updateQuotation(data, id) {
 
     const res = await fetch(`${API.quotations}/${id}`, {
       method: "PATCH",
@@ -77,16 +72,22 @@ static async getProductsByCategory(categoryId) {
     });
 
     const result = await res.json();
-
-    if (!res.ok) throw new Error(result.message);
-
-    return result.message;
+    return result;
   }
 
+ static async updateQuotationStatus(id, status) {
+  const res = await fetch(`${API.quotations}/update-status/${id}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    credentials: "include",
+    body: JSON.stringify({ status }),
+  });
+  return await res.json();
+}
 
   /* ================= DELETE ================= */
 
-  async deleteQuotation(id) {
+  static async deleteQuotation(id) {
 
     const res = await fetch(`${API.quotations}/${id}`, {
       method: "DELETE",

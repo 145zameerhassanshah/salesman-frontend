@@ -1,67 +1,56 @@
 "use client";
 
+<<<<<<< HEAD
 import { useEffect, useState } from "react";
 import ProductsTable from "@/app/components/product/allProducts";
 import ProductService from "@/app/components/services/productService";
 import { category } from "@/app/components/services/categoryService";
 import { Search, Filter, Plus } from "lucide-react";
+=======
+import { useState, useMemo } from "react";
+import ProductsTable from "@/pages/product/allProducts";
+import { Search, Plus } from "lucide-react";
+>>>>>>> 4142b85e089f783fe9d90dd9197a5ba7c9f93909
 import { useRouter } from "next/navigation";
 import { useSelector } from "react-redux";
-import toast from "react-hot-toast";
 import { useProducts } from "@/hooks/useProducts";
 
 export default function Page() {
-  const user=useSelector((state:any)=>state.user.user);
+  const user = useSelector((state: any) => state.user.user);
   const router = useRouter();
-const {data}=useProducts(user?.industry);
+  const { data,refetch } = useProducts(user?.industry);
 
   const [search, setSearch] = useState("");
-  // const [categoryFilter, setCategoryFilter] = useState("");
-  // const [statusFilter, setStatusFilter] = useState("");
-  
+
+  const filtered = useMemo(() => {
+    if (!search.trim()) return data?.products;
+
+    const q = search.toLowerCase();
+
+    return data?.products?.filter((product: any) =>
+      product?.name?.toLowerCase().includes(q) ||
+      product?.category_id?.name?.toLowerCase().includes(q)
+    );
+  }, [search, data?.products]);
+
   return (
     <div className="space-y-6">
 
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
 
-        <h1 className="text-3xl md:text-4xl font-semibold">
-          Products
-        </h1>
+        <h1 className="text-3xl md:text-4xl font-semibold">Products</h1>
 
         <div className="flex items-center gap-2 flex-wrap">
 
           <div className="flex items-center bg-white/60 rounded-xl px-3 py-2">
             <Search size={16} className="text-gray-500 mr-2" />
             <input
-              placeholder="Search product..."
+              placeholder="Search by name or category..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="bg-transparent outline-none text-sm w-32 md:w-48"
             />
           </div>
-
-          {/* <select
-            value={categoryFilter}
-            onChange={(e) => setCategoryFilter(e.target.value)}
-            className="bg-white/60 px-3 py-2 rounded-xl text-sm"
-          >
-            <option value="">All Categories</option>
-            {categories.map((c: any) => (
-              <option key={c._id} value={c._id}>
-                {c.name}
-              </option>
-            ))}
-          </select> */}
-
-          {/* <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-            className="bg-white/60 px-3 py-2 rounded-xl text-sm"
-          >
-            <option value="">All Status</option>
-            <option value="active">Active</option>
-            <option value="inactive">Inactive</option>
-          </select> */}
 
           <button
             onClick={() => router.push("/products/add")}
@@ -75,151 +64,9 @@ const {data}=useProducts(user?.industry);
       </div>
 
       <div className="bg-white/60 backdrop-blur rounded-3xl p-4 md:p-6">
-
-                  <ProductsTable
-            products={data?.products}
-          />
-
+        <ProductsTable products={filtered} refetch={refetch} />
       </div>
-      {/* MODAL */}
-      {/* {editProduct && (
-        <ProductEditModal
-          dealer={editProduct}
-          onClose={() => setEditDealer(null)}
-          refresh={fetchProduct}
-        />
-      )} */}
 
     </div>
   );
 }
-
-
-
-/* ================= EDIT MODAL ================= */
-
-// function DealerEditModal({ dealer, onClose, refresh }: any) {
-
-//   const [form, setForm] = useState({
-//     name: dealer?.name || "",
-//     email: dealer?.email || "",
-//     phone_number: dealer?.phone_number || "",
-//     company_name: dealer?.company_name || "",
-//     is_active: dealer?.is_active ?? true,
-//     business_logo: null as File | null,
-//   });
-
-//   const [preview, setPreview] = useState(
-//     dealer?.business_logo || null
-//   );
-
-//   // useEffect(()=>{
-//   //   document.body.style.overflow = "hidden";
-//   //   return ()=> document.body.style.overflow = "auto";
-//   // },[]);
-
-//   const handleChange = (e:any)=>{
-//     const {name,value,type,checked} = e.target;
-
-//     setForm({
-//       ...form,
-//       [name]: type === "checkbox" ? checked : value
-//     });
-//   };
-
-//   const handleImageChange = (e:any)=>{
-//     const file = e.target.files[0];
-
-//     if(!file) return;
-
-//     if(!file.type.startsWith("image/")){
-//       toast.error("Only image allowed");
-//       return;
-//     }
-
-//     if(file.size > 2 * 1024 * 1024){
-//       toast.error("Image must be < 2MB");
-//       return;
-//     }
-
-//     setForm({...form, business_logo:file});
-//     setPreview(URL.createObjectURL(file));
-//   };
-
-//   const handleUpdate = async ()=>{
-//     try {
-
-//       const formData = new FormData();
-
-//       formData.append("name", form.name);
-//       formData.append("email", form.email);
-//       formData.append("phone_number", form.phone_number);
-//       formData.append("company_name", form.company_name);
-//       formData.append("is_active", String(form.is_active));
-
-//       if(form.business_logo){
-//         formData.append("business_logo", form.business_logo);
-//       }
-
-//       const res = await DealerService.updateDealer(formData, dealer._id);
-
-//       if(!res.success){
-//         toast.error(res.message);
-//         return;
-//       }
-
-//       toast.success("Dealer updated");
-//       refresh();
-//       onClose();
-
-//     } catch {
-//       toast.error("Update failed");
-//     }
-//   };
-
-//   return (
-//     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-
-//       <div className="bg-white p-6 rounded-2xl w-[380px] space-y-4">
-
-//         <h2 className="text-lg font-semibold">Edit Dealer</h2>
-
-//         {/* IMAGE */}
-//         <div className="flex flex-col items-center gap-2">
-
-//           {preview ? (
-//             <img src={preview} className="w-20 h-20 rounded-full object-cover border" />
-//           ) : (
-//             <div className="w-20 h-20 bg-gray-200 rounded-full flex items-center justify-center text-xs">
-//               No Image
-//             </div>
-//           )}
-
-//           <input type="file" accept="image/*" onChange={handleImageChange} />
-
-//         </div>
-
-//         <input name="name" value={form.name} onChange={handleChange} className="w-full border p-2 rounded" placeholder="Name" />
-//         <input name="email" value={form.email} onChange={handleChange} className="w-full border p-2 rounded" placeholder="Email" />
-//         <input name="phone_number" value={form.phone_number} onChange={handleChange} className="w-full border p-2 rounded" placeholder="Phone" />
-//         <input name="company_name" value={form.company_name} onChange={handleChange} className="w-full border p-2 rounded" placeholder="Company" />
-
-//         <select
-//           value={form.is_active ? "true" : "false"}
-//           onChange={(e)=>setForm({...form,is_active:e.target.value==="true"})}
-//           className="w-full border p-2 rounded"
-//         >
-//           <option value="true">Active</option>
-//           <option value="false">Inactive</option>
-//         </select>
-
-//         <div className="flex justify-end gap-2">
-//           <button onClick={onClose} className="px-3 py-1 border rounded">Cancel</button>
-//           <button onClick={handleUpdate} className="px-3 py-1 bg-black text-white rounded">Update</button>
-//         </div>
-
-//       </div>
-
-//     </div>
-//   );
-// }

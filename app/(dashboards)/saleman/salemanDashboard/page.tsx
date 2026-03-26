@@ -1,13 +1,24 @@
+<<<<<<< HEAD
+=======
+
+
+
+>>>>>>> 4142b85e089f783fe9d90dd9197a5ba7c9f93909
 import {
   DollarSign,
   TrendingUp,
   Target,
   Handshake
 } from "lucide-react";
+<<<<<<< HEAD
 import PendingApprovals from "@/app/components/dashboard/PendingApprovals";
 import SalesmanHeader from "@/app/components/saleman/SalesmanHeader";
 import StatCard from "@/app/components/saleman/StatCard";
 import Dispatched from "@/app/components/saleman/Dispatched";
+=======
+import PendingApprovals from "@/pages/dashboard/PendingApprovals";
+import StatCard from "@/pages/saleman/StatCard";
+>>>>>>> 4142b85e089f783fe9d90dd9197a5ba7c9f93909
 
 export default function SalesmanPage() {
 

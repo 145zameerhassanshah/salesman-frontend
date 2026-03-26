@@ -82,7 +82,6 @@ export default function AddQuotation() {
       }
 
       const products = await QuotationService.getProductsByCategory(categoryId);
-console.log("Fetched products for category", categoryId, products);
       setProductsMap((prev) => ({
         ...prev,
         [index]: products || [],
@@ -544,6 +543,7 @@ console.log("Fetched products for category", categoryId, products);
           <span>{subtotal.toFixed(2)}</span>
         </div>
 
+ <label htmlFor="discount">Discount</label>
         <div className="flex gap-2">
           <select
             className="border p-2 rounded"

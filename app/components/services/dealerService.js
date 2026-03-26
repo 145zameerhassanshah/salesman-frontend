@@ -60,20 +60,13 @@ import { API } from "@/app/components/lib/endpoints";
 class DealerService {
 
   static async getAllDealers(businessId) {
-    try {
       const res = await fetch(`${API.dealers}/business/${businessId}`, {
         credentials: "include"
       });
 
       const result = await res.json();
 
-      if (!res.ok) throw new Error(result.message);
-
-      return result.dealers || result;
-    } catch (err) {
-      console.error("Get Dealers Error:", err);
-      return [];
-    }
+     return result;
   }
 
   static async getDealerById(id) {

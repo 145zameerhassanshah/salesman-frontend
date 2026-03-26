@@ -139,7 +139,7 @@ export default function AddOrder() {
       }))
     };
 
-    console.log(payload)
+    // console.log(payload)
 
     const res=await order.createOrder(payload);
 
