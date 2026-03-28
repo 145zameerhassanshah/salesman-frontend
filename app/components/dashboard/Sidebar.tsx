@@ -1,5 +1,3 @@
-
-
 "use client";
 
 import AuthService from "@/app/components/services/authService";
@@ -76,14 +74,18 @@ export default function Sidebar({
 ];
 
   // ✅ SALESMAN MENU
-  const salesmanMenu = [
+const salesmanMenu = [
     { icon: ShoppingCart, label: "Orders", href: "/orders" },
     { icon: ClipboardList, label: "Quotations", href: "/quotations" },
   ];
 
+  const staffMenu = [
+    { icon: ShoppingCart, label: "Orders", href: "/orders" },
+  ];
+
   // ✅ SYSTEM MENU
   const system = [
-    { icon: BarChart3, label: "Audit Trail", href: "/audit-trail" },
+    // { icon: BarChart3, label: "Audit Trail", href: "/audit-trail" },
     { icon: LogOut, label: "Logout", action: logout },
   ];
 
@@ -91,6 +93,8 @@ export default function Sidebar({
   const roleMenus: any = {
     admin: adminMenu,
     salesman: salesmanMenu,
+    dispatcher:staffMenu,
+    accountant:staffMenu,
   };
 
   const filteredMenu = roleMenus[user?.user_type] || [];
@@ -212,7 +216,7 @@ export default function Sidebar({
 
         {expanded && (
           <span className="text-sm">
-            {user?.user_type === "salesman" ? "Salesman" : "Admin"}
+            {user?.user_type}
           </span>
         )}
       </div>

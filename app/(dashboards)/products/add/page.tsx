@@ -70,40 +70,44 @@ image:file
 };
 
 
-const validate = ()=>{
+const validate = () => {
+  if (!form.name.trim()) return "Product name is required";
 
-if(!form.name.trim()){
-  toast.error("Product name is required");
-  return false;
-}
+  if (!form.sku.trim()) return "SKU is required";
 
-if(!form.sku.trim()){
-  toast.error("SKU is required");
-  return false;
-}
+  if (!form.mrp || Number(form.mrp) <= 0) {
+    return "MRP must be greater than 0";
+  }
 
-if(!form.mrp || Number(form.mrp) <= 0){
-  toast.error("MRP must be greater than 0");
-  return false;
-}
+  if (!form.category_id) return "Select category";
 
-if(!form.category_id){
-  toast.error("Select category");
-  return false;
-}
+  if (!form.image) return "Product image required";
 
-if(!form.image){
-  toast.error("Product image required");
-  return false;
-}
+  // ✅ NEW (important improvements)
 
-return true;
+  if (form.discount_percent && Number(form.discount_percent) < 0) {
+    return "Discount cannot be negative";
+  }
+
+  if (Number(form.discount_percent) > 100) {
+    return "Discount cannot exceed 100%";
+  }
+
+  if (form.order_no && Number(form.order_no) < 0) {
+    return "Order number cannot be negative";
+  }
+
+  return null; // ✅ VALID
 };
 
 
 const handleSubmit = async ()=>{
+const error = validate();
 
-if(!validate()) return;
+if (error) {
+  toast.error(error);
+  return;
+}
 
 try{
 
@@ -246,6 +250,7 @@ name="discount_percent"
 value={form.discount_percent}
 onChange={handleChange}
 type="number"
+max={100}
 placeholder="0"
 className="w-full mt-1 bg-gray-200 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-gray-400"
 />

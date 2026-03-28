@@ -1,3 +1,5 @@
+import StaffPage from "@/app/components/AccDisp/StaffPage";
+
 export default function DispatcherPage() {
-  return <div>Dispatcher Page</div>;
+  return <StaffPage role="dispatcher" />;
 }

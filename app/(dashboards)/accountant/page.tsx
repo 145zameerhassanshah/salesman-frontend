@@ -1,3 +1,5 @@
+import StaffPage from "@/app/components/AccDisp/StaffPage";
+
 export default function AccountantPage() {
-  return <div>Accountant Page</div>;
+  return <StaffPage role="accountant" />;
 }
