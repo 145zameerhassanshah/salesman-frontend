@@ -137,9 +137,6 @@ export default function AddOrder() {
         quantity: i.qty
       }))
     };
-
-    // console.log(payload)
-
     const res=await order.createOrder(payload);
 
     if(!res.success) return toast.error(res?.message);

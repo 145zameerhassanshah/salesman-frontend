@@ -79,9 +79,13 @@ const salesmanMenu = [
     { icon: ClipboardList, label: "Quotations", href: "/quotations" },
   ];
 
+  const staffMenu = [
+    { icon: ShoppingCart, label: "Orders", href: "/orders" },
+  ];
+
   // ✅ SYSTEM MENU
   const system = [
-    { icon: BarChart3, label: "Audit Trail", href: "/audit-trail" },
+    // { icon: BarChart3, label: "Audit Trail", href: "/audit-trail" },
     { icon: LogOut, label: "Logout", action: logout },
   ];
 
@@ -89,8 +93,8 @@ const salesmanMenu = [
   const roleMenus: any = {
     admin: adminMenu,
     salesman: salesmanMenu,
-    dispatcher:salesmanMenu,
-    accountant:salesmanMenu,
+    dispatcher:staffMenu,
+    accountant:staffMenu,
   };
 
   const filteredMenu = roleMenus[user?.user_type] || [];

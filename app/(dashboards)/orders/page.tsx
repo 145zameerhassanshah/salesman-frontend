@@ -25,10 +25,10 @@ const statusStyle: any = {
   Pending: "bg-yellow-100 text-yellow-600",
   Unapproved: "bg-gray-100 text-blue-600",
   Rejected: "bg-red-100 text-red-600",
-  Dispatched: "bg-green-100 text-green-600",
-  Partial: "bg-green-100 text-green-600",
-  Approved: "bg-green-100 text-green-600",
-  Posted: "bg-orange-100 text-orange-600",
+  Posted: "bg-green-100 text-green-600",
+  Approved: "bg-yellow-100 text-yellow-600",
+  Dispatched: "bg-blue-100 text-blue-600",
+  Partial: "bg-orange-100 text-orange-600",
 };
 
 export default function OrdersPage() {
@@ -109,7 +109,6 @@ export default function OrdersPage() {
     setViewLoading(true);
     try {
       const res = await order.getOrderById(orderId);
-      console.log(res);
       if (!res.success)
         return toast.error(res?.message || "Failed to load order");
       setViewOrder(res.order);
@@ -194,17 +193,18 @@ export default function OrdersPage() {
     const tax = parseFloat(editOrder?.tax) || 0;
     return { subtotal, discountAmt, total: subtotal - discountAmt + tax };
   }, [editItems, editOrder]);
+  
   const handleEditSave = async () => {
-  if (!editOrder?.status) {
-    return toast.error("Status is required");
-  }
-
   setEditSaving(true);
 
   let payload;
 
   // ✅ DISPATCHER → ONLY STATUS + DELIVERY NOTES
   if (user?.user_type === "dispatcher") {
+    if (editOrder?.status==="approved") {
+      setEditSaving(false);
+    return toast.error("Status is required");
+  }
     payload = {
       status: editOrder?.status,
       deliveryNotes: editFields.deliveryNotes,
@@ -213,6 +213,10 @@ export default function OrdersPage() {
 
   // ✅ ACCOUNTANT → ONLY STATUS
   else if (user?.user_type === "accountant") {
+    if (editOrder?.status==="partial" || editOrder?.status==="dispatched") {
+      setEditSaving(false);
+    return toast.error("Status is required");
+  }
     payload = {
       status: editOrder?.status,
     };
@@ -736,6 +740,7 @@ export default function OrdersPage() {
         status: e.target.value,
       }))
     }
+    required
     className="w-full border rounded-lg px-3 py-2 mt-1"
   >
     <option value="">Select Status</option>
