@@ -56,7 +56,6 @@ export default function StaffPage({ role }: { role: string }) {
       ) : (
         <StaffTable
           data={staff.map((u: any) => ({
-  id: u._id,
   _id: u._id, // ✅ ADD THIS (VERY IMPORTANT)
   name: u.name,
   email: u.email,

@@ -1,5 +1,3 @@
-
-
 "use client";
 
 import AuthService from "@/app/components/services/authService";
@@ -76,7 +74,7 @@ export default function Sidebar({
 ];
 
   // ✅ SALESMAN MENU
-  const salesmanMenu = [
+const salesmanMenu = [
     { icon: ShoppingCart, label: "Orders", href: "/orders" },
     { icon: ClipboardList, label: "Quotations", href: "/quotations" },
   ];
@@ -91,6 +89,8 @@ export default function Sidebar({
   const roleMenus: any = {
     admin: adminMenu,
     salesman: salesmanMenu,
+    dispatcher:salesmanMenu,
+    accountant:salesmanMenu,
   };
 
   const filteredMenu = roleMenus[user?.user_type] || [];
@@ -212,7 +212,7 @@ export default function Sidebar({
 
         {expanded && (
           <span className="text-sm">
-            {user?.user_type === "salesman" ? "Salesman" : "Admin"}
+            {user?.user_type}
           </span>
         )}
       </div>
