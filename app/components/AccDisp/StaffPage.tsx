@@ -17,8 +17,6 @@ export default function StaffPage({ role }: { role: string }) {
   /* ================= FILTER BY ROLE ================= */
   const staff =
     data?.userByIndustry?.filter((u: any) => u.user_type === role) || [];
-
-    
   /* ================= EDIT ================= */
   const handleEdit = (data: any) => {
     setEditData(data);

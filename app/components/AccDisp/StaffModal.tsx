@@ -21,6 +21,7 @@ export default function StaffModal({
 }) {
 
     const user=useSelector((state:any)=>state?.user.user)
+    console.log(user.industry)
   const [form, setForm] = useState({
   name: "",
   email: "",
@@ -29,7 +30,6 @@ export default function StaffModal({
   city: "",
   address: "",
   password: "",
-  industry: user?.industry,
   status: "Active",
   profile_image: null,
 });
@@ -76,6 +76,7 @@ export default function StaffModal({
     formData.append("whatsapp_number", form.whatsapp_number);
     formData.append("city", form.city);
     formData.append("address", form.address);
+    formData.append("industry",user?.industry)
     formData.append("status", form.status);
 
     // 👉 only send password if creating
