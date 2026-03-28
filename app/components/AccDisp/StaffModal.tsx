@@ -37,16 +37,51 @@ export default function StaffModal({
   const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
 
+  const validate = () => {
+  if (!form.name.trim()) return "Name is required";
+
+  if (!form.email.trim()) return "Email is required";
+  if (!/\S+@\S+\.\S+/.test(form.email)) return "Invalid email";
+
+  if (!form.phone_number.trim()) return "Phone number is required";
+  if (!form.whatsapp_number.trim()) return "WhatsApp number is required";
+
+  if (!form.city.trim()) return "City is required";
+  if (!form.address.trim()) return "Address is required";
+
+  // 👉 Only for CREATE (not edit)
+  if (!data && !form.password.trim()) return "Password is required";
+  if (!data && form.password.length < 6) return "Password must be at least 6 characters";
+
+  return null;
+};
+
   /* ================= SUBMIT ================= */
   const handleSubmit = async () => {
+  const error = validate();
+
+  if (error) {
+    toast.error(error);
+    return;
+  }
+
   try {
     setLoading(true);
 
     const formData = new FormData();
 
-    if (form.name) formData.append("name", form.name);
-    if (form.email) formData.append("email", form.email);
-    if (form.status) formData.append("status", form.status);
+    formData.append("name", form.name);
+    formData.append("email", form.email);
+    formData.append("phone_number", form.phone_number);
+    formData.append("whatsapp_number", form.whatsapp_number);
+    formData.append("city", form.city);
+    formData.append("address", form.address);
+    formData.append("status", form.status);
+
+    // 👉 only send password if creating
+    if (!data && form.password) {
+      formData.append("password", form.password);
+    }
 
     if (file) {
       formData.append("profile_image", file);
@@ -54,13 +89,10 @@ export default function StaffModal({
 
     let res;
 
-    // ✅ UPDATE
     if (data?._id || data?.id) {
       const userId = data._id || data.id;
       res = await UserService.updateUser(userId, formData);
-    } 
-    // ✅ CREATE
-    else {
+    } else {
       formData.append("user_type", role);
       res = await UserService.createTeamMember(formData);
     }
@@ -71,10 +103,9 @@ export default function StaffModal({
     }
 
     toast.success(res.message);
-
-   await refetch();
-
+    await refetch();
     onSave(res.updatedUser || form);
+
   } catch (err) {
     toast.error("Something went wrong");
   } finally {

@@ -69,25 +69,32 @@ useEffect(() => {
      VALIDATION
   ========================= */
 
-  const validate = ()=>{
+  const validate = () => {
+  if (!form.name.trim()) return "Dealer name is required";
 
-    if(!form.name.trim()){
-      toast.error("Dealer name is required");
-      return false;
-    }
+  if (!form.email.trim()) return "Email is required";
+  if (!/\S+@\S+\.\S+/.test(form.email)) return "Invalid email format";
 
-    if(!form.phone_number.trim()){
-      toast.error("Phone number required");
-      return false;
-    }
+  if (!form.phone_number.trim()) return "Phone number is required";
+  if (!/^[0-9]{10,15}$/.test(form.phone_number)) {
+    return "Phone number must be 10–15 digits";
+  }
 
-    if(!form.company_name.trim()){
-      toast.error("Company name required");
-      return false;
-    }
+  if (!form.whatsapp_number.trim()) return "WhatsApp number is required";
+  if (!/^[0-9]{10,15}$/.test(form.whatsapp_number)) {
+    return "WhatsApp number must be 10–15 digits";
+  }
 
-    return true;
-  };
+  if (!form.company_name.trim()) return "Company name is required";
+
+  if (!form.billing_address.trim()) return "Billing address is required";
+  if (!form.shipping_address.trim()) return "Shipping address is required";
+
+  if (!form.city.trim()) return "City is required";
+  if (!form.country.trim()) return "Country is required";
+
+  return null;
+};
 
   /* =========================
      SUBMIT
@@ -95,7 +102,12 @@ useEffect(() => {
 
   const handleSubmit = async ()=>{
 
-    if(!validate()) return;
+   const error = validate();
+
+if (error) {
+  toast.error(error);
+  return;
+}
 
     try{
       setLoading(true);
