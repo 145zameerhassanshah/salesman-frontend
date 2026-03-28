@@ -112,7 +112,14 @@ const { data: categoryProducts = [] } = useProductsByCategory(activeCategory);
       const res = await order.getOrderById(orderId);
       if (!res.success) { setEditOrder(null); return toast.error(res?.message || "Failed to load order"); }
       setEditOrder(res.order);
-      setEditItems(res.items.map((item: any) => ({ ...item })));
+      // setEditItems(res.items.map((item: any) => ({ ...item })));
+      setEditItems(
+  res.items.map((item: any) => ({
+    ...item,
+    category_id: item.category_id?._id || item.category_id,
+    product_id: item.product_id?._id || item.product_id,
+  }))
+);
       setEditFields({
         due_date: res.order?.due_date ? new Date(res.order.due_date).toISOString().split("T")[0] : "",
         deliveryNotes: res.order?.deliveryNotes || "",
@@ -507,7 +514,7 @@ const handleRemoveItem = (index: number) => {
           <div className="relative w-full md:w-64">
             <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
             <input type="text" value={search} onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search by invoice #" className="w-full pl-9 pr-3 py-2 rounded-lg bg-white border focus:outline-none" />
+              placeholder="Search by order #" className="w-full pl-9 pr-3 py-2 rounded-lg bg-white border focus:outline-none" />
           </div>
           <button className="p-2 bg-white border rounded-lg"><SlidersHorizontal size={18} /></button>
           <button onClick={() => router.push("/orders/add")} className="flex items-center gap-2 bg-black text-white px-4 py-2 rounded-lg">
@@ -521,7 +528,7 @@ const handleRemoveItem = (index: number) => {
         <table className="w-full min-w-[900px] text-sm">
           <thead className="text-gray-500 border-b">
             <tr className="text-left">
-              <th className="py-3">Invoice #</th>
+              <th className="py-3">Order #</th>
               <th>Dealer</th>
               <th>Salesman/Director</th>
               <th>Total</th>
@@ -552,6 +559,11 @@ const handleRemoveItem = (index: number) => {
                           <X size={16} />
                         </button>
                       )}
+                      <button
+  onClick={() => window.open(`/orders/print/${o._id}`, "_blank")}
+>
+  Download
+</button>
                       {user?.user_type === "admin" && o.status === "unapproved" && (
                         <>
                           <button onClick={() => handleAction(o?._id, "approve")} className="p-2 bg-green-100 text-green-600 rounded-md"><Check size={16} /></button>
@@ -567,6 +579,7 @@ const handleRemoveItem = (index: number) => {
                       {user?.user_type === "admin" && o?.status !== "delivered" && (
                         <button onClick={() => handleEdit(o?._id)} className="p-2 bg-blue-100 text-blue-600 rounded-md"><Pencil size={16} /></button>
                       )}
+
                     </div>
                   </td>
                 </tr>
