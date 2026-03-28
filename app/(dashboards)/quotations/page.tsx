@@ -908,7 +908,7 @@ export default function QuotationsPage() {
                       <Eye size={16} />
                     </button>
 
-                    {canEdit(quotation) && (
+                    {(canEdit(quotation) || quotation?.status!=="rejected") && (
                       <button
                         onClick={() => openEdit(quotation)}
                         className="p-2 bg-blue-100 text-blue-600 rounded-md"

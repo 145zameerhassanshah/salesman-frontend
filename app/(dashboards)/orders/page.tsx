@@ -912,7 +912,7 @@ export default function OrdersPage() {
                         )}
                       {/* EDIT: ADMIN + ANY STATUS EXCEPT DELIVERED */}
                       {user?.user_type === "admin" &&
-                        o?.status !== "delivered" && (
+                        o?.status !== "dispatched" && o?.status!=="partial" && o?.status!=="rejected" && o?.status!=="posted" && (
                           <button
                             onClick={() => handleEdit(o?._id)}
                             className="p-2 bg-blue-100 text-blue-600 rounded-md"
