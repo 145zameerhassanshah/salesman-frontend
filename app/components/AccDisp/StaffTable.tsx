@@ -23,7 +23,7 @@ export default function StaffTable({
 
         <tbody>
           {data.map((item) => (
-            <tr key={item.id} className="border-t">
+            <tr key={item._id} className="border-t">
               <td className="p-3">
                 <img
                   src={item.image}
