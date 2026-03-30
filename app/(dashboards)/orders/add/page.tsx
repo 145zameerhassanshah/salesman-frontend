@@ -16,7 +16,6 @@ export default function AddOrder() {
   const { data: categories = [] } = useCategory(user?.industry);
   const { data } = useDealers(user?.industry);
   const dealers = data?.dealers || [];
-  console.log(data)
 
   /* ACTIVE CATEGORY */
   const [activeCategory, setActiveCategory] = useState("");
@@ -141,9 +140,6 @@ const handleCategoryChange = (index: number, value: string) => {
         quantity: i.qty
       }))
     };
-
-    // console.log(payload)
-
     const res=await order.createOrder(payload);
 
     if(!res.success) return toast.error(res?.message);

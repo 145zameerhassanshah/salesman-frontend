@@ -142,7 +142,33 @@ class OrderService {
     throw error.message;
   }
 }
+/* =========================
+   DOWNLOAD PDF
+========================= */
+async downloadPdf(id) {
+  try {
+    const res = await fetch(`${API.orders}/pdf/${id}`, {
+      method: "GET",
+      credentials: "include",
+    });
 
+    const blob = await res.blob();
+
+    const url = window.URL.createObjectURL(blob);
+
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `order-${id}.pdf`;
+
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+
+    window.URL.revokeObjectURL(url);
+  } catch (error) {
+    console.log(error);
+  }
+}
 }
 
 export const order = new OrderService();
