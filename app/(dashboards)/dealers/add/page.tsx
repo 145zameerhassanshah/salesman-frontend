@@ -130,9 +130,8 @@ if (error) {
       }
 
       const res = await DealerService.createDealer(formData, user?.industry);
-
       if(!res.success){
-        toast.error(res.message);
+        toast.error(res?.message);
         return;
       }
 
