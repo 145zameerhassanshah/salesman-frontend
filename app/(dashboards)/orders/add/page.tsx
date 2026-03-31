@@ -4,7 +4,6 @@ import { order } from "@/app/components/services/orderService";
 import { useCategory } from "@/hooks/useCategory";
 import { useDealers } from "@/hooks/useDealers";
 import { useProductsByCategory } from "@/hooks/useProductByCategory";
-import { error } from "console";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import toast from "react-hot-toast";
@@ -85,12 +84,16 @@ export default function AddOrder() {
     setItems(updated);
   };
 
-  const handleCategoryChange = (index: number, value: string) => {
-    updateItem(index, "category_id", value);
-    updateItem(index, "product_id", "");
-    setActiveCategory(value);
-  };
-
+  // const handleCategoryChange = (index: number, value: string) => {
+  //   updateItem(index, "category_id", value);
+  //   updateItem(index, "product_id", "");
+  //   setActiveCategory(value);
+  // };
+const handleCategoryChange = (index: number, value: string) => {
+  updateItem(index, "category_id", value);
+  updateItem(index, "product_id", "");
+  setActiveCategory(value); // ye trigger karega products fetch
+};
   /* ================= TOTAL ================= */
 
   const subtotal = items.reduce((sum, item) => sum + item.total, 0);
@@ -227,8 +230,9 @@ export default function AddOrder() {
 
         {items.map((item, index) => {
 
-          const rowProducts =
-            item.category_id === activeCategory ? products : [];
+          // const rowProducts =
+          //   item.category_id === activeCategory ? products : [];
+          const rowProducts = products;
 
           const categoryName =
             categories.find((c:any)=>c._id===item.category_id)?.name || "-";
@@ -278,10 +282,9 @@ export default function AddOrder() {
                     <select
                       value={item.product_id}
                       onChange={(e)=>{
-                        const product = rowProducts.find(
-                          (p:any)=>p._id === e.target.value
-                        );
-
+const product = rowProducts?.find(
+  (p:any)=>p._id === e.target.value
+);
                         updateItem(index,"product_id",e.target.value);
                         updateItem(index,"price",product?.mrp || 0);
                          updateItem(index,"item_name",product?.name || "");
