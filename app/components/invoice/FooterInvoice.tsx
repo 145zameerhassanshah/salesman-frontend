@@ -1,4 +1,4 @@
-export default function InvoiceFooter() {
+export default function InvoiceFooter({ order }) {
   return (
     <div className="mt-6 flex justify-between items-start gap-6">
 
@@ -27,17 +27,30 @@ export default function InvoiceFooter() {
 
         <div className="flex justify-between text-gray-600">
           <span>Subtotal</span>
-          <span>$4,772</span>
+          <span>{order?.subtotal?.toFixed(2) || "0.00"}</span>
         </div>
 
         <div className="flex justify-between text-gray-600">
-          <span>Tax (8%)</span>
-          <span>$381.76</span>
+          <span>
+            Tax ({order?.tax_type === "percent" ? "%" : "PKR"})
+          </span>
+          <span>{order?.tax?.toFixed(2) || "0.00"}</span>
         </div>
+
+        {order?.discount > 0 && (
+          <div className="flex justify-between text-gray-600">
+            <span>
+              Discount ({order?.discount_type === "percent" ? "%" : "PKR"})
+            </span>
+            <span>- {order?.discount?.toFixed(2)}</span>
+          </div>
+        )}
 
         <div className="flex justify-between items-center pt-2 border-t">
           <span className="font-medium">Total</span>
-          <span className="text-lg font-semibold">$5153.76</span>
+          <span className="text-lg font-semibold">
+            {order?.total?.toFixed(2) || "0.00"}
+          </span>
         </div>
 
       </div>

@@ -25,11 +25,35 @@ class OrderService {
     }
   }
 
+async getDashboardStats(id) {
+  try {
+    const res = await fetch(`${API.orders}/stats/${id}`, {
+      method: "GET",
+      credentials: "include"
+    });
 
+    const result = await res.json();
+
+    if (!res.ok) return false;
+
+    return result;
+
+  } catch (error) {
+    throw error.message;
+  }
+}
   /* =========================
      CREATE ORDER
   ========================= */
+async downloadPDF(id) {
+  const res = await fetch(`${API.orders}/pdf/${id}`, {
+    method: "GET",
+    credentials: "include",
+  });
 
+  const blob = await res.blob();
+  return blob;
+}
   async createOrder(data) {
       const res = await fetch(API.orders, {
         method: "POST",
