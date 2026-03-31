@@ -147,28 +147,26 @@ class OrderService {
 ========================= */
 async downloadPdf(id) {
   try {
-    const res = await fetch(`${API.orders}/pdf/${id}`, {
+    const res = await fetch(API.orderPdf(id), {
       method: "GET",
       credentials: "include",
     });
 
-    const blob = await res.blob();
+    if (!res.ok) throw new Error("PDF download failed");
 
+    const blob = await res.blob();
     const url = window.URL.createObjectURL(blob);
 
     const a = document.createElement("a");
     a.href = url;
     a.download = `order-${id}.pdf`;
-
     document.body.appendChild(a);
     a.click();
     a.remove();
-
     window.URL.revokeObjectURL(url);
   } catch (error) {
-    console.log(error);
+    console.error("PDF download error:", error);
   }
 }
 }
-
 export const order = new OrderService();

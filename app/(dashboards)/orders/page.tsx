@@ -17,7 +17,7 @@ import {
   Save,
   Loader2,
 } from "lucide-react";
-import OrderPdfGenerator from "@/app/components/pdf/OrderPdfGenerator";
+// import OrderPdfGenerator from "@/app/components/pdf/OrderPdfGenerator";
 import { useRouter } from "next/navigation";
 import { useState, useMemo } from "react";
 import toast from "react-hot-toast";
@@ -35,7 +35,7 @@ const statusStyle: any = {
 
 export default function OrdersPage() {
   const user = useSelector((state: any) => state.user.user);
-    const [downloadOrderId, setDownloadOrderId] = useState(null); 
+    // const [downloadOrderId, setDownloadOrderId] = useState(null); 
   const isDispatcher = user?.user_type === "dispatcher";
   const canEditFull =
   user?.user_type === "admin" || user?.user_type === "salesman";
@@ -76,7 +76,30 @@ export default function OrdersPage() {
     setConfirmOrderId(orderId);
     setConfirmAction(action);
   };
+const handleDownload = async (id) => {
+  try {
+    const res = await fetch(`${API_URL}/orders/pdf/${id}`, {
+      method: "GET",
+      credentials: "include",
+    });
 
+    const blob = await res.blob();
+
+    const url = window.URL.createObjectURL(blob);
+
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `order-${id}.pdf`;
+
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+
+    window.URL.revokeObjectURL(url);
+  } catch (error) {
+    console.log(error);
+  }
+};
   const handleConfirm = async () => {
     if (confirmAction === "approve") {
       const res = await order.updateStatus(confirmOrderId, "approved");
@@ -955,17 +978,17 @@ export default function OrdersPage() {
     </button>
 
     {/* ⬇ DOWNLOAD */}
-{/* <button
+ <button
   onClick={() => order.downloadPdf(o._id)}
   className="p-2 bg-green-100 text-green-600 rounded-md"
 >
   <Download size={16} />
-</button> */}
-<button onClick={() => setDownloadId(order._id)}>
+</button> 
+{/* <button onClick={() => order.downloadPdf(orderId)}>
   Download PDF
 </button>
-
-  </>
+   */}
+</>
 )}
 {/* ACCOUNTANT EDIT */}
 {user?.user_type === "accountant" && (
@@ -1005,12 +1028,12 @@ export default function OrdersPage() {
           </div>
         </div>
       </div>
-      {downloadOrderId && (
+      {/* {downloadOrderId && (
   <OrderPdfGenerator
     orderId={downloadOrderId}
     onDone={() => setDownloadOrderId(null)}
   />
-)}
+)} */}
     </div>
   );
 }
