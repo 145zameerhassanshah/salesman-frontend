@@ -51,12 +51,15 @@ export default function TableInvoice({ items = [] }) {
                   <td className="px-3">
                     <div className="flex items-center gap-2">
 
-                      <img
-src={`${process.env.NEXT_PUBLIC_API_URL}/uploads/${item.product_id.image}`}
-                        alt="product"
-                        className="w-8 h-8 object-contain bg-gray-100 rounded-md p-1"
-                      />
-
+<img
+  src={
+    item.product_id?.image
+      ? `${process.env.NEXT_PUBLIC_API_URL}/uploads/${item.product_id.image}`
+      : "/images/default-product.png"
+  }
+  alt="product"
+  className="w-8 h-8 object-contain bg-gray-100 rounded-md p-1"
+/>
                       <span className="text-gray-700 leading-tight">
                         {item?.item_name || "N/A"}
                       </span>
