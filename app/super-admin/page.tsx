@@ -29,6 +29,7 @@ export default function SuperAdminPage() {
     address: "",
     city: "",
     taxId: "",
+    bussinesEmail: "",
     business_logo: null,
   });
 
@@ -82,7 +83,7 @@ export default function SuperAdminPage() {
       toast.success(signOut?.message || "Logout successful");
 
       dispatch(clearUser());
-      router.push("/login");
+      router.push("/");
 
     } catch (error) {
       toast.error("Something went wrong");
@@ -93,6 +94,7 @@ export default function SuperAdminPage() {
 
   const handleSubmit = async (e: any) => {
     e.preventDefault();
+    
 
     try {
       const fd = new FormData();
@@ -101,6 +103,7 @@ export default function SuperAdminPage() {
       fd.append("businessName", formData.businessName);
       fd.append("registrationNo", formData.registrationNo);
       fd.append("address", formData.address);
+      fd.append("bussinesEmail", formData.bussinesEmail);
       fd.append("city", formData.city);
       fd.append("taxId", formData.taxId);
 
@@ -192,6 +195,10 @@ export default function SuperAdminPage() {
 
               <p className="text-sm">City: {b?.city}</p>
               <p className="text-sm">Reg No: {b?.registrationNo}</p>
+              <p className="text-sm">Email : {b?.bussinesEmail}</p>
+               <p className="text-sm">Address : {b?.address}</p>
+
+
             </div>
 
           </a>
@@ -233,6 +240,13 @@ export default function SuperAdminPage() {
                 name="registrationNo"
                 placeholder="Business Registration Number"
                 value={formData.registrationNo}
+                onChange={handleChange}
+                className="w-full border p-2"
+              />
+              <input
+                name="bussinesEmail"
+                placeholder="Business Email Address"
+                value={formData.bussinesEmail}
                 onChange={handleChange}
                 className="w-full border p-2"
               />

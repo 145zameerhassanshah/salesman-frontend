@@ -6,7 +6,13 @@ export default function HeaderInvoice({ order }) {
       <div className="flex justify-between items-center">
 
         {/* LEFT → DEALER LOGO */}
-        <img
+                                      <img
+src={`${process.env.NEXT_PUBLIC_API_URL}/uploads/${order?.dealer_id.business_logo}`}
+                        alt="product"
+                        className="w-8 h-8 object-contain bg-gray-100 rounded-md p-1"
+                      />
+
+        {/* <img
           src={
             order?.dealer_id?.business_logo
               ? order.dealer_id.business_logo
@@ -15,9 +21,15 @@ export default function HeaderInvoice({ order }) {
           alt="dealer-logo"
           className="w-20 h-20 object-contain"
         />
-
+ */}
         {/* RIGHT → INDUSTRY LOGO */}
-        <img
+                              <img
+src={`${process.env.NEXT_PUBLIC_API_URL}/uploads/${order?.businessId.business_logo}`}
+                        alt="product"
+                        className="w-8 h-8 object-contain bg-gray-100 rounded-md p-1"
+                      />
+
+        {/* <img
           src={
             order?.businessId?.business_logo
               ? order.businessId.business_logo
@@ -25,7 +37,7 @@ export default function HeaderInvoice({ order }) {
           }
           alt="industry-logo"
           className="w-24 h-24 object-contain"
-        />
+        /> */}
       </div>
 
       {/* Bottom Content Row */}

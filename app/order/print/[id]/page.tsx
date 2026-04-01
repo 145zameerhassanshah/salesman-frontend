@@ -31,45 +31,41 @@ export default function Quotation() {
     if (id) fetchData();
   }, [id]);
 
-  // 🔥 Loading state
-  if (!orderData) {
-    return <div className="text-center py-20">Loading...</div>;
-  }
+  if (!orderData) return <div className="text-center py-20">Loading...</div>;
 
   return (
-    <div className="flex justify-center py-10">
-      
-      {/* A4 Container */}
+    <div className="flex justify-center bg-gray-200 py-8 px-3 print:bg-white print:py-0">
       <div
-        id="invoice"   // 🔥 VERY IMPORTANT (Puppeteer)
+        id="invoice"
         className="
-          w-[210mm] min-h-[297mm] 
-          bg-gray-100 shadow-lg 
-          p-6 md:p-10
-          text-[10px] md:text-[12px]
-          leading-relaxed
+          w-full max-w-[210mm]
+          min-h-[280mm]
+          bg-white
+          text-[12px]
+          shadow-md
           print:shadow-none
-          relative
+          flex flex-col
+          px-8 py-8
         "
       >
-
-        {/* 🔥 HEADER */}
+        {/* Header */}
         <HeaderInvoice order={orderData} />
 
-        {/* 🔥 TABLE */}
-        <div className="my-6">
+        {/* Table Section */}
+        <div className="mt-6">
           <TableInvoice items={items} />
-          <InvoiceFooter order={orderData} />
-
         </div>
 
-        {/* 🔥 FOOTER */}
-        {/* 🔥 BOTTOM BAR (DYNAMIC) */}
-        <div className="absolute bottom-6 left-10 right-10 border-t pt-3 flex justify-between text-gray-500 text-xs">
+        {/* Footer */}
+        <div className="mt-6">
+          <InvoiceFooter order={orderData} />
+        </div>
+
+        {/* Bottom Contact Row */}
+        <div className="border-t pt-3 flex justify-between text-gray-500 text-xs mt-6">
           <p>{orderData.businessId?.bussinesEmail || "-"}</p>
           <p>{orderData.businessId?.address || "-"}</p>
         </div>
-
       </div>
     </div>
   );

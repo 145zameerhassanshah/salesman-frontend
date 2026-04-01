@@ -4,7 +4,6 @@ export default function InvoiceFooter({ order }) {
 
       {/* Left */}
       <div className="space-y-4 max-w-sm text-sm">
-
         <div>
           <p className="font-semibold mb-1">Payment Mode</p>
           <p className="text-gray-500 text-xs">
@@ -19,18 +18,17 @@ export default function InvoiceFooter({ order }) {
             Delayed payments may affect future orders.
           </p>
         </div>
-
       </div>
 
-      {/* Right Box */}
-      <div className="bg-white/60 backdrop-blur-md rounded-2xl p-4 w-[260px] shadow-sm space-y-2 text-sm">
+      {/* ✅ Right Card (FIXED DESIGN) */}
+      <div className="bg-white rounded-2xl p-5 w-[280px] shadow-md space-y-3 text-sm ">
 
-        <div className="flex justify-between text-gray-600">
+        <div className="flex justify-between text-gray-500">
           <span>Subtotal</span>
           <span>{order?.subtotal?.toFixed(2) || "0.00"}</span>
         </div>
 
-        <div className="flex justify-between text-gray-600">
+        <div className="flex justify-between text-gray-500">
           <span>
             Tax ({order?.tax_type === "percent" ? "%" : "PKR"})
           </span>
@@ -38,7 +36,7 @@ export default function InvoiceFooter({ order }) {
         </div>
 
         {order?.discount > 0 && (
-          <div className="flex justify-between text-gray-600">
+          <div className="flex justify-between text-gray-500">
             <span>
               Discount ({order?.discount_type === "percent" ? "%" : "PKR"})
             </span>
@@ -46,9 +44,9 @@ export default function InvoiceFooter({ order }) {
           </div>
         )}
 
-        <div className="flex justify-between items-center pt-2 border-t">
-          <span className="font-medium">Total</span>
-          <span className="text-lg font-semibold">
+        <div className="border-t pt-3 flex justify-between items-center">
+          <span className="font-semibold text-gray-800">Total</span>
+          <span className="text-xl font-bold text-black">
             {order?.total?.toFixed(2) || "0.00"}
           </span>
         </div>

@@ -52,7 +52,7 @@ export default function TableInvoice({ items = [] }) {
                     <div className="flex items-center gap-2">
 
                       <img
-src={`${process.env.NEXT_PUBLIC_API_URL}${item.product_id.image}`}
+src={`${process.env.NEXT_PUBLIC_API_URL}/uploads/${item.product_id.image}`}
                         alt="product"
                         className="w-8 h-8 object-contain bg-gray-100 rounded-md p-1"
                       />

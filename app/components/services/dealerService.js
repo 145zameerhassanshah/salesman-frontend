@@ -96,9 +96,7 @@ class DealerService {
 
       const result = await res.json();
 
-      if (!res.ok) throw new Error(result.message);
-
-      return result.message;
+      return result;
     } catch (err) {
       return err.message;
     }
@@ -113,10 +111,7 @@ class DealerService {
       });
 
       const result = await res.json();
-
-      if (!res.ok) throw new Error(result.message);
-
-      return result.message;
+return
     } catch (err) {
       return err.message;
     }

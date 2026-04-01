@@ -4,7 +4,6 @@ import API_URL from "@/app/components/lib/apiConfig";
 import { order } from "@/app/components/services/orderService";
 import { useCategory } from "@/hooks/useCategory";
 import { useOrders } from "@/hooks/useOrders";
-import { useProductsByCategory } from "@/hooks/useProductByCategory";
 import {
   Check,
   X,
@@ -17,7 +16,6 @@ import {
   Save,
   Loader2,
 } from "lucide-react";
-// import OrderPdfGenerator from "@/app/components/pdf/OrderPdfGenerator";
 import { useRouter } from "next/navigation";
 import { useState, useMemo,useEffect } from "react";
 import toast from "react-hot-toast";
@@ -177,13 +175,8 @@ const handleDownload = async (id) => {
       setEditItems(
   res.items.map((item: any) => ({
     ...item,
-<<<<<<< HEAD
     product_id: item.product_id || "",
     category_id: item.category_id || "",
-=======
-    category_id: item.category_id?._id || item.category_id,
-    product_id: item.product_id?._id || item.product_id,
->>>>>>> 24c5eb8a8e92331d09d92e91b28b9fc8c785151d
   }))
 );
       setEditFields({
@@ -994,7 +987,6 @@ const product = rowProducts.find(
     <Pencil size={16} />
   </button>
 )}
-<<<<<<< HEAD
 {(user?.user_type === "admin" ||
   (user?.user_type === "salesman" && o.status === "approved")) && (
   <button
@@ -1014,35 +1006,6 @@ const product = rowProducts.find(
   >
     PDF
   </button>
-=======
-{(
-  user?.user_type === "admin" ||
-  (user?.user_type === "salesman" &&
-    o?.status?.toLowerCase() === "approved")
-) && (
-  <>
-    {/* 👁 VIEW PDF */}
-    <button
-      type="button"
-      onClick={() => router.push(`/orders/print/${o._id}`)}
-      className="p-2 bg-blue-100 text-blue-600 rounded-md hover:bg-blue-200"
-    >
-      <Eye size={16} />
-    </button>
-
-    {/* ⬇ DOWNLOAD */}
- <button
-  onClick={() => order.downloadPdf(o._id)}
-  className="p-2 bg-green-100 text-green-600 rounded-md"
->
-  <Download size={16} />
-</button> 
-{/* <button onClick={() => order.downloadPdf(orderId)}>
-  Download PDF
-</button>
-   */}
-</>
->>>>>>> 24c5eb8a8e92331d09d92e91b28b9fc8c785151d
 )}
 {/* ACCOUNTANT EDIT */}
 {user?.user_type === "accountant" && (
