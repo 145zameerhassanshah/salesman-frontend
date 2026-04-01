@@ -46,14 +46,24 @@ src={`${process.env.NEXT_PUBLIC_API_URL}/uploads/${order?.businessId.business_lo
         {/* LEFT → DEALER DETAILS */}
         <div>
           <div className="space-y-1">
-            <p className="text-lg md:text-xl font-bold mb-2">Details</p>
 
-            <p>{order?.dealer_id?.name || "-"}</p>
 
-            <p>
+            {/* <p>
               Address:{" "}
               {order?.dealer_id?.billing_address ||
                 order?.dealer_id?.shipping_address ||
+                "-"}
+            </p> */}
+<h3 className="text-lg md:text-xl font-semibold">
+  {order?.dealer_id?.name || "-"}
+</h3>
+
+<p className="text-base md:text-lg font-medium">
+  Company: {order?.dealer_id?.company_name || "-"}
+</p>
+            <p>
+              City:{" "}
+              {order?.dealer_id?.city ||
                 "-"}
             </p>
 
