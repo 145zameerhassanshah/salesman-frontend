@@ -70,12 +70,12 @@ src={`${process.env.NEXT_PUBLIC_API_URL}/uploads/${d.business_logo}`}           
 
               <td className="text-right flex gap-2 justify-end">
 
-                <button
+                {/* <button
                   onClick={()=>router.push(`/dealers/view/${d._id}`)}
                   className="p-1 hover:bg-gray-200 rounded"
                 >
                   <Eye size={16} />
-                </button>
+                </button> */}
 
                 <button
                   onClick={() => onEdit(d)}
