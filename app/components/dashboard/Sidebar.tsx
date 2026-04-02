@@ -134,13 +134,13 @@ const salesmanMenu = [
     />
   </div>
 
-          <ChevronRight
+          {/* <ChevronRight
             size={18}
             className={`cursor-pointer transition ${
               expanded ? "rotate-180" : ""
             }`}
             onClick={() => setExpanded(!expanded)}
-          />
+          /> */}
         </div>
 
         {/* MENU */}

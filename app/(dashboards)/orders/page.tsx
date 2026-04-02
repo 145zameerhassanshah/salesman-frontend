@@ -91,7 +91,7 @@ export default function OrdersPage() {
     setConfirmOrderId(orderId);
     setConfirmAction(action);
   };
-const handleDownload = async (id) => {
+const handleDownload = async (id:any) => {
   try {
     const res = await fetch(`${API_URL}/orders/pdf/${id}`, {
       method: "GET",
