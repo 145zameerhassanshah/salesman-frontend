@@ -111,7 +111,7 @@ class DealerService {
       });
 
       const result = await res.json();
-return
+return result;
     } catch (err) {
       return err.message;
     }
@@ -126,9 +126,7 @@ return
 
       const result = await res.json();
 
-      if (!res.ok) throw new Error(result.message);
-
-      return result.message;
+      return result;
     } catch (err) {
       return err.message;
     }
