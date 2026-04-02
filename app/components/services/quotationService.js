@@ -100,6 +100,30 @@ static async getProductsByCategory(categoryId) {
 
     return result.message;
   }
+static async downloadPdf(id) {
+  try {
+    const res = await fetch(`${API.quotations}/pdf/${id}`, {
+      method: "GET",
+      credentials: "include",
+    });
 
+    if (!res.ok) throw new Error("PDF download failed");
+
+    const blob = await res.blob();
+    
+    const url = window.URL.createObjectURL(blob);
+
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `quotation-${id}.pdf`;  // Naming the file
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    window.URL.revokeObjectURL(url);  // Clean up the URL object
+  } catch (error) {
+    console.error("PDF download error:", error);
+    throw error; // Optional: propagate error for handling in calling code
+  }
+}
 }
 export default  QuotationService; 

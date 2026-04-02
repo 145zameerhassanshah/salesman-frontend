@@ -914,6 +914,22 @@ const [productMap, setProductMap] = useState<any>({});
                         <Pencil size={16} />
                       </button>
                     )}
+                    {(user?.user_type === "admin" ||
+                      (user?.user_type === "salesman" && quotation.status === "approved")) && (
+                      <button
+onClick={async () => {
+  try {
+    await QuotationService.downloadPdf(quotation._id);
+  } catch {
+    toast.error("Download failed");
+  }
+}}
+                        className="p-2 bg-black text-white rounded-md"
+                      >
+                        PDF
+                      </button>
+                    )}
+                    
                   </div>
                 </td>
               </tr>
