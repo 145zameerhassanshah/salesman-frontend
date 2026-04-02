@@ -4,12 +4,12 @@ import API_URL from "@/app/components/lib/apiConfig";
 import { order } from "@/app/components/services/orderService";
 import { useCategory } from "@/hooks/useCategory";
 import { useOrders } from "@/hooks/useOrders";
-import { useProductsByCategory } from "@/hooks/useProductByCategory";
 import {
   Check,
   X,
   Eye,
   Plus,
+  Download, 
   Search,
   SlidersHorizontal,
   Pencil,
@@ -17,7 +17,7 @@ import {
   Loader2,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useState, useMemo } from "react";
+import { useState, useMemo,useEffect } from "react";
 import toast from "react-hot-toast";
 import { useSelector } from "react-redux";
 
@@ -33,12 +33,11 @@ const statusStyle: any = {
 
 export default function OrdersPage() {
   const user = useSelector((state: any) => state.user.user);
+    // const [downloadOrderId, setDownloadOrderId] = useState(null); 
   const isDispatcher = user?.user_type === "dispatcher";
   const canEditFull =
   user?.user_type === "admin" || user?.user_type === "salesman";
   const { data: categories = [] } = useCategory(user?.industry);
-  const [activeCategory, setActiveCategory] = useState("");
-  const { data: categoryProducts = [] } = useProductsByCategory(activeCategory);
   const { data, refetch } = useOrders(user?.industry);
   console.log(data);
   const router = useRouter();
@@ -55,10 +54,29 @@ export default function OrdersPage() {
 
   const [editOrder, setEditOrder] = useState<any>(null);
   const [editItems, setEditItems] = useState<any[]>([]);
+  const [productMap, setProductMap] = useState<any>({});
   const [editLoading, setEditLoading] = useState(false);
   const [editSaving, setEditSaving] = useState(false);
   const [editFields, setEditFields] = useState<any>({});
 
+  useEffect(() => {
+  const loadProducts = async () => {
+    const newMap: any = { ...productMap };
+
+    for (const item of editItems) {
+      if (item.category_id && !newMap[item.category_id]) {
+        const res = await order.getProductsByCategory(item.category_id);
+        newMap[item.category_id] = res;
+      }
+    }
+
+    setProductMap(newMap);
+  };
+
+  if (editItems.length > 0) {
+    loadProducts();
+  }
+}, [editItems]);
   const filtered = useMemo(() => {
     if (!search.trim()) return data;
     return data?.filter((o: any) =>
@@ -73,7 +91,30 @@ export default function OrdersPage() {
     setConfirmOrderId(orderId);
     setConfirmAction(action);
   };
+const handleDownload = async (id) => {
+  try {
+    const res = await fetch(`${API_URL}/orders/pdf/${id}`, {
+      method: "GET",
+      credentials: "include",
+    });
 
+    const blob = await res.blob();
+
+    const url = window.URL.createObjectURL(blob);
+
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `order-${id}.pdf`;
+
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+
+    window.URL.revokeObjectURL(url);
+  } catch (error) {
+    console.log(error);
+  }
+};
   const handleConfirm = async () => {
     if (confirmAction === "approve") {
       const res = await order.updateStatus(confirmOrderId, "approved");
@@ -130,7 +171,14 @@ export default function OrdersPage() {
         return toast.error(res?.message || "Failed to load order");
       }
       setEditOrder(res.order);
-      setEditItems(res.items.map((item: any) => ({ ...item })));
+      // setEditItems(res.items.map((item: any) => ({ ...item })));
+      setEditItems(
+  res.items.map((item: any) => ({
+    ...item,
+    product_id: item.product_id || "",
+    category_id: item.category_id || "",
+  }))
+);
       setEditFields({
         due_date: res.order?.due_date
           ? new Date(res.order.due_date).toISOString().split("T")[0]
@@ -145,6 +193,8 @@ export default function OrdersPage() {
     }
   };
 
+  
+
   const handleEditItemChange = (index: number, field: string, value: any) => {
     setEditItems((prev) => {
       const updated = [...prev];
@@ -157,7 +207,7 @@ export default function OrdersPage() {
     });
   };
 
-  const handleAddItem = () => {
+  const handleAddItem = () => { 
     setEditItems((prev) => [
       ...prev,
       {
@@ -201,11 +251,10 @@ export default function OrdersPage() {
 
   // ✅ DISPATCHER → ONLY STATUS + DELIVERY NOTES
   if (user?.user_type === "dispatcher") {
-    if (editOrder?.status==="approved") {
-      setEditSaving(false);
-    return toast.error("Status is required");
-  }
-    payload = {
+if (!editOrder?.status) {
+  setEditSaving(false);
+  return toast.error("Status is required");
+}    payload = {
       status: editOrder?.status,
       deliveryNotes: editFields.deliveryNotes,
     };
@@ -213,10 +262,10 @@ export default function OrdersPage() {
 
   // ✅ ACCOUNTANT → ONLY STATUS
   else if (user?.user_type === "accountant") {
-    if (editOrder?.status==="partial" || editOrder?.status==="dispatched") {
-      setEditSaving(false);
-    return toast.error("Status is required");
-  }
+if (!editOrder?.status) {
+  setEditSaving(false);
+  return toast.error("Status is required");
+}
     payload = {
       status: editOrder?.status,
     };
@@ -600,9 +649,7 @@ export default function OrdersPage() {
                       </thead>
                       <tbody>
                        {editItems?.map((item: any, i: number) => {
-  const rowProducts =
-    item.category_id === activeCategory ? categoryProducts : [];
-
+const rowProducts = productMap[item.category_id] || [];
   return (
     <tr key={i} className="border-t">
 
@@ -610,10 +657,22 @@ export default function OrdersPage() {
       <td className="px-2 py-2">
         <select
           value={item.category_id}
-          onChange={(e) => {
-            handleEditItemChange(i, "category_id", e.target.value);
-            setActiveCategory(e.target.value);
-          }}
+onChange={async (e) => {
+  const categoryId = e.target.value;
+
+handleEditItemChange(i, "category_id", categoryId);
+handleEditItemChange(i, "product_id", "");
+handleEditItemChange(i, "item_name", "");
+
+  if (!productMap[categoryId]) {
+    const res = await order.getProductsByCategory(categoryId);
+
+    setProductMap((prev: any) => ({
+      ...prev,
+      [categoryId]: res,
+    }));
+  }
+}}
           className="w-full border rounded-lg px-2 py-1 text-sm"
         >
           <option value="">Category</option>
@@ -628,12 +687,11 @@ export default function OrdersPage() {
       {/* PRODUCT */}
       <td className="px-2 py-2">
         <select
-          value={item.product_id}
+value={item.product_id?._id || item.product_id}
           onChange={(e) => {
-            const product = rowProducts.find(
-              (p: any) => p._id === e.target.value
-            );
-
+const product = rowProducts.find(
+  (p: any) => String(p._id) === String(e.target.value)
+);
             handleEditItemChange(i, "product_id", e.target.value);
             handleEditItemChange(i, "item_name", product?.name || "");
             handleEditItemChange(i, "unit_price", product?.mrp || 0);
@@ -929,7 +987,26 @@ export default function OrdersPage() {
     <Pencil size={16} />
   </button>
 )}
+{(user?.user_type === "admin" ||
+  (user?.user_type === "salesman" && o.status === "approved")) && (
+  <button
+    onClick={async () => {
+      const blob = await order.downloadPDF(o._id);
 
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+
+      a.href = url;
+      a.download = `order-${o.order_number}.pdf`;
+      a.click();
+
+      window.URL.revokeObjectURL(url);
+    }}
+    className="p-2 bg-black text-white rounded-md"
+  >
+    PDF
+  </button>
+)}
 {/* ACCOUNTANT EDIT */}
 {user?.user_type === "accountant" && (
   <button
@@ -968,6 +1045,12 @@ export default function OrdersPage() {
           </div>
         </div>
       </div>
+      {/* {downloadOrderId && (
+  <OrderPdfGenerator
+    orderId={downloadOrderId}
+    onDone={() => setDownloadOrderId(null)}
+  />
+)} */}
     </div>
   );
 }

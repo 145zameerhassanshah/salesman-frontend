@@ -1,23 +1,9 @@
-export default function TableInvoice() {
-  const products = Array.from({ length: 10 }, (_, i) => {
-    const price = 199;
-    const disc = 50;
-    const qty = Math.floor(Math.random() * 8) + 1;
-    const total = (price - disc) * qty;
+export default function TableInvoice({ items = [] }) {
 
-    return {
-      id: i + 1,
-      name: "SS-40L Super Series Electric",
-      price,
-      disc,
-      qty,
-      total,
-      image: "/product.png", // apni image yahan rakho
-    };
-  });
+  console.log("TABLE ITEMS:", items); // 🔥 DEBUG
 
   return (
-    <div className="border border-gray-200 rounded-xl bg-white/70 backdrop-blur-md shadow-sm overflow-hidden">
+    <div className="border border-gray-200 rounded-xl bg-white shadow-sm overflow-hidden">
       
       <table className="w-full text-xs">
 
@@ -35,53 +21,74 @@ export default function TableInvoice() {
 
         {/* Body */}
         <tbody>
-          {products.map((item) => (
-            <tr
-              key={item.id}
-              className="border-b last:border-none hover:bg-gray-50"
-            >
-              {/* No */}
-              <td className="py-2 px-3 text-gray-500">
-                {item.id}
-              </td>
-
-              {/* Product */}
-              <td className="px-3">
-                <div className="flex items-center gap-2">
-                  
-                  <img
-                    src={item.image}
-                    alt="product"
-                    className="w-8 h-8 object-contain bg-gray-100 rounded-md p-1"
-                  />
-
-                  <span className="text-gray-700 leading-tight">
-                    {item.name}
-                  </span>
-                </div>
-              </td>
-
-              {/* Price */}
-              <td className="px-3 text-right text-gray-700">
-                ${item.price.toFixed(2)}
-              </td>
-
-              {/* Discount */}
-              <td className="px-3 text-right text-gray-700">
-                ${item.disc.toFixed(2)}
-              </td>
-
-              {/* Quantity */}
-              <td className="px-3 text-right text-gray-700">
-                {item.qty}
-              </td>
-
-              {/* Total */}
-              <td className="px-3 text-right font-medium text-gray-800">
-                ${item.total.toFixed(2)}
+          {items.length === 0 ? (
+            <tr>
+              <td colSpan={6} className="text-center py-6 text-gray-400">
+                No items found
               </td>
             </tr>
-          ))}
+          ) : (
+            items.map((item, index) => {
+              const price = Number(item?.unit_price) || 0;
+              const discPercent = Number(item?.discount_percent) || 0;
+              const qty = Number(item?.quantity) || 0;
+
+              const discountAmount = (price * discPercent) / 100;
+              const finalPrice = price - discountAmount;
+              const total = finalPrice * qty;
+
+              return (
+                <tr
+                  key={item?._id || index}
+                  className="border-b last:border-none"
+                >
+                  {/* No */}
+                  <td className="py-2 px-3 text-gray-500">
+                    {index + 1}
+                  </td>
+
+                  {/* Product */}
+                  <td className="px-3">
+                    <div className="flex items-center gap-2">
+
+<img
+  src={
+    item.product_id?.image
+      ? `${process.env.NEXT_PUBLIC_API_URL}/uploads/${item.product_id.image}`
+      : "/images/default-product.png"
+  }
+  alt="product"
+  className="w-8 h-8 object-contain bg-gray-100 rounded-md p-1"
+/>
+                      <span className="text-gray-700 leading-tight">
+                        {item?.item_name || "N/A"}
+                      </span>
+                    </div>
+                  </td>
+
+                  {/* Price */}
+                  <td className="px-3 text-right text-gray-700">
+                    PKR {price.toFixed(2)}
+                  </td>
+
+                  {/* Discount */}
+                  <td className="px-3 text-right text-gray-700">
+                    {discPercent}%
+                  </td>
+
+                  {/* Quantity */}
+                  <td className="px-3 text-right text-gray-700">
+                    {qty}
+                  </td>
+
+                  {/* Total */}
+                  <td className="px-3 text-right font-medium text-gray-800">
+                    PKR {(item?.total ?? total).toFixed(2)}
+                  </td>
+                </tr>
+              );
+            })
+          )}
         </tbody>
 
       </table>

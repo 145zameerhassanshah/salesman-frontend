@@ -25,11 +25,35 @@ class OrderService {
     }
   }
 
+async getDashboardStats(id) {
+  try {
+    const res = await fetch(`${API.orders}/stats/${id}`, {
+      method: "GET",
+      credentials: "include"
+    });
 
+    const result = await res.json();
+
+    if (!res.ok) return false;
+
+    return result;
+
+  } catch (error) {
+    throw error.message;
+  }
+}
   /* =========================
      CREATE ORDER
   ========================= */
+async downloadPDF(id) {
+  const res = await fetch(`${API.orders}/pdf/${id}`, {
+    method: "GET",
+    credentials: "include",
+  });
 
+  const blob = await res.blob();
+  return blob;
+}
   async createOrder(data) {
       const res = await fetch(API.orders, {
         method: "POST",
@@ -142,7 +166,31 @@ class OrderService {
     throw error.message;
   }
 }
+/* =========================
+   DOWNLOAD PDF
+========================= */
+async downloadPdf(id) {
+  try {
+    const res = await fetch(API.orderPdf(id), {
+      method: "GET",
+      credentials: "include",
+    });
 
+    if (!res.ok) throw new Error("PDF download failed");
+
+    const blob = await res.blob();
+    const url = window.URL.createObjectURL(blob);
+
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `order-${id}.pdf`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    window.URL.revokeObjectURL(url);
+  } catch (error) {
+    console.error("PDF download error:", error);
+  }
 }
-
+}
 export const order = new OrderService();

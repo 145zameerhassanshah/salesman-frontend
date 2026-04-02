@@ -35,9 +35,7 @@ export default function QuotationsPage() {
   const { data: categories = [] } = useCategory(user?.industry);
 
   const [search, setSearch] = useState("");
-  const [activeCategory, setActiveCategory] = useState("");
-  const { data: categoryProducts = [] } = useProductsByCategory(activeCategory);
-
+const [productMap, setProductMap] = useState<any>({});
   // VIEW STATE
   const [viewQuotation, setViewQuotation] = useState<any>(null);
   const [viewItems, setViewItems] = useState<any[]>([]);
