@@ -1,4 +1,4 @@
-export default function InvoiceFooter({ order }) {
+export default function QuotationFooter({ quotation }) {
   return (
     <div className="mt-6 flex justify-between items-start gap-6">
 
@@ -21,37 +21,37 @@ export default function InvoiceFooter({ order }) {
       </div>
 
       {/* ✅ Right Card (FIXED DESIGN) */}
-      {/* <div className="bg-white rounded-2xl p-5 w-[280px] shadow-md space-y-3 text-sm ">
+      <div className="bg-white rounded-2xl p-5 w-[280px] shadow-md space-y-3 text-sm ">
 
         <div className="flex justify-between text-gray-500">
           <span>Subtotal</span>
-          <span>{order?.subtotal?.toFixed(2) || "0.00"}</span>
+          <span>{quotation?.subtotal?.toFixed(2) || "0.00"}</span>
         </div>
 
         <div className="flex justify-between text-gray-500">
           <span>
-            Tax ({order?.tax_type === "percent" ? "%" : "PKR"})
+            Tax ({quotation?.tax_type === "percent" ? "%" : "PKR"})
           </span>
-          <span>{order?.tax?.toFixed(2) || "0.00"}</span>
+          <span>{quotation?.tax?.toFixed(2) || "0.00"}</span>
         </div>
 
-        {order?.discount > 0 && (
+        {quotation?.discount > 0 && (
           <div className="flex justify-between text-gray-500">
             <span>
-              Discount ({order?.discount_type === "percent" ? "%" : "PKR"})
+              Discount ({quotation?.discount_type === "percent" ? "%" : "PKR"})
             </span>
-            <span>- {order?.discount?.toFixed(2)}</span>
+            <span>- {quotation?.discount?.toFixed(2)}</span>
           </div>
         )}
 
         <div className="border-t pt-3 flex justify-between items-center">
           <span className="font-semibold text-gray-800">Total</span>
           <span className="text-xl font-bold text-black">
-            {order?.total?.toFixed(2) || "0.00"}
+            {quotation?.total?.toFixed(2) || "0.00"}
           </span>
         </div>
 
-      </div> */}
+      </div>
 
     </div>
   );

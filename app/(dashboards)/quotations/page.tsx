@@ -15,7 +15,7 @@ import {
   Trash2,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useState, useMemo } from "react";
+import { useState, useMemo,useEffect } from "react";
 import toast from "react-hot-toast";
 import { useSelector } from "react-redux";
 
@@ -75,6 +75,25 @@ const filtered = useMemo(() => {
     return status ? status.charAt(0).toUpperCase() + status.slice(1) : "-";
   };
 
+
+  useEffect(() => {
+  const loadProducts = async () => {
+    const newMap: any = { ...productMap };
+
+    for (const item of editItems) {
+      if (item.category_id && !newMap[item.category_id]) {
+        const res = await QuotationService.getProductsByCategory(item.category_id);
+newMap[item.category_id] = res.products || res;
+      }
+    }
+
+    setProductMap(newMap);
+  };
+
+  if (editItems.length > 0) {
+    loadProducts();
+  }
+}, [editItems]);
   /* ── VIEW ── */
   const handleView = async (id: string) => {
     setViewLoading(true);
@@ -112,17 +131,13 @@ const filtered = useMemo(() => {
     try {
       const res = await QuotationService.getQuotationById(quotation._id);
       if (res.success) {
-        setEditItems(
-          res.items.map((item: any) => ({
-            product_id: item.product_id?._id || item.product_id,
-            category_id: item.category_id || "",
-            item_name: item.item_name,
-            unit_price: item.unit_price,
-            discount_percent: item.discount_percent,
-            quantity: item.quantity,
-            total: item.total,
-          })),
-        );
+setEditItems(
+  res.items.map((item: any) => ({
+    ...item,
+    product_id: item.product_id?._id || item.product_id,
+    category_id: item.category_id || item.product_id?.category_id || "",
+  }))
+);
       }
     } catch {
       toast.error("Failed to load quotation items");
@@ -137,16 +152,27 @@ const filtered = useMemo(() => {
     setEditItems([]);
   };
 
-  const updateEditItem = (index: number, key: string, value: any) => {
-    const updated = [...editItems];
-    updated[index][key] = value;
-    const price = Number(updated[index].unit_price);
-    const qty = Number(updated[index].quantity);
-    const discount = Number(updated[index].discount_percent);
-    updated[index].total = price * qty - (price * qty * discount) / 100;
-    setEditItems(updated);
-  };
+const updateEditItem = (index: number, key: string, value: any) => {
+  const updated = [...editItems];
 
+  // force number conversion for numeric fields
+  if (["unit_price", "quantity", "discount_percent"].includes(key)) {
+    updated[index][key] = Number(value) || 0;
+  } else {
+    updated[index][key] = value;
+  }
+
+  const price = Number(updated[index].unit_price) || 0;
+  const qty = Number(updated[index].quantity) || 0;
+  const discount = Number(updated[index].discount_percent) || 0;
+
+  const gross = price * qty;
+  const discountAmount = (gross * discount) / 100;
+
+  updated[index].total = Number((gross - discountAmount).toFixed(2));
+
+  setEditItems(updated);
+};
   const addEditItem = () => {
     setEditItems([
       ...editItems,
@@ -469,10 +495,7 @@ const filtered = useMemo(() => {
                   </div>
 
                   {editItems.map((item, index) => {
-                    const rowProducts =
-                      item.category_id === activeCategory
-                        ? categoryProducts
-                        : [];
+const rowProducts = productMap[item.category_id] || [];
                     return (
                       <div
                         key={index}
@@ -486,14 +509,22 @@ const filtered = useMemo(() => {
                             </label>
                             <select
                               value={item.category_id}
-                              onChange={(e) => {
-                                updateEditItem(
-                                  index,
-                                  "category_id",
-                                  e.target.value,
-                                );
-                                setActiveCategory(e.target.value);
-                              }}
+onChange={async (e) => {
+  const categoryId = e.target.value;
+
+  updateEditItem(index, "category_id", categoryId);
+  updateEditItem(index, "product_id", "");
+  updateEditItem(index, "item_name", "");
+
+  if (!productMap[categoryId]) {
+    const res = await QuotationService.getProductsByCategory(categoryId);
+
+    setProductMap((prev: any) => ({
+      ...prev,
+      [categoryId]: res.products || res, // FIX 🔥
+    }));
+  }
+}}
                               className={field}
                             >
                               <option value="">Select</option>
@@ -512,26 +543,17 @@ const filtered = useMemo(() => {
                             </label>
                             <select
                               value={item.product_id}
-                              onChange={(e) => {
-                                const product = rowProducts.find(
-                                  (p: any) => p._id === e.target.value,
-                                );
-                                updateEditItem(
-                                  index,
-                                  "product_id",
-                                  e.target.value,
-                                );
-                                updateEditItem(
-                                  index,
-                                  "item_name",
-                                  product?.name || "",
-                                );
-                                updateEditItem(
-                                  index,
-                                  "unit_price",
-                                  product?.mrp || 0,
-                                );
-                              }}
+onChange={(e) => {
+  const product = rowProducts.find(
+    (p: any) => String(p._id) === String(e.target.value)
+  );
+
+  updateEditItem(index, "product_id", e.target.value);
+  updateEditItem(index, "item_name", product?.name || "");
+  updateEditItem(index, "unit_price", product?.mrp || 0);
+  updateEditItem(index, "discount_percent", 0);
+  
+}}
                               className={field}
                             >
                               <option value="">Select</option>
@@ -933,6 +955,22 @@ const filtered = useMemo(() => {
                         <Pencil size={16} />
                       </button>
                     )}
+                    {(user?.user_type === "admin" ||
+                      (user?.user_type === "salesman" && quotation.status === "approved")) && (
+                      <button
+onClick={async () => {
+  try {
+    await QuotationService.downloadPdf(quotation._id);
+  } catch {
+    toast.error("Download failed");
+  }
+}}
+                        className="p-2 bg-black text-white rounded-md"
+                      >
+                        PDF
+                      </button>
+                    )}
+                    
                   </div>
                 </td>
               </tr>
