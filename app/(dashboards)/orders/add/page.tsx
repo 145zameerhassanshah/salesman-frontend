@@ -5,7 +5,7 @@ import { useCategory } from "@/hooks/useCategory";
 import { useDealers } from "@/hooks/useDealers";
 import { useProductsByCategory } from "@/hooks/useProductByCategory";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState,useEffect } from "react";
 import toast from "react-hot-toast";
 import { useSelector } from "react-redux";
 import { Plus, Pencil, Trash2, Check, X } from "lucide-react";
@@ -32,10 +32,17 @@ export default function AddOrder() {
     deliveryNotes: "",
     discount: 0,
     tax: 0,
+    
     discount_type: "amount",
     tax_type: "amount",
+    payment_term: "cash",
   });
-
+useEffect(() => {
+  if (items.length === 0) {
+    setItems([blankItem()]);
+    setEditingIndex(0);
+  }
+}, []);
   const blankItem = () => ({
     category_id: "",
     product_id: "",
@@ -98,6 +105,7 @@ export default function AddOrder() {
       createdBy: user?._id,
       businessId: user?.industry,
       notes: form.notes,
+      payment_term: form.payment_term,
       delivery_notes: form.deliveryNotes,
       discount: form.discount,
       tax: form.tax,
@@ -156,7 +164,18 @@ export default function AddOrder() {
             ))}
           </select>
         </div>
-
+<div className="flex flex-col gap-1">
+  <label className="text-sm text-gray-600">Payment Term</label>
+  <select
+    value={form.payment_term}
+    onChange={(e) => setForm({ ...form, payment_term: e.target.value })}
+    className={field}
+  >
+    <option value="cash">Cash</option>
+    <option value="advance">Advance</option>
+    <option value="periodical">Periodical</option>
+  </select>
+</div>
         <div className="flex flex-col gap-1 md:col-span-3">
           <label className="text-sm text-gray-600">Notes</label>
           <textarea

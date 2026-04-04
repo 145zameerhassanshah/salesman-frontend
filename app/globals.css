@@ -6,18 +6,25 @@
   --sidebar-active: #cfd4d2;
 }
 @media print {
-  body {
-    margin: 0;
-    padding: 0;
+
+  #invoice {
+    width: 210mm;
   }
 
-  @page {
-    size: A4;
-    margin: 10mm;
-  }
+.print-footer {
+  display: none;
 }
 
-
+@media print {
+  .print-footer {
+    display: block;
+    position: fixed;
+    bottom: 10mm;
+    left: 20mm;
+    right: 20mm;
+  }
+}
+}
 
 body {
  
