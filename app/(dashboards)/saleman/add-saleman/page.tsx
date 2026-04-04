@@ -12,15 +12,17 @@ export default function AddSalesman() {
   const user = useSelector((state: any) => state.user.user);
 
   const [form, setForm] = useState({
-    name: "",
-    email: "",
-    phone_number: "",
-    whatsapp_number: "",
-    city: "",
-    address: "",
-    password: "",
-    profile_image: null as File | null,
-  });
+  name: "",
+  email: "",
+  phone_number: "",
+  whatsapp_number: "",
+  city: "",
+  address: "",
+  territory: "",        // ✅ NEW
+  designation: "",      // ✅ NEW
+  password: "",
+  profile_image: null,
+});
 
   const cancel=()=>{
     setForm({
@@ -31,6 +33,8 @@ export default function AddSalesman() {
         city: "",
         address: "",
         password: "",
+        territory:"",
+        designation:"",
         profile_image:null
       });
   }
@@ -47,6 +51,13 @@ export default function AddSalesman() {
   if(file.size > 2 * 1024 * 1024){
   toast.error("Image must be < 2MB");
   return;
+}
+if (form.territory.length < 3) {
+  return toast.error("Territory must be at least 3 characters");
+}
+
+if (form.designation.length < 2) {
+  return toast.error("Designation is too short");
 }
 
 
@@ -73,17 +84,18 @@ export default function AddSalesman() {
   ============================== */
   const handleSubmit = async () => {
     if (
-      !form.name ||
-      !form.email ||
-      !form.phone_number ||
-      !form.whatsapp_number ||
-      !form.city ||
-      !form.address ||
-      !form.password
-    ) {
-      return toast.error("Please fill all required fields");
-    }
-
+  !form.name ||
+  !form.email ||
+  !form.phone_number ||
+  !form.whatsapp_number ||
+  !form.city ||
+  !form.address ||
+  !form.password ||
+  !form.territory ||       // ✅ NEW
+  !form.designation        // ✅ NEW
+) {
+  return toast.error("Please fill all required fields");
+}
     if (!user?.industry) {
       return toast.error("Industry not found");
     }
@@ -100,6 +112,8 @@ export default function AddSalesman() {
     formData.append("password", form.password);
     formData.append("user_type", "salesman");
     formData.append("industry", user.industry);
+    formData.append("territory", form.territory);
+    formData.append("designation", form.designation);
 
     if (form.profile_image) {
       formData.append("profile_image", form.profile_image);
@@ -117,6 +131,8 @@ export default function AddSalesman() {
         city: "",
         address: "",
         password: "",
+        territory:"",
+        designation:"",
         profile_image:null,
       });
     } catch (err: any) {
@@ -218,6 +234,31 @@ export default function AddSalesman() {
                 className="w-full mt-1 bg-gray-100 rounded-lg px-3 py-2 outline-none"
               />
             </div>
+            <div>
+  <label className="text-sm text-gray-500">Territory</label>
+  <input
+    name="territory"
+    value={form.territory}
+    onChange={handleChange}
+    type="text"
+    required
+    placeholder="e.g Lahore Region"
+    className="w-full mt-1 bg-gray-100 rounded-lg px-3 py-2 outline-none"
+  />
+</div>
+
+<div>
+  <label className="text-sm text-gray-500">Designation</label>
+  <input
+    name="designation"
+    value={form.designation}
+    onChange={handleChange}
+    type="text"
+    required
+    placeholder="e.g Sales Executive"
+    className="w-full mt-1 bg-gray-100 rounded-lg px-3 py-2 outline-none"
+  />
+</div>
 
             <div>
               <label className="text-sm text-gray-500">City</label>

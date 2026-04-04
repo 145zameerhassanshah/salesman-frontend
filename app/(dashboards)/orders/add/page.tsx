@@ -64,15 +64,24 @@ useEffect(() => {
     if (editingIndex === index) setEditingIndex(null);
   };
 
-  const updateItem = (index: number, key: string, value: any) => {
-    const updated = [...items];
+  const updateItem = (index:number, key:any, value:any) => {
+  const updated = [...items];
+
+  // 🔥 FIX: force numeric + default 0
+  if (key === "discount" || key === "qty" || key === "price") {
+    updated[index][key] = value === "" ? 0 : Number(value);
+  } else {
     updated[index][key] = value;
-    const price = Number(updated[index].price);
-    const qty = Number(updated[index].qty);
-    const discount = Number(updated[index].discount);
-    updated[index].total = price * qty - (price * qty * discount) / 100;
-    setItems(updated);
-  };
+  }
+
+  const price = Number(updated[index].price || 0);
+  const qty = Number(updated[index].qty || 0);
+  const discount = Number(updated[index].discount || 0);
+
+  updated[index].total = price * qty - (price * qty * discount) / 100;
+
+  setItems(updated);
+};
 
   const handleCategoryChange = (index: number, value: string) => {
     updateItem(index, "category_id", value);
@@ -257,13 +266,13 @@ useEffect(() => {
               {isEditing ? (
                 <select
                   value={item.product_id}
-                  onChange={(e) => {
-                    const product = rowProducts?.find((p: any) => p._id === e.target.value);
-                    updateItem(index, "product_id", e.target.value);
-                    updateItem(index, "item_name", product?.name || "");
-                    updateItem(index, "price", product?.mrp || 0);
-                    updateItem(index, "discount", product?.discount_percent || 0);
-                  }}
+                 onChange={(e) => {
+  const product = rowProducts?.find((p: any) => p._id === e.target.value);
+  updateItem(index, "product_id", e.target.value);
+  updateItem(index, "item_name", product?.name || "");
+  updateItem(index, "price", product?.mrp || 0);
+  updateItem(index, "discount", 0); // ✅ always start at 0
+}}
                   className={field}
                 >
                   <option value="">Select</option>
@@ -292,11 +301,12 @@ useEffect(() => {
               {/* DISCOUNT */}
               {isEditing ? (
                 <input
-                  type="number"
-                  value={item.discount}
-                  onChange={(e) => updateItem(index, "discount", e.target.value)}
-                  className={field}
-                />
+  type="number"
+  value={item.discount}
+  onChange={(e) => updateItem(index, "discount", e.target.value)}
+  className={field}
+  max={25}
+/>
               ) : (
                 <span className="text-sm px-1">{item.discount}%</span>
               )}

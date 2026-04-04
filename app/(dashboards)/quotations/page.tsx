@@ -54,12 +54,22 @@ const [productMap, setProductMap] = useState<any>({});
     "approve" | "reject" | "delete" | null
   >(null);
 
-  const filtered = useMemo(() => {
-    if (!search.trim()) return data;
-    return data?.filter((q: any) =>
-      q?.quotation_number?.toLowerCase().includes(search.toLowerCase()),
+ const [statusFilter, setStatusFilter] = useState("");
+
+const filtered = useMemo(() => {
+  let result = data;
+  if (search.trim()) {
+    result = result?.filter((q: any) =>
+      q?.quotation_number?.toLowerCase().includes(search.toLowerCase())
     );
-  }, [search, data]);
+  }
+  if (statusFilter) {
+    result = result?.filter((q: any) =>
+      q?.status?.toLowerCase() === statusFilter.toLowerCase()
+    );
+  }
+  return result;
+}, [search, statusFilter, data]);
 
   const formatStatus = (status: string) => {
     return status ? status.charAt(0).toUpperCase() + status.slice(1) : "-";
@@ -849,7 +859,16 @@ onChange={(e) => {
               <th>Salesman/Director</th>
               <th>Total</th>
               <th>Discount</th>
-              <th>Status</th>
+              <th><select
+  value={statusFilter}
+  onChange={(e) => setStatusFilter(e.target.value)}
+  className="px-3 py-2 rounded-lg bg-white text-sm focus:outline-none text-gray-600"
+>
+  <option value="">Status</option>
+  <option value="pending">Pending</option>
+  <option value="approved">Approved</option>
+  <option value="rejected">Rejected</option>
+</select></th>
               <th>Due Date</th>
               <th className="text-center">Action</th>
             </tr>

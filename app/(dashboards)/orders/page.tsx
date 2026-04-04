@@ -39,8 +39,8 @@ export default function OrdersPage() {
   user?.user_type === "admin" || user?.user_type === "salesman";
   const { data: categories = [] } = useCategory(user?.industry);
   const { data, refetch } = useOrders(user?.industry);
-  console.log(data);
   const router = useRouter();
+  
 
   const [search, setSearch] = useState("");
   const [confirmOrderId, setConfirmOrderId] = useState<string | null>(null);
@@ -77,12 +77,22 @@ export default function OrdersPage() {
     loadProducts();
   }
 }, [editItems]);
-  const filtered = useMemo(() => {
-    if (!search.trim()) return data;
-    return data?.filter((o: any) =>
-      o?.order_number?.toLowerCase().includes(search.toLowerCase()),
+ const [statusFilter, setStatusFilter] = useState("");
+
+const filtered = useMemo(() => {
+  let result = data;
+  if (search.trim()) {
+    result = result?.filter((o: any) =>
+      o?.order_number?.toLowerCase().includes(search.toLowerCase())
     );
-  }, [search, data]);
+  }
+  if (statusFilter) {
+    result = result?.filter((o: any) =>
+      o?.status?.toLowerCase() === statusFilter.toLowerCase()
+    );
+  }
+  return result;
+}, [search, statusFilter, data]);
 
   const formatStatus = (status: string) =>
     status ? status.charAt(0).toUpperCase() + status.slice(1) : "-";
@@ -227,25 +237,23 @@ const handleDownload = async (id:any) => {
     setEditItems((prev) => prev.filter((_, i) => i !== index));
   };
 
-  const computedTotals = useMemo(() => {
-    const subtotal = editItems.reduce(
-      (sum, item) =>
-        sum +
-        (parseFloat(item.quantity) || 0) * (parseFloat(item.unit_price) || 0),
-      0,
-    );
-    const discountAmt = editItems.reduce(
-      (sum, item) =>
-        sum +
-        (parseFloat(item.quantity) || 0) *
-          (parseFloat(item.unit_price) || 0) *
-          ((parseFloat(item.discount_percent) || 0) / 100),
-      0,
-    );
-    const tax = parseFloat(editOrder?.tax) || 0;
-    return { subtotal, discountAmt, total: subtotal - discountAmt + tax };
-  }, [editItems, editOrder]);
-  
+ const computedTotals = useMemo(() => {
+  // ✅ Use item.total directly (already has item-level discount applied)
+  const subtotal = editItems.reduce(
+    (sum, item) => sum + (parseFloat(item.total) || 0),
+    0,
+  );
+
+  // ✅ Item-level discount already baked into item.total
+  // Order-level discount = subtotal - sum(item.total) isn't used here
+  // Instead use the stored order discount & tax from editOrder
+  const discount = parseFloat(editOrder?.discount) || 0;
+  const tax = parseFloat(editOrder?.tax) || 0;
+
+  const total = subtotal - discount + tax;
+
+  return { subtotal, discountAmt: discount, total };
+}, [editItems, editOrder]);
   const handleEditSave = async () => {
   setEditSaving(true);
 
@@ -276,25 +284,26 @@ if (!editOrder?.status) {
 
   // ✅ ADMIN + SALESMAN → FULL EDIT
   else if (canEditFull) {
-    payload = {
-      due_date: editFields.due_date,
-      deliveryNotes: editFields.deliveryNotes,
+  payload = {
+    due_date: editFields.due_date,
+    deliveryNotes: editFields.deliveryNotes,
       payment_term: editFields.payment_term,
-      items: editItems.map((item) => ({
-        _id: item._id,
-        product_id: item.product_id?._id || item.product_id,
-        quantity: parseFloat(item.quantity),
-        item_name: item?.item_name,
-        unit_price: parseFloat(item.unit_price),
-        discount_percent: parseFloat(item.discount_percent) || 0,
-        total: item.total,
-      })),
-      subtotal: computedTotals.subtotal,
-      discount: computedTotals.discountAmt,
-      total: computedTotals.total,
-      status: editOrder?.status,
-    };
-  }
+    items: editItems.map((item) => ({
+      _id: item._id,
+      product_id: item.product_id?._id || item.product_id,
+      quantity: parseFloat(item.quantity),
+      item_name: item?.item_name,
+      unit_price: parseFloat(item.unit_price),
+      discount_percent: parseFloat(item.discount_percent) || 0,
+      total: item.total,
+    })),
+    subtotal: computedTotals.subtotal,
+    discount: computedTotals.discountAmt,   // ✅ order-level discount from editOrder
+    tax: parseFloat(editOrder?.tax) || 0,   // ✅ preserve existing tax
+    total: computedTotals.total,
+    status: editOrder?.status,
+  };
+}
 
   const res = await order.updateOrder(payload, editOrder?._id);
 
@@ -790,24 +799,25 @@ const product = rowProducts.find(
                 </div>}
 
                 {/* Live totals */}
-                <div className="bg-gray-50 rounded-xl p-4 space-y-2 text-sm mb-6">
-                  <div className="flex justify-between">
-                    <span className="text-gray-500">Subtotal</span>
-                    <span>{computedTotals.subtotal.toFixed(2)}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-500">Discount</span>
-                    <span>- {computedTotals.discountAmt.toFixed(2)}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-500">Tax</span>
-                    <span>+ {editOrder?.tax ?? 0}</span>
-                  </div>
-                  <div className="flex justify-between font-semibold border-t pt-2">
-                    <span>Total</span>
-                    <span>{computedTotals.total.toFixed(2)}</span>
-                  </div>
-                </div>
+                {/* Live totals */}
+<div className="bg-gray-50 rounded-xl p-4 space-y-2 text-sm mb-6">
+  <div className="flex justify-between">
+    <span className="text-gray-500">Subtotal</span>
+    <span>{computedTotals.subtotal.toFixed(2)}</span>
+  </div>
+  <div className="flex justify-between">
+    <span className="text-gray-500">Discount</span>
+    <span>- {computedTotals.discountAmt.toFixed(2)}</span>
+  </div>
+  <div className="flex justify-between">
+    <span className="text-gray-500">Tax</span>
+    <span>+ {(parseFloat(editOrder?.tax) || 0).toFixed(2)}</span>
+  </div>
+  <div className="flex justify-between font-semibold border-t pt-2">
+    <span>Total</span>
+    <span>{computedTotals.total.toFixed(2)}</span>
+  </div>
+</div>
                 {(isDispatcher || user?.user_type==="accountant") && <div className="mb-6">
   <label className="text-xs text-gray-500 font-medium">
     Order Status <span className="text-red-500">*</span>
@@ -895,7 +905,7 @@ const product = rowProducts.find(
           </button>
           {!(isDispatcher || user?.user_type==="accountant") && <button
             onClick={() => router.push("/orders/add")}
-            className="flex items-center gap-2 bg-black text-white px-4 py-2 rounded-lg"
+            className="cursor-pointer flex items-center gap-2 bg-black text-white px-4 py-2 rounded-lg"
           >
             Add Order <Plus size={16} />
           </button>}
@@ -912,7 +922,22 @@ const product = rowProducts.find(
               <th>Salesman/Director</th>
               <th>Total</th>
               <th>Discount</th>
-              <th>Status</th>
+             <th>
+  <select
+    value={statusFilter}
+    onChange={(e) => setStatusFilter(e.target.value)}
+    className="text-gray-500 font-semibold bg-transparent focus:outline-none cursor-pointer"
+  >
+    <option value="">Status</option>
+    <option value="unapproved">Unapproved</option>
+    <option value="approved">Approved</option>
+    <option value="rejected">Rejected</option>
+    <option value="pending">Pending</option>
+    <option value="dispatched">Dispatched</option>
+    <option value="partial">Partial</option>
+    <option value="posted">Posted</option>
+  </select>
+</th>
               <th>Due Date</th>
               <th className="text-center">Action</th>
             </tr>
