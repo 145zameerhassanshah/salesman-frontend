@@ -66,15 +66,6 @@ export default function TableInvoice({ items = [] }) {
                     </div>
                   </td>
 
-                  {/* Price */}
-                  <td className="px-3 text-right text-gray-700">
-                    PKR {price.toFixed(2)}
-                  </td>
-
-                  {/* Discount */}
-                  <td className="px-3 text-right text-gray-700">
-                    {discPercent}%
-                  </td>
 
                   {/* Quantity */}
                   <td className="px-3 text-right text-gray-700">

@@ -21,7 +21,7 @@ export default function InvoiceFooter({ order }) {
       </div>
 
       {/* ✅ Right Card (FIXED DESIGN) */}
-      <div className="bg-white rounded-2xl p-5 w-[280px] shadow-md space-y-3 text-sm ">
+      {/* <div className="bg-white rounded-2xl p-5 w-[280px] shadow-md space-y-3 text-sm ">
 
         <div className="flex justify-between text-gray-500">
           <span>Subtotal</span>
@@ -51,7 +51,7 @@ export default function InvoiceFooter({ order }) {
           </span>
         </div>
 
-      </div>
+      </div> */}
 
     </div>
   );

@@ -541,6 +541,7 @@ onChange={(e) => {
   updateEditItem(index, "product_id", e.target.value);
   updateEditItem(index, "item_name", product?.name || "");
   updateEditItem(index, "unit_price", product?.mrp || 0);
+  updateEditItem(index, "discount_percent", 0);
   
 }}
                               className={field}
