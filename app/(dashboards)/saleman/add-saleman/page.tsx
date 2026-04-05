@@ -52,14 +52,6 @@ export default function AddSalesman() {
   toast.error("Image must be < 2MB");
   return;
 }
-if (form.territory.length < 3) {
-  return toast.error("Territory must be at least 3 characters");
-}
-
-if (form.designation.length < 2) {
-  return toast.error("Designation is too short");
-}
-
 
   setForm({
     ...form,
@@ -95,6 +87,13 @@ if (form.designation.length < 2) {
   !form.designation        // ✅ NEW
 ) {
   return toast.error("Please fill all required fields");
+}
+if (form.territory.length < 3) {
+  return toast.error("Territory must be at least 3 characters");
+}
+
+if (form.designation.length < 2) {
+  return toast.error("Designation is too short");
 }
     if (!user?.industry) {
       return toast.error("Industry not found");

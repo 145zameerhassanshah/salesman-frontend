@@ -70,6 +70,7 @@ image:file
 };
 
 
+
 const validate = () => {
   if (!form.name.trim()) return "Product name is required";
 
@@ -89,8 +90,8 @@ const validate = () => {
     return "Discount cannot be negative";
   }
 
-  if (Number(form.discount_percent) > 100) {
-    return "Discount cannot exceed 100%";
+  if (Number(form.discount_percent) >=30) {
+    return "Discount cannot exceed 30%";
   }
 
   if (form.order_no && Number(form.order_no) < 0) {
