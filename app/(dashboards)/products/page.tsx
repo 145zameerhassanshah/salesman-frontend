@@ -57,9 +57,9 @@ export default function Page() {
         </div>
       </div>
 
-      <div className="bg-white/60 backdrop-blur rounded-3xl p-4 md:p-6">
-        <ProductsTable products={filtered} refetch={refetch} />
-      </div>
+      <div className="bg-white rounded-3xl p-4 md:p-6">
+  <ProductsTable products={filtered} refetch={refetch} />
+</div>
 
     </div>
   );

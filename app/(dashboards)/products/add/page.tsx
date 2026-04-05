@@ -90,12 +90,11 @@ const validate = () => {
     return "Discount cannot be negative";
   }
 
-  if (Number(form.discount_percent) >=30) {
+  if (Number(form.discount_percent) >30) {
     return "Discount cannot exceed 30%";
   }
-
-  if (form.order_no && Number(form.order_no) < 0) {
-    return "Order number cannot be negative";
+  if (form.order_no && Number(form.order_no) <= 0) {
+    return "Order number cannot be 0";
   }
 
   return null; // ✅ VALID
@@ -251,7 +250,8 @@ name="discount_percent"
 value={form.discount_percent}
 onChange={handleChange}
 type="number"
-max={100}
+max={30}
+min={0}
 placeholder="0"
 className="w-full mt-1 bg-gray-200 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-gray-400"
 />
@@ -265,6 +265,7 @@ value={form.order_no}
 onChange={handleChange}
 type="number"
 placeholder="0"
+min={1}
 className="w-full mt-1 bg-gray-200 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-gray-400"
 />
 </div>
@@ -295,13 +296,43 @@ className="w-full mt-1 bg-gray-200 rounded-xl px-4 py-3 outline-none"
 </div>
 
 <div>
-<label className="text-xs text-gray-500">Product Image</label><span className="text-red-500">*</span>
-<input
-type="file"
-accept="image/*"
-onChange={handleImageChange}
-className="w-full mt-1 bg-gray-200 rounded-xl px-4 py-3 outline-none"
-/>
+  <label className="text-xs text-gray-500">
+    Product Image
+  </label><span className="text-red-500">*</span>
+
+  <div className="mt-2 flex items-center gap-4">
+
+    {/* PREVIEW */}
+    <div className="w-20 h-20 rounded-xl bg-gray-200 flex items-center justify-center overflow-hidden border">
+      {form.image ? (
+        <img
+          src={URL.createObjectURL(form.image)}
+          className="w-full h-full object-cover"
+        />
+      ) : (
+        <span className="text-xs text-gray-400">No Image</span>
+      )}
+    </div>
+
+    {/* BROWSE BUTTON */}
+    <label className="cursor-pointer">
+      <span className="px-4 py-2 bg-black text-white rounded-lg text-sm hover:bg-gray-800 transition">
+        Browse Image
+      </span>
+
+      <input
+        type="file"
+        accept="image/*"
+        onChange={handleImageChange}
+        className="hidden"
+      />
+    </label>
+
+  </div>
+
+  <p className="text-xs text-gray-400 mt-2">
+    PNG, JPG up to 2MB
+  </p>
 </div>
 
 <div>
