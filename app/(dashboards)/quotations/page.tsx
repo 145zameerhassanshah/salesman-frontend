@@ -947,14 +947,7 @@ onChange={(e) => {
                       <Eye size={16} />
                     </button>
 
-                    {(canEdit(quotation) || quotation?.status!=="rejected") && (
-                      <button
-                        onClick={() => openEdit(quotation)}
-                        className="p-2 bg-blue-100 text-blue-600 rounded-md"
-                      >
-                        <Pencil size={16} />
-                      </button>
-                    )}
+                                       
                     {(user?.user_type === "admin" ||
                       (user?.user_type === "salesman" && quotation.status === "approved")) && (
                       <button
