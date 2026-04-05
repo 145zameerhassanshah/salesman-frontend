@@ -208,7 +208,7 @@ Basic Info
 <div className="flex flex-col gap-4">
 
 <div>
-<label className="text-xs text-gray-500">Product Name</label>
+<label className="text-xs text-gray-500">Product Name</label><span className="text-red-500">*</span>
 <input
 name="name"
 value={form.name}
@@ -220,7 +220,7 @@ className="w-full mt-1 bg-gray-200 rounded-xl px-4 py-3 outline-none focus:ring-
 </div>
 
 <div>
-<label className="text-xs text-gray-500">SKU</label>
+<label className="text-xs text-gray-500">SKU</label> <span className="text-red-500">*</span>
 <input
 name="sku"
 value={form.sku}
@@ -232,7 +232,7 @@ className="w-full mt-1 bg-gray-200 rounded-xl px-4 py-3 outline-none focus:ring-
 </div>
 
 <div>
-<label className="text-xs text-gray-500">MRP</label>
+<label className="text-xs text-gray-500">MRP</label><span className="text-red-500">*</span>
 <input
 name="mrp"
 value={form.mrp}
@@ -257,7 +257,7 @@ className="w-full mt-1 bg-gray-200 rounded-xl px-4 py-3 outline-none focus:ring-
 </div>
 
 <div>
-<label className="text-xs text-gray-500">Sort Order</label>
+<label className="text-xs text-gray-500">Sort Order</label><span className="text-red-500">*</span>
 <input
 name="order_no"
 value={form.order_no}
@@ -275,7 +275,7 @@ className="w-full mt-1 bg-gray-200 rounded-xl px-4 py-3 outline-none focus:ring-
 <div className="flex flex-col gap-4">
 
 <div>
-<label className="text-xs text-gray-500">Category</label>
+<label className="text-xs text-gray-500">Category</label><span className="text-red-500">*</span>
 <select
 name="category_id"
 value={form.category_id}
@@ -294,7 +294,7 @@ className="w-full mt-1 bg-gray-200 rounded-xl px-4 py-3 outline-none"
 </div>
 
 <div>
-<label className="text-xs text-gray-500">Product Image</label>
+<label className="text-xs text-gray-500">Product Image</label><span className="text-red-500">*</span>
 <input
 type="file"
 accept="image/*"

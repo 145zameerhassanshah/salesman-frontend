@@ -174,7 +174,7 @@ if (form.designation.length < 2) {
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
 
             <div>
-              <label className="text-sm text-gray-500">Full Name</label>
+              <label className="text-sm text-gray-500">Full Name</label><span className="text-red-500">*</span>
               <input
                 name="name"
                 value={form.name}
@@ -187,7 +187,7 @@ if (form.designation.length < 2) {
             </div>
 
             <div>
-              <label className="text-sm text-gray-500">Email Address</label>
+              <label className="text-sm text-gray-500">Email Address</label><span className="text-red-500">*</span>
               <input
                 name="email"
                 value={form.email}
@@ -200,7 +200,7 @@ if (form.designation.length < 2) {
             </div>
 
             <div>
-              <label className="text-sm text-gray-500">Phone Number</label>
+              <label className="text-sm text-gray-500">Phone Number</label><span className="text-red-500">*</span>
               <input
                 name="phone_number"
                 value={form.phone_number}
@@ -212,7 +212,7 @@ if (form.designation.length < 2) {
               />
             </div>
             <div>
-  <label className="text-sm text-gray-500">Profile Image</label>
+  <label className="text-sm text-gray-500">Profile Image</label><span className="text-red-500">*</span>
   <input
     type="file"
     accept="image/*"
@@ -223,7 +223,7 @@ if (form.designation.length < 2) {
 </div>
 
             <div>
-              <label className="text-sm text-gray-500">WhatsApp Number</label>
+              <label className="text-sm text-gray-500">WhatsApp Number</label><span className="text-red-500">*</span>
               <input
                 name="whatsapp_number"
                 value={form.whatsapp_number}
@@ -235,7 +235,7 @@ if (form.designation.length < 2) {
               />
             </div>
             <div>
-  <label className="text-sm text-gray-500">Territory</label>
+  <label className="text-sm text-gray-500">Territory</label><span className="text-red-500">*</span>
   <input
     name="territory"
     value={form.territory}
@@ -248,7 +248,7 @@ if (form.designation.length < 2) {
 </div>
 
 <div>
-  <label className="text-sm text-gray-500">Designation</label>
+  <label className="text-sm text-gray-500">Designation</label><span className="text-red-500">*</span>
   <input
     name="designation"
     value={form.designation}
@@ -261,7 +261,7 @@ if (form.designation.length < 2) {
 </div>
 
             <div>
-              <label className="text-sm text-gray-500">City</label>
+              <label className="text-sm text-gray-500">City</label><span className="text-red-500">*</span>
               <input
                 name="city"
                 value={form.city}
@@ -274,7 +274,7 @@ if (form.designation.length < 2) {
             </div>
 
             <div>
-              <label className="text-sm text-gray-500">Address</label>
+              <label className="text-sm text-gray-500">Address</label><span className="text-red-500">*</span>
               <input
                 name="address"
                 value={form.address}
@@ -286,7 +286,7 @@ if (form.designation.length < 2) {
               />
             </div>
              <div>
-              <label className="text-sm text-gray-500">Password</label>
+              <label className="text-sm text-gray-500">Password</label><span className="text-red-500">*</span>
               <input
                 name="password"
                 value={form.password}

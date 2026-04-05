@@ -11,11 +11,7 @@ class CategoryService {
         body: JSON.stringify(data),
       });
       const result = await res.json();
-      if (!res.ok) {
-        return result;
-      }
-
-      return result.message;
+      return result;
   }
 
   async getAllCategories(){
