@@ -194,6 +194,8 @@ const handleDownload = async (id:any) => {
           ? new Date(res.order.due_date).toISOString().split("T")[0]
           : "",
         deliveryNotes: res.order?.deliveryNotes || "",
+          payment_term: res.order?.payment_term || "cash" 
+
       });
     } catch {
       setEditOrder(null);
@@ -265,6 +267,7 @@ if (!editOrder?.status) {
 }    payload = {
       status: editOrder?.status,
       deliveryNotes: editFields.deliveryNotes,
+      payment_term: editFields.payment_term
     };
   }
 
@@ -284,6 +287,7 @@ if (!editOrder?.status) {
   payload = {
     due_date: editFields.due_date,
     deliveryNotes: editFields.deliveryNotes,
+      payment_term: editFields.payment_term,
     items: editItems.map((item) => ({
       _id: item._id,
       product_id: item.product_id?._id || item.product_id,
@@ -571,7 +575,26 @@ if (!editOrder?.status) {
                     />
                   </div>
                 </div>
+<div className="mb-4">
+  <label className="text-xs text-gray-500 font-medium">
+    Payment Term
+  </label>
 
+  <select
+    value={editFields.payment_term || "cash"}
+    onChange={(e) =>
+      setEditFields((prev) => ({
+        ...prev,
+        payment_term: e.target.value,
+      }))
+    }
+    className="w-full border rounded-lg px-3 py-2 mt-1"
+  >
+    <option value="cash">Cash</option>
+    <option value="advance">Advance</option>
+    <option value="periodical">Periodical</option>
+  </select>
+</div>
                 {/* Delivery notes */}
                 <div className="mb-6">
                   <label className="text-xs text-gray-500 font-medium mb-1 block">
