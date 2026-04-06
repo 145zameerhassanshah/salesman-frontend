@@ -39,14 +39,13 @@ export default function OrdersPage() {
     user?.user_type === "admin" || user?.user_type === "salesman";
   const { data: categories = [] } = useCategory(user?.industry);
   const { data, refetch } = useOrders(user?.industry);
-  console.log(data);
   const router = useRouter();
 
   const [search, setSearch] = useState("");
   const [confirmOrderId, setConfirmOrderId] = useState<string | null>(null);
-  const [confirmAction, setConfirmAction] = useState<
-    "approve" | "reject" | null
-  >(null);
+ const [confirmAction, setConfirmAction] = useState<
+  "approve" | "reject" | "unapprove" | null
+>(null);
 
   const [viewOrder, setViewOrder] = useState<any>(null);
   const [viewItems, setViewItems] = useState<any[]>([]);
@@ -97,7 +96,10 @@ export default function OrdersPage() {
   const formatStatus = (status: string) =>
     status ? status.charAt(0).toUpperCase() + status.slice(1) : "-";
 
-  const handleAction = (orderId: string, action: "approve" | "reject") => {
+  const handleAction = (
+  orderId: string,
+  action: "approve" | "reject" | "unapprove"
+) => {
     setConfirmOrderId(orderId);
     setConfirmAction(action);
   };
@@ -126,30 +128,49 @@ export default function OrdersPage() {
     }
   };
   const handleConfirm = async () => {
-    if (confirmAction === "approve") {
-      const res = await order.updateStatus(confirmOrderId, "approved");
+  if (confirmAction === "approve") {
+    const res = await order.updateStatus(confirmOrderId, "approved");
+
+    if (!res.success)
+      return toast.error(res?.message || "Problem approving order");
+
+    toast.success(res?.message);
+    await refetch();
+  }
+
+  else if (confirmAction === "unapprove") {
+    const res = await order.updateStatus(confirmOrderId, "unapproved");
+
+    if (!res.success)
+      return toast.error(res?.message || "Problem unapproving order");
+
+    toast.success(res?.message || "Order unapproved successfully");
+    await refetch();
+  }
+
+  else if (confirmAction === "reject") {
+    if (user?.user_type === "salesman") {
+      const res = await order.deleteOrder(confirmOrderId);
+
       if (!res.success)
-        return toast.error(res?.message || "Problem approving order");
+        return toast.error(res?.message || "Problem deleting order");
+
       toast.success(res?.message);
-      await refetch();
-    } else if (confirmAction === "reject") {
-      if (user?.user_type === "salesman") {
-        const res = await order.deleteOrder(confirmOrderId);
-        if (!res.success)
-          return toast.error(res?.message || "Problem deleting order");
-        toast.success(res?.message);
-        await refetch();
-      } else {
-        const res = await order.updateStatus(confirmOrderId, "rejected");
-        if (!res.success)
-          return toast.error(res?.message || "Problem rejecting order");
-        toast.success(res?.message);
-        await refetch();
-      }
+    } else {
+      const res = await order.updateStatus(confirmOrderId, "rejected");
+
+      if (!res.success)
+        return toast.error(res?.message || "Problem rejecting order");
+
+      toast.success(res?.message);
     }
-    setConfirmOrderId(null);
-    setConfirmAction(null);
-  };
+
+    await refetch();
+  }
+
+  setConfirmOrderId(null);
+  setConfirmAction(null);
+};
 
   const handleCancel = () => {
     setConfirmOrderId(null);
@@ -352,15 +373,19 @@ export default function OrdersPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
           <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-sm">
             <h2 className="text-lg font-semibold text-gray-800 mb-2">
-              {confirmAction === "approve"
-                ? "Approve Order?"
+             {confirmAction === "approve"
+  ? "Approve Order?"
+  : confirmAction === "unapprove"
+  ? "Unapprove Order?"
                 : user?.user_type === "salesman"
                   ? "Delete Order?"
                   : "Reject Order?"}
             </h2>
             <p className="text-sm text-gray-500 mb-6">
-              {confirmAction === "approve"
-                ? "Are you sure you want to approve this order?"
+             {confirmAction === "approve"
+  ? "Are you sure you want to approve this order?"
+  : confirmAction === "unapprove"
+  ? "Are you sure you want to move this order back to unapproved?"
                 : `Are you sure you want to ${user?.user_type === "admin" ? "reject" : "delete"} this order? This action cannot be undone.`}
             </p>
             <div className="flex justify-end gap-3">
@@ -371,15 +396,23 @@ export default function OrdersPage() {
                 Cancel
               </button>
               <button
-                onClick={handleConfirm}
-                className={`px-4 py-2 rounded-lg text-white ${confirmAction === "approve" ? "bg-green-500 hover:bg-green-600" : "bg-red-500 hover:bg-red-600"}`}
-              >
-                {confirmAction === "approve"
-                  ? "Approve"
-                  : user?.user_type === "salesman"
-                    ? "Delete"
-                    : "Reject"}
-              </button>
+  onClick={handleConfirm}
+  className={`px-4 py-2 rounded-lg text-white ${
+    confirmAction === "approve"
+      ? "bg-green-500 hover:bg-green-600"
+      : confirmAction === "unapprove"
+      ? "bg-yellow-500 hover:bg-yellow-600"
+      : "bg-red-500 hover:bg-red-600"
+  }`}
+>
+  {confirmAction === "approve"
+    ? "Approve"
+    : confirmAction === "unapprove"
+    ? "Unapprove"
+    : user?.user_type === "salesman"
+    ? "Delete"
+    : "Reject"}
+</button>
             </div>
           </div>
         </div>
@@ -858,10 +891,6 @@ export default function OrdersPage() {
                     </div>
                   </div>
                 )}
-
-                {/* Live totals */}
-                {/* Live totals */}
-                {/* OVERALL DISCOUNT + TAX + TOTALS */}
                 <div className="bg-gray-50 rounded-xl p-4 space-y-3 text-sm mb-6">
                   <div className="flex justify-between">
                     <span className="text-gray-500">Items Subtotal</span>
@@ -1108,22 +1137,37 @@ export default function OrdersPage() {
                           </button>
                         )}
                       {user?.user_type === "admin" &&
-                        o.status === "unapproved" && (
-                          <>
-                            <button
-                              onClick={() => handleAction(o?._id, "approve")}
-                              className="p-2 bg-green-100 text-green-600 rounded-md"
-                            >
-                              <Check size={16} />
-                            </button>
-                            <button
-                              onClick={() => handleAction(o._id, "reject")}
-                              className="p-2 bg-red-100 text-red-600 rounded-md"
-                            >
-                              <X size={16} />
-                            </button>
-                          </>
-                        )}
+  (o.status === "unapproved" || o.status === "approved") && (
+  <>
+    {/* APPROVE */}
+    {o.status === "unapproved" && (
+      <button
+        onClick={() => handleAction(o._id, "approve")}
+        className="p-2 bg-green-100 text-green-600 rounded-md"
+      >
+        <Check size={16} />
+      </button>
+    )}
+
+    {/* UNAPPROVE */}
+    {o.status === "approved" && (
+      <button
+        onClick={() => handleAction(o._id, "unapprove")}
+        className="p-2 bg-yellow-100 text-yellow-600 rounded-md"
+      >
+        <X size={16} />
+      </button>
+    )}
+
+    {/* REJECT */}
+    <button
+      onClick={() => handleAction(o._id, "reject")}
+      className="p-2 bg-red-100 text-red-600 rounded-md"
+    >
+      <X size={16} />
+    </button>
+  </>
+)}
                       <button
                         onClick={() => handleView(o._id)}
                         className="p-2 bg-gray-100 text-gray-600 rounded-md"
@@ -1131,8 +1175,7 @@ export default function OrdersPage() {
                         <Eye size={16} />
                       </button>
                       {/* EDIT: SALESMAN + UNAPPROVED + OWN ORDER */}
-                      {user?.user_type === "salesman" &&
-                        o?.status === "unapproved" &&
+                      {user?.user_type === "salesman" && o?.status!=="partial" && o?.status!=="dispatched" && o?.status!=="posted" &&
                         o?.createdBy?._id === user?._id && (
                           <button
                             onClick={() => handleEdit(o._id)}

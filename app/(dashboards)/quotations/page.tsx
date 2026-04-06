@@ -802,7 +802,7 @@ onChange={(e) => {
                               {item?.unit_price}
                             </td>
                             <td className="px-4 py-3 text-center">
-                              {item?.discount_percent}%
+                              {item?.discount_percent}
                             </td>
                             <td className="px-4 py-3 text-right">
                               {item?.total?.toFixed(2)}
