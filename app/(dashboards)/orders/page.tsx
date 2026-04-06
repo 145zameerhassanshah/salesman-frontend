@@ -858,10 +858,6 @@ export default function OrdersPage() {
                     </div>
                   </div>
                 )}
-
-                {/* Live totals */}
-                {/* Live totals */}
-                {/* OVERALL DISCOUNT + TAX + TOTALS */}
                 <div className="bg-gray-50 rounded-xl p-4 space-y-3 text-sm mb-6">
                   <div className="flex justify-between">
                     <span className="text-gray-500">Items Subtotal</span>
@@ -1132,7 +1128,6 @@ export default function OrdersPage() {
                       </button>
                       {/* EDIT: SALESMAN + UNAPPROVED + OWN ORDER */}
                       {user?.user_type === "salesman" &&
-                        o?.status === "unapproved" &&
                         o?.createdBy?._id === user?._id && (
                           <button
                             onClick={() => handleEdit(o._id)}
