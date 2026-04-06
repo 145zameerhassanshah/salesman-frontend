@@ -117,34 +117,49 @@ newMap[item.category_id] = res.products || res;
 
   /* ── EDIT ── */
   const openEdit = async (quotation: any) => {
-    setEditFetchLoading(true);
-    setEditQuotation(quotation);
-    setEditForm({
-      valid_until: quotation?.valid_until?.split("T")[0] || "",
-      discount: quotation?.discount || 0,
-      discount_type: quotation?.discount_type || "fixed",
-      tax: quotation?.tax || 0,
-      tax_type: quotation?.tax_type || "fixed",
-      deliveryNotes: quotation?.deliveryNotes || "",
-    });
+  setEditFetchLoading(true);
+  setEditQuotation(quotation);
 
-    try {
-      const res = await QuotationService.getQuotationById(quotation._id);
-      if (res.success) {
-setEditItems(
-  res.items.map((item: any) => ({
-    ...item,
-    product_id: item.product_id?._id || item.product_id,
-    category_id: item.category_id || item.product_id?.category_id || "",
-  }))
-);
-      }
-    } catch {
-      toast.error("Failed to load quotation items");
-    } finally {
-      setEditFetchLoading(false);
+  // ✅ back-calculate raw input from stored amounts
+  const discountType = quotation?.discount_type || "fixed";
+  const taxType = quotation?.tax_type || "fixed";
+
+  const rawDiscount =
+    discountType === "percentage" && quotation?.subtotal > 0
+      ? ((quotation.discount / quotation.subtotal) * 100).toFixed(2)
+      : quotation?.discount || 0;
+
+  const rawTax =
+    taxType === "percentage" && (quotation?.subtotal - quotation?.discount) > 0
+      ? ((quotation.tax / (quotation.subtotal - quotation.discount)) * 100).toFixed(2)
+      : quotation?.tax || 0;
+
+  setEditForm({
+    valid_until: quotation?.valid_until?.split("T")[0] || "",
+    discount: rawDiscount,
+    discount_type: discountType,
+    tax: rawTax,
+    tax_type: taxType,
+    deliveryNotes: quotation?.deliveryNotes || "",
+  });
+
+  try {
+    const res = await QuotationService.getQuotationById(quotation._id);
+    if (res.success) {
+      setEditItems(
+        res.items.map((item: any) => ({
+          ...item,
+          product_id: item.product_id?._id || item.product_id,
+          category_id: item.category_id || item.product_id?.category_id || "",
+        })),
+      );
     }
-  };
+  } catch {
+    toast.error("Failed to load quotation items");
+  } finally {
+    setEditFetchLoading(false);
+  }
+};
 
   const closeEdit = () => {
     setEditQuotation(null);
@@ -192,42 +207,44 @@ const updateEditItem = (index: number, key: string, value: any) => {
     setEditItems(editItems.filter((_, i) => i !== index));
   };
 
-  const handleUpdate = async () => {
-    setEditLoading(true);
-    try {
-      const payload = {
-        ...editForm,
-        subtotal: computedTotals.subtotal,
-        discount: computedTotals.discountAmount,
-        tax: computedTotals.taxAmount,
-        total: computedTotals.total,
-        items: editItems.map((item) => ({
-          product_id: item.product_id,
-          category_id: item.category_id,
-          item_name: item.item_name,
-          unit_price: Number(item.unit_price),
-          discount_percent: Number(item.discount_percent),
-          quantity: Number(item.quantity),
-        })),
-      };
+ const handleUpdate = async () => {
+  setEditLoading(true);
+  try {
+    const payload = {
+      valid_until: editForm.valid_until,
+      deliveryNotes: editForm.deliveryNotes,
+      notes: editForm.notes,
+      discount: editForm.discount,           // ✅ raw input
+      discount_type: editForm.discount_type,
+      tax: editForm.tax,                     // ✅ raw input
+      tax_type: editForm.tax_type,
+      subtotal: computedTotals.subtotal,
+      total: computedTotals.total,
+      items: editItems.map((item) => ({
+        product_id: item.product_id,
+        category_id: item.category_id,
+        item_name: item.item_name,
+        unit_price: Number(item.unit_price),
+        discount_percent: Number(item.discount_percent),
+        quantity: Number(item.quantity),
+        total: Number(item.total),           // ✅ send item.total so backend can use it
+      })),
+    };
 
-      const res = await QuotationService.updateQuotation(
-        payload,
-        editQuotation._id,
-      );
-      if (!res.success) {
-        toast.error(res?.message || "Update failed");
-        return;
-      }
-      toast.success(res?.message || "Quotation updated");
-      await refetch();
-      closeEdit();
-    } catch {
-      toast.error("Update failed");
-    } finally {
-      setEditLoading(false);
+    const res = await QuotationService.updateQuotation(payload, editQuotation._id);
+    if (!res.success) {
+      toast.error(res?.message || "Update failed");
+      return;
     }
-  };
+    toast.success(res?.message || "Quotation updated");
+    await refetch();
+    closeEdit();
+  } catch {
+    toast.error("Update failed");
+  } finally {
+    setEditLoading(false);
+  }
+};
 
   /* ── CONFIRM ── */
   const handleConfirm = async () => {
@@ -622,6 +639,7 @@ onChange={(e) => {
                               <Trash2 size={14} />
                             </button>
                           </div>
+                          
                         </div>
                       </div>
                     );
