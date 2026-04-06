@@ -154,9 +154,7 @@ function DealerEditModal({ dealer, onClose, refresh }: any) {
     country: dealer?.country || "",
     is_active: dealer?.is_active ?? true,
     business_logo: null as File | null,
-userId: typeof dealer?.userId === "object"
-  ? dealer?.userId?._id
-  : dealer?.userId || ""  });
+userId: dealer?.userId?._id || dealer?.userId || ""});
 
   const [preview, setPreview] = useState(
     dealer?.business_logo
@@ -167,10 +165,10 @@ userId: typeof dealer?.userId === "object"
   /* FETCH SALESMEN */
   useEffect(() => {
     const fetchSalesmen = async () => {
-      const res = await UserService.getSalesmen(dealer?.industry);
+      const res = await UserService.getSalesmen(dealer?.businessId);
       if (res.success) setSalesmen(res.salesmen);
     };
-    if (dealer?.industry) fetchSalesmen();
+    if (dealer?.businessId) fetchSalesmen();
   }, [dealer]);
 
   useEffect(() => {
@@ -277,28 +275,109 @@ userId: typeof dealer?.userId === "object"
             </div>
           )}
           <input type="file" accept="image/*" onChange={handleImageChange} />
-          <p className="text-xs text-gray-400">Logo *</p>
+          <p className="text-xs text-gray-400">Business Logo *</p>
         </div>
 
         {/* INPUTS */}
-        <input name="name" value={form.name} onChange={handleChange} placeholder="Name *" className="w-full border p-2 rounded" />
-        <input name="email" value={form.email} onChange={handleChange} placeholder="Email *" className="w-full border p-2 rounded" />
-        <input name="phone_number" value={form.phone_number} onChange={handleChange} placeholder="Phone *" className="w-full border p-2 rounded" />
-        <input name="whatsapp_number" value={form.whatsapp_number} onChange={handleChange} placeholder="WhatsApp *" className="w-full border p-2 rounded" />
-        <input name="company_name" value={form.company_name} onChange={handleChange} placeholder="Company *" className="w-full border p-2 rounded" />
+<div>
+  <label className="text-xs text-gray-500">
+    Dealer Name <span className="text-red-500">*</span>
+  </label>
+  <input
+    name="name"
+    value={form.name}
+    onChange={handleChange}
+    className="w-full mt-1 border p-2 rounded"
+  />
+</div>
+<div>
+  <label className="text-xs text-gray-500">
+    Email <span className="text-red-500">*</span>
+  </label>
+  <input name="email" value={form.email} onChange={handleChange}
+    className="w-full mt-1 border p-2 rounded"/>
+</div>
+
+<div>
+  <label className="text-xs text-gray-500">
+    Phone Number <span className="text-red-500">*</span>
+  </label>
+  <input name="phone_number" value={form.phone_number} onChange={handleChange}
+    className="w-full mt-1 border p-2 rounded"/>
+</div>
+<div>
+  <label className="text-xs text-gray-500">
+    Whatsapp Number <span className="text-red-500">*</span>
+  </label>
+  <input name="whatsapp_number" value={form.whatsapp_number} onChange={handleChange}
+    className="w-full mt-1 border p-2 rounded"/>
+</div>
+
+
+<div>
+  <label className="text-xs text-gray-500">
+    Company Name <span className="text-red-500">*</span>
+  </label>
+  <input name="company_name" value={form.company_name} onChange={handleChange}
+    className="w-full mt-1 border p-2 rounded"/>
+</div>
+
+<div>
+  <label className="text-xs text-gray-500">
+    Billing Address <span className="text-red-500">*</span>
+  </label>
+  <input name="billing_address" value={form.billing_address} onChange={handleChange}
+    className="w-full mt-1 border p-2 rounded"/>
+</div>
+
+<div>
+  <label className="text-xs text-gray-500">
+    Shipping Address <span className="text-red-500">*</span>
+  </label>
+  <input name="shipping_address" value={form.shipping_address} onChange={handleChange}
+    className="w-full mt-1 border p-2 rounded"/>
+</div>
+
+<div>
+  <label className="text-xs text-gray-500">
+    City <span className="text-red-500">*</span>
+  </label>
+  <input name="city" value={form.city} onChange={handleChange}
+    className="w-full mt-1 border p-2 rounded"/>
+</div>
+
+<div>
+  <label className="text-xs text-gray-500">
+    Country <span className="text-red-500">*</span>
+  </label>
+  <input name="country" value={form.country} onChange={handleChange}
+    className="w-full mt-1 border p-2 rounded"/>
+</div>
 
         {/* SALESMAN */}
-        <select name="userId" value={form.userId} onChange={handleChange} className="w-full border p-2 rounded">
-          <option value="">Select Salesman *</option>
-          {salesmen.map((s:any)=>(
-            <option key={s._id} value={s._id}>{s.name}</option>
-          ))}
-        </select>
+<div>
+  <label className="text-xs text-gray-500">
+    Assign Salesman <span className="text-red-500">*</span>
+  </label>
 
-        <input name="billing_address" value={form.billing_address} onChange={handleChange} placeholder="Billing Address *" className="w-full border p-2 rounded" />
-        <input name="shipping_address" value={form.shipping_address} onChange={handleChange} placeholder="Shipping Address *" className="w-full border p-2 rounded" />
-        <input name="city" value={form.city} onChange={handleChange} placeholder="City *" className="w-full border p-2 rounded" />
-        <input name="country" value={form.country} onChange={handleChange} placeholder="Country *" className="w-full border p-2 rounded" />
+  <select
+    name="userId"
+    value={String(form.userId)}
+    onChange={handleChange}
+    className="w-full mt-1 border p-2 rounded"
+  >
+    <option value="">Select Salesman</option>
+    {salesmen.map((s:any)=>(
+      <option key={s._id} value={String(s._id)}>
+        {s.name}
+      </option>
+    ))}
+  </select>
+</div>
+<div>
+  <label className="text-xs text-gray-500">
+    Status <span className="text-red-500">*</span>
+  </label>
 
         <select
           value={form.is_active ? "true" : "false"}
@@ -308,7 +387,7 @@ userId: typeof dealer?.userId === "object"
           <option value="true">Active</option>
           <option value="false">Inactive</option>
         </select>
-
+</div>
         <div className="flex justify-end gap-2">
           <button onClick={onClose} className="px-3 py-1 border rounded">Cancel</button>
           <button onClick={handleUpdate} className="px-3 py-1 bg-black text-white rounded">Update</button>

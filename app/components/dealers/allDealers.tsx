@@ -4,10 +4,12 @@ import { Eye, Pencil, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import DealerService from "@/app/components/services/dealerService";
+import { useSelector } from "react-redux";
 
 export default function DealersTable({ dealers, refresh, onEdit }: any) {
 
   const router = useRouter();
+const user = useSelector((state:any)=>state.user.user);
 
   const handleDelete = async (id:string)=>{
     if(!confirm("Delete this dealer?")) return;
@@ -35,7 +37,12 @@ export default function DealersTable({ dealers, refresh, onEdit }: any) {
             <th>Phone</th>
             <th>Saleman</th>
             <th>Status</th>
+              {user?.user_type !== "salesman" && (
+
             <th className="text-right">Actions</th>
+                
+  )}
+
           </tr>
         </thead>
 
@@ -68,7 +75,6 @@ src={`${process.env.NEXT_PUBLIC_API_URL}/uploads/${d.business_logo}`}           
                 </span>
               </td>
 
-              <td className="text-right flex gap-2 justify-end">
 
                 {/* <button
                   onClick={()=>router.push(`/dealers/view/${d._id}`)}
@@ -77,7 +83,7 @@ src={`${process.env.NEXT_PUBLIC_API_URL}/uploads/${d.business_logo}`}           
                   <Eye size={16} />
                 </button> */}
 
-                <button
+                {/* <button
                   onClick={() => onEdit(d)}
                   className="p-1 hover:bg-gray-200 rounded"
                 >
@@ -89,9 +95,28 @@ src={`${process.env.NEXT_PUBLIC_API_URL}/uploads/${d.business_logo}`}           
                   className="p-1 hover:bg-red-100 rounded text-red-500"
                 >
                   <Trash2 size={16} />
-                </button>
+                </button> */}
+<td className="text-right flex gap-2 justify-end">
 
-              </td>
+  {user?.user_type !== "salesman" && (
+    <>
+      <button
+        onClick={() => onEdit(d)}
+        className="p-1 hover:bg-gray-200 rounded"
+      >
+        <Pencil size={16} />
+      </button>
+
+      <button
+        onClick={()=>handleDelete(d._id)}
+        className="p-1 hover:bg-red-100 rounded text-red-500"
+      >
+        <Trash2 size={16} />
+      </button>
+    </>
+  )}
+
+</td>
 
             </tr>
           ))}
