@@ -115,7 +115,6 @@ export default function ProductsTable({ products, refetch }: any) {
                     type="number"
                     value={form.discount_percent}
                     min={0}
-                    max={30}
                     onChange={(e) => setForm({ ...form, discount_percent: e.target.value })}
                     className="w-full border rounded-lg px-3 py-2 text-sm mt-1 focus:outline-none"
                   />
