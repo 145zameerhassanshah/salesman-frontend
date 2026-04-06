@@ -126,8 +126,8 @@ const salesmanMenu = [
     `}
   >
     <Image
-      src="/images/Logo.webp"
-      alt="Logo"
+      src="/images/logo.webp"
+      alt="logo"
       width={48}
       height={48}
       className="object-contain"

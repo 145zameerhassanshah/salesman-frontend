@@ -39,6 +39,7 @@ export default function OrdersPage() {
   user?.user_type === "admin" || user?.user_type === "salesman";
   const { data: categories = [] } = useCategory(user?.industry);
   const { data, refetch } = useOrders(user?.industry);
+  console.log(data)
   const router = useRouter();
   
 

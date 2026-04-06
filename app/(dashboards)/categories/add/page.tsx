@@ -26,15 +26,31 @@ const user = useSelector((state: any) => state.user.user);
   };
 
   const handleSubmit = async () => {
-    try {
-        const data=await category.addCategory(formData,user?.industry);
-        if(data.message) return toast.error(data?.message);
-        toast.success(data);
-        router.push("/categories");
-    } catch (error) {
-        toast.error("Something went wrong");
+  try {
+
+    /* ✅ VALIDATION */
+
+    if (!formData.name.trim()) {
+      return toast.error("Category name is required");
     }
-  };
+
+    if (!formData.order_no || Number(formData.order_no) <0) {
+      return toast.error("Sequence number must be greater than 0");
+    }
+
+    /* API CALL */
+
+    const data = await category.addCategory(formData, user?.industry);
+
+    if (!data.success) return toast.error(data?.message);
+
+    toast.success(data?.message);
+    router.push("/categories");
+
+  } catch (error) {
+    toast.error("Something went wrong");
+  }
+};
 
   return (
     <div className="p-4 md:p-8 bg-gray-100 min-h-screen">
@@ -80,7 +96,7 @@ const user = useSelector((state: any) => state.user.user);
             <div>
               <label className="text-xs text-gray-500">
                 Category Name
-              </label>
+              </label> <span className="text-red-500">*</span>
 
               <input
                 type="text"
@@ -96,7 +112,7 @@ const user = useSelector((state: any) => state.user.user);
             <div>
               <label className="text-xs text-gray-500">
                 Sequence No (No at which you want to show this category)
-              </label>
+              </label><span className="text-red-500">*</span>
 
               <input
                 type="number"
