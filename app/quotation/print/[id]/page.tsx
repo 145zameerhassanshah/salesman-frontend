@@ -51,10 +51,18 @@ export default function Quotation() {
 
 <QuotationFooter quotation={quotation} />        
 
-        <div className="border-t pt-3 flex justify-between text-gray-500 text-xs mt-6">
+      <div className="print-footer">
+        <div className="border-t pt-3 flex justify-between text-gray-500 text-xs">
+          <img
+  src={`${process.env.NEXT_PUBLIC_API_URL}/uploads/${quotation?.businessId.business_logo}`}
+  alt="Industry Logo"
+  className="w-8 h-8 object-contain bg-gray-100 rounded-md p-1"
+/>
+
           <p>{quotation.businessId?.bussinesEmail || "-"}</p>
           <p>{quotation.businessId?.address || "-"}</p>
         </div>
+      </div>
       </div>
     </div>
   );

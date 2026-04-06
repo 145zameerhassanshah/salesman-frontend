@@ -20,6 +20,7 @@ export default function BusinessDetail() {
     city: "",
     address: "",
     password: "",
+    
   });
 
   const [profileImage, setProfileImage] = useState<File | null>(null);

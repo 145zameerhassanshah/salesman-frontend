@@ -33,7 +33,7 @@ export default function DealersTable({ dealers, refresh, onEdit }: any) {
             <th className="py-3">Dealer</th>
             <th>Email</th>
             <th>Phone</th>
-            <th>Company</th>
+            <th>Saleman</th>
             <th>Status</th>
             <th className="text-right">Actions</th>
           </tr>
@@ -56,7 +56,7 @@ src={`${process.env.NEXT_PUBLIC_API_URL}/uploads/${d.business_logo}`}           
 
               <td>{d.email}</td>
               <td>{d.phone_number}</td>
-              <td>{d.company_name}</td>
+              <td>{d.userId.name}</td>
 
               <td>
                 <span className={`px-2 py-1 rounded text-xs ${
