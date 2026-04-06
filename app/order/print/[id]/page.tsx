@@ -72,9 +72,14 @@ console.log("LOGO:", orderData.businessId?.addressLogo);
         </div>
       </div>
 
+  {/* EMAIL + ADDRESS */}
+  <div className="border-t pt-3 flex justify-between text-gray-500 text-xs">
+    <p>{orderData.businessId?.bussinesEmail || "-"}</p>
+    <p>{orderData.businessId?.address || "-"}</p>
+  </div>
+
   {/* 🔥 ADDRESS LOGO FULL WIDTH */}
 
 </div>
-    </div>
   );
 }
