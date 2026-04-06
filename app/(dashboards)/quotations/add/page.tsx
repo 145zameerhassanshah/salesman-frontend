@@ -73,7 +73,7 @@ export default function AddQuotation() {
     item_name: "",
     price: 0,
     discount: 0,
-    discount_type: "percent",
+    discount_type: "percentage",
     qty: 1,
     total: 0,
   });
@@ -101,10 +101,10 @@ export default function AddQuotation() {
     const price = Number(updated[index].price || 0);
     const qty = Number(updated[index].qty || 0);
     const discount = Number(updated[index].discount || 0);
-    const discountType = updated[index].discount_type || "percent";
+    const discountType = updated[index].discount_type || "percentage";
 
     const discountAmount =
-      discountType === "percent" ? (price * qty * discount) / 100 : discount;
+      discountType === "percentage" ? (price * qty * discount) / 100 : discount;
 
     updated[index].total = price * qty - discountAmount;
     setItems(updated);
