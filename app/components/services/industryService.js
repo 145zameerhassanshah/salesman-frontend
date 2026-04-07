@@ -178,24 +178,21 @@ class IndustryService {
   /* =========================
      UPDATE INDUSTRY
   ========================= */
-  async updateIndustry(data, id) {
-    try {
-      const res = await fetch(`${API.industry}/${id}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        credentials: "include",
-        body: JSON.stringify(data)
-      });
-      const result = await res.json();
-      if (!res.ok) return false;
-      return result.message;
-    } catch (error) {
-      throw error.message;
-    }
-  }
+async updateIndustry(id, data) {
+  try {
+    const res = await fetch(`${API.industry}/${id}`, {
+      method: "PUT",
+      credentials: "include",
+      body: data // ❌ JSON.stringify hatao
+    });
 
+    const result = await res.json();
+    if (!res.ok) return result;
+    return result;
+  } catch (error) {
+    throw error.message;
+  }
+}
   /* =========================
      DELETE INDUSTRY
   ========================= */
