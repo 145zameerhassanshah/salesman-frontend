@@ -97,7 +97,7 @@ const [verifyLoading, setVerifyLoading] = useState(false);
   setShowVerifyModal(false);
 
   // 🔥 NOW redirect
-  const role = user?.user_type;
+  const role = res?.user.user_type;
 
   if (role === USER_ROLES.SUPER_ADMIN) {
     router.push("/super-admin");
