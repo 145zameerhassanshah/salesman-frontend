@@ -1,8 +1,10 @@
 "use client";
 
 import { Search, Bell, Settings } from "lucide-react";
+import { useSelector } from "react-redux";
 
 export default function Topbar() {
+  const user=useSelector((state:any)=>state.user.user);
   return (
     <div className="w-full h-20 bg-gray-200/70 backdrop-blur-md flex items-center justify-between px-6">
 
@@ -34,9 +36,20 @@ export default function Topbar() {
         </div>
 
         {/* Settings */}
-        <div className="bg-white/60 p-3 rounded-xl cursor-pointer">
-          <Settings size={20} />
-        </div>
+        <div className="flex items-center gap-3 bg-white/60 px-3 py-1 rounded-xl cursor-pointer">
+  <img
+    src={
+      user?.profile_image
+        ? `${process.env.NEXT_PUBLIC_API_URL}/uploads/${user.profile_image}`
+        : "/default-avatar.png"
+    }
+    className="w-9 h-9 rounded-lg object-cover"
+  />
+  <div className="hidden md:block">
+    <p className="text-sm font-medium text-gray-800">{user?.name}</p>
+    <p className="text-xs text-gray-400 capitalize">{user?.user_type}</p>
+  </div>
+</div>
 
       </div>
     </div>
