@@ -67,16 +67,20 @@ console.log("LOGO:", orderData.businessId?.addressLogo);
       {/* ✅ FIXED FOOTER (HAR PAGE PE SHOW HOGA) */}
       <div className="print-footer">
         <div className="border-t pt-3 flex justify-between text-gray-500 text-xs">
-          <p>{orderData.businessId?.businessEmail || "-"}</p>
-          <p>{orderData.businessId?.address || "-"}</p>
+          {orderData?.businessId.addressLogo && (
+            <img
+              src={`${process.env.NEXT_PUBLIC_API_URL}/uploads/${orderData.businessId.addressLogo}`}
+              alt="Address Logo"
+      className="
+        w-full 
+        h-[40px] 
+        object-cover
+      "
+            />
+          )}
+
         </div>
       </div>
-
-  {/* EMAIL + ADDRESS */}
-  <div className="border-t pt-3 flex justify-between text-gray-500 text-xs">
-    <p>{orderData.businessId?.bussinesEmail || "-"}</p>
-    <p>{orderData.businessId?.address || "-"}</p>
-  </div>
 
   {/* 🔥 ADDRESS LOGO FULL WIDTH */}
 

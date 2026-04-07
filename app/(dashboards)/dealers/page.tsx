@@ -96,6 +96,9 @@ const [salesmen, setSalesmen] = useState([]);
           </select>
 
           {/* ADD BUTTON */}
+            {user?.user_type !== "salesman" && (
+    
+
           <button
             onClick={() => router.push("/dealers/add")}
             className="bg-black text-white flex items-center gap-2 px-3 py-2 rounded-xl text-sm"
@@ -103,6 +106,7 @@ const [salesmen, setSalesmen] = useState([]);
             Add Dealer
             <Plus size={16} />
           </button>
+  )}
 
         </div>
       </div>
