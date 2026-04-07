@@ -84,7 +84,6 @@ class UserService {
       throw err;
     }
   }
-
   static async getUserById(id){
     try{
 

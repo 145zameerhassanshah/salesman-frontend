@@ -14,6 +14,9 @@ export default function LoginPage() {
   const router = useRouter();
 
   const [showPassword, setShowPassword] = useState(false);
+  const [showVerifyModal, setShowVerifyModal] = useState(false);
+const [verificationCode, setVerificationCode] = useState("");
+const [verifyLoading, setVerifyLoading] = useState(false);
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -64,34 +67,93 @@ export default function LoginPage() {
       setLoading(false);
       return;
     }
-    toast.success("Login successful");
+    toast.success(res?.message);
 
-    dispatch(setUser(res.isUser));
-    const role = res?.isUser.user_type;
-
-    if (role === USER_ROLES.SUPER_ADMIN) {
-      router.push("/super-admin");
-    } 
-    else if (role === USER_ROLES.ADMIN) {
-      router.push("/dashboard");
-    } 
-    else if (role === USER_ROLES.SALESMAN) {
-      router.push("/saleman/salemanDashboard");
-    } 
-    else if (role === USER_ROLES.DISPATCHER) {
-      router.push("/dashboard/dispatch");
-    } 
-    else if (role === USER_ROLES.ACCOUNTANT) {
-      router.push("/dashboard/accounts");
-    } 
-    else {
-      router.push("/dashboard");
-    }
+    setShowVerifyModal(true);
+    localStorage.setItem("tempUser", JSON.stringify(res.isUser));
 
     setLoading(false);
   };
 
+  const handleVerify = async () => {
+    const tempUser = JSON.parse(localStorage.getItem("tempUser") || "{}");
+  setVerifyLoading(true);
+
+  const res = await AuthService.verifyUser({
+    otp: verificationCode,
+    email:tempUser?.email
+  });
+
+  if (!res.success) {
+    toast.error(res.message || "Invalid code");
+    setVerifyLoading(false);
+    return;
+  }
+
+  toast.success("Verified successfully");
+
+  dispatch(setUser(res?.user));
+
+  setShowVerifyModal(false);
+
+  // 🔥 NOW redirect
+  const role = user?.user_type;
+
+  if (role === USER_ROLES.SUPER_ADMIN) {
+    router.push("/super-admin");
+  } else if (role === USER_ROLES.ADMIN) {
+    router.push("/dashboard");
+  } else if (role === USER_ROLES.SALESMAN) {
+    router.push("/saleman/salemanDashboard");
+  } else if (role === USER_ROLES.DISPATCHER) {
+    router.push("/dashboard/dispatch");
+  } else if (role === USER_ROLES.ACCOUNTANT) {
+    router.push("/dashboard/accounts");
+  } else {
+    router.push("/dashboard");
+  }
+
+  localStorage.removeItem("tempUser");
+  setVerifyLoading(false);
+};
+
   return (
+    <>
+    {showVerifyModal && (
+  <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+    <div className="bg-white p-6 rounded-2xl w-full max-w-sm shadow-xl">
+      
+      <h2 className="text-lg font-semibold mb-2 text-gray-800">
+        Verify Your Account
+      </h2>
+
+      <p className="text-sm text-gray-500 mb-4">
+        Enter the verification code sent to your email.
+      </p>
+
+      <input
+        type="text"
+        value={verificationCode}
+        onChange={(e) => setVerificationCode(e.target.value)}
+        placeholder="Enter code"
+        className="w-full border rounded-lg px-3 py-2 mb-4 focus:outline-none focus:ring-1 focus:ring-gray-300"
+      />
+
+      <button
+        onClick={handleVerify}
+        disabled={!verificationCode || verifyLoading}
+        className={`w-full py-2 rounded-lg text-white ${
+          !verificationCode
+            ? "bg-gray-300 cursor-not-allowed"
+            : "bg-black hover:bg-gray-800"
+        }`}
+      >
+        {verifyLoading ? "Verifying..." : "Verify"}
+      </button>
+
+    </div>
+  </div>
+)}  
     <div className="min-h-screen flex flex-col lg:flex-row bg-[#d7dbd9]">
       {/* RIGHT SECTION */}
       <div className="order-1 lg:order-2 flex w-full lg:w-1/2 items-center justify-center px-6 py-10">
@@ -209,5 +271,7 @@ export default function LoginPage() {
         </div>
       </div>
     </div>
+    </>  
   );
+  
 }
