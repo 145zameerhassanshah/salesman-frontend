@@ -13,6 +13,7 @@ import {
   Search,
   SlidersHorizontal,
   Pencil,
+  MoreVertical,
   Save,
   Loader2,
 } from "lucide-react";
@@ -32,6 +33,7 @@ const statusStyle: any = {
 };
 
 export default function OrdersPage() {
+  const [openMenu, setOpenMenu] = useState(null);
   const user = useSelector((state: any) => state.user.user);
   // const [downloadOrderId, setDownloadOrderId] = useState(null);
   const isDispatcher = user?.user_type === "dispatcher";
@@ -43,20 +45,26 @@ export default function OrdersPage() {
 
   const [search, setSearch] = useState("");
   const [confirmOrderId, setConfirmOrderId] = useState<string | null>(null);
- const [confirmAction, setConfirmAction] = useState<
-  "approve" | "reject" | "unapprove" | null
->(null);
+  const [confirmAction, setConfirmAction] = useState<
+    "approve" | "reject" | "unapprove" | null
+  >(null);
 
   const [viewOrder, setViewOrder] = useState<any>(null);
   const [viewItems, setViewItems] = useState<any[]>([]);
   const [viewLoading, setViewLoading] = useState(false);
-
+const [rejectReason, setRejectReason] = useState("");
   const [editOrder, setEditOrder] = useState<any>(null);
   const [editItems, setEditItems] = useState<any[]>([]);
   const [productMap, setProductMap] = useState<any>({});
   const [editLoading, setEditLoading] = useState(false);
   const [editSaving, setEditSaving] = useState(false);
   const [editFields, setEditFields] = useState<any>({});
+
+  useEffect(() => {
+    const handleClickOutside = () => setOpenMenu(null);
+    window.addEventListener("click", handleClickOutside);
+    return () => window.removeEventListener("click", handleClickOutside);
+  }, []);
 
   useEffect(() => {
     const loadProducts = async () => {
@@ -97,11 +105,15 @@ export default function OrdersPage() {
     status ? status.charAt(0).toUpperCase() + status.slice(1) : "-";
 
   const handleAction = (
-  orderId: string,
-  action: "approve" | "reject" | "unapprove"
-) => {
+    orderId: string,
+    action: "approve" | "reject" | "unapprove",
+  ) => {
     setConfirmOrderId(orderId);
     setConfirmAction(action);
+
+      if (action === "reject") {
+    setRejectReason(""); // reset every time
+  }
   };
   const handleDownload = async (id: any) => {
     try {
@@ -128,49 +140,45 @@ export default function OrdersPage() {
     }
   };
   const handleConfirm = async () => {
-  if (confirmAction === "approve") {
-    const res = await order.updateStatus(confirmOrderId, "approved");
-
-    if (!res.success)
-      return toast.error(res?.message || "Problem approving order");
-
-    toast.success(res?.message);
-    await refetch();
-  }
-
-  else if (confirmAction === "unapprove") {
-    const res = await order.updateStatus(confirmOrderId, "unapproved");
-
-    if (!res.success)
-      return toast.error(res?.message || "Problem unapproving order");
-
-    toast.success(res?.message || "Order unapproved successfully");
-    await refetch();
-  }
-
-  else if (confirmAction === "reject") {
-    if (user?.user_type === "salesman") {
-      const res = await order.deleteOrder(confirmOrderId);
+    if (confirmAction === "approve") {
+      const res = await order.updateStatus(confirmOrderId, {status:"approved"});
 
       if (!res.success)
-        return toast.error(res?.message || "Problem deleting order");
+        return toast.error(res?.message || "Problem approving order");
 
       toast.success(res?.message);
-    } else {
-      const res = await order.updateStatus(confirmOrderId, "rejected");
+      await refetch();
+    } else if (confirmAction === "unapprove") {
+      const res = await order.updateStatus(confirmOrderId, {status:"unapproved"});
 
       if (!res.success)
-        return toast.error(res?.message || "Problem rejecting order");
+        return toast.error(res?.message || "Problem unapproving order");
 
-      toast.success(res?.message);
+      toast.success(res?.message || "Order unapproved successfully");
+      await refetch();
+    } else if (confirmAction === "reject") {
+      if (user?.user_type === "salesman") {
+        const res = await order.deleteOrder(confirmOrderId);
+
+        if (!res.success)
+          return toast.error(res?.message || "Problem deleting order");
+
+        toast.success(res?.message);
+      } else {
+        const res = await order.updateStatus(confirmOrderId, {status:"rejected",rejectReason});
+
+        if (!res.success)
+          return toast.error(res?.message || "Problem rejecting order");
+
+        toast.success(res?.message);
+      }
+
+      await refetch();
     }
 
-    await refetch();
-  }
-
-  setConfirmOrderId(null);
-  setConfirmAction(null);
-};
+    setConfirmOrderId(null);
+    setConfirmAction(null);
+  };
 
   const handleCancel = () => {
     setConfirmOrderId(null);
@@ -211,26 +219,31 @@ export default function OrdersPage() {
         })),
       );
       // Add these to editFields state when opening edit modal
-     setEditFields({
-  due_date: res.order?.due_date
-    ? new Date(res.order.due_date).toISOString().split("T")[0]
-    : "",
-  deliveryNotes: res.order?.deliveryNotes || "",
-  payment_term: res.order?.payment_term || "cash",
-  discount_type: res.order?.discount_type || "amount",
-  tax_type: res.order?.tax_type || "amount",
-  // ✅ store raw input — for percent orders, back-calculate the rate
-  discount: res.order?.discount_type === "percent"
-    ? res.order?.subtotal > 0
-      ? ((res.order.discount / res.order.subtotal) * 100).toFixed(2)
-      : 0
-    : res.order?.discount || 0,
-  tax: res.order?.tax_type === "percent"
-    ? (res.order?.subtotal - res.order?.discount) > 0
-      ? ((res.order.tax / (res.order.subtotal - res.order.discount)) * 100).toFixed(2)
-      : 0
-    : res.order?.tax || 0,
-});
+      setEditFields({
+        due_date: res.order?.due_date
+          ? new Date(res.order.due_date).toISOString().split("T")[0]
+          : "",
+        deliveryNotes: res.order?.deliveryNotes || "",
+        payment_term: res.order?.payment_term || "cash",
+        discount_type: res.order?.discount_type || "amount",
+        tax_type: res.order?.tax_type || "amount",
+        // ✅ store raw input — for percent orders, back-calculate the rate
+        discount:
+          res.order?.discount_type === "percent"
+            ? res.order?.subtotal > 0
+              ? ((res.order.discount / res.order.subtotal) * 100).toFixed(2)
+              : 0
+            : res.order?.discount || 0,
+        tax:
+          res.order?.tax_type === "percent"
+            ? res.order?.subtotal - res.order?.discount > 0
+              ? (
+                  (res.order.tax / (res.order.subtotal - res.order.discount)) *
+                  100
+                ).toFixed(2)
+              : 0
+            : res.order?.tax || 0,
+      });
     } catch {
       setEditOrder(null);
       toast.error("Failed to load order details");
@@ -324,28 +337,28 @@ export default function OrdersPage() {
 
     // ✅ ADMIN + SALESMAN → FULL EDIT
     else if (canEditFull) {
-  payload = {
-    due_date: editFields.due_date,
-    deliveryNotes: editFields.deliveryNotes,
-    payment_term: editFields.payment_term,
-    discount: editFields.discount,        // ✅ raw input (e.g. "10" for 10%)
-    discount_type: editFields.discount_type,
-    tax: editFields.tax,                  // ✅ raw input
-    tax_type: editFields.tax_type,
-    items: editItems.map((item) => ({
-      _id: item._id,
-      product_id: item.product_id?._id || item.product_id,
-      quantity: parseFloat(item.quantity),
-      item_name: item?.item_name,
-      unit_price: parseFloat(item.unit_price),
-      discount_percent: parseFloat(item.discount_percent) || 0,
-      total: item.total,
-    })),
-    subtotal: computedTotals.subtotal,
-    total: computedTotals.total,
-    status: editOrder?.status,
-  };
-}
+      payload = {
+        due_date: editFields.due_date,
+        deliveryNotes: editFields.deliveryNotes,
+        payment_term: editFields.payment_term,
+        discount: editFields.discount, // ✅ raw input (e.g. "10" for 10%)
+        discount_type: editFields.discount_type,
+        tax: editFields.tax, // ✅ raw input
+        tax_type: editFields.tax_type,
+        items: editItems.map((item) => ({
+          _id: item._id,
+          product_id: item.product_id?._id || item.product_id,
+          quantity: parseFloat(item.quantity),
+          item_name: item?.item_name,
+          unit_price: parseFloat(item.unit_price),
+          discount_percent: parseFloat(item.discount_percent) || 0,
+          total: item.total,
+        })),
+        subtotal: computedTotals.subtotal,
+        total: computedTotals.total,
+        status: editOrder?.status,
+      };
+    }
 
     const res = await order.updateOrder(payload, editOrder?._id);
 
@@ -368,25 +381,41 @@ export default function OrdersPage() {
 
   return (
     <div className="p-4 md:p-8 bg-gray-100 min-h-screen">
+      
       {/* CONFIRMATION MODAL */}
       {confirmOrderId && confirmAction && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
           <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-sm">
             <h2 className="text-lg font-semibold text-gray-800 mb-2">
-             {confirmAction === "approve"
-  ? "Approve Order?"
-  : confirmAction === "unapprove"
-  ? "Unapprove Order?"
-                : user?.user_type === "salesman"
-                  ? "Delete Order?"
-                  : "Reject Order?"}
+              {confirmAction === "approve"
+                ? "Approve Order?"
+                : confirmAction === "unapprove"
+                  ? "Unapprove Order?"
+                  : user?.user_type === "salesman"
+                    ? "Delete Order?"
+                    : "Reject Order?"}
             </h2>
+            {confirmAction === "reject" && user?.user_type !== "salesman" && (
+  <div className="mb-4">
+    <label className="text-xs text-gray-500 font-medium mb-1 block">
+      Reject Reason <span className="text-red-500">*</span>
+    </label>
+
+    <textarea
+      value={rejectReason}
+      onChange={(e) => setRejectReason(e.target.value)}
+      placeholder="Write reason for rejection..."
+      className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-gray-300"
+      rows={3}
+    />
+  </div>
+)}
             <p className="text-sm text-gray-500 mb-6">
-             {confirmAction === "approve"
-  ? "Are you sure you want to approve this order?"
-  : confirmAction === "unapprove"
-  ? "Are you sure you want to move this order back to unapproved?"
-                : `Are you sure you want to ${user?.user_type === "admin" ? "reject" : "delete"} this order? This action cannot be undone.`}
+              {confirmAction === "approve"
+                ? "Are you sure you want to approve this order?"
+                : confirmAction === "unapprove"
+                  ? "Are you sure you want to move this order back to unapproved?"
+                  : `Are you sure you want to ${user?.user_type === "admin" ? "reject" : "delete"} this order? This action cannot be undone.`}
             </p>
             <div className="flex justify-end gap-3">
               <button
@@ -397,22 +426,33 @@ export default function OrdersPage() {
               </button>
               <button
   onClick={handleConfirm}
+  disabled={
+    confirmAction === "reject" &&
+    user?.user_type !== "salesman" &&
+    !rejectReason.trim()
+  }
   className={`px-4 py-2 rounded-lg text-white ${
     confirmAction === "approve"
       ? "bg-green-500 hover:bg-green-600"
       : confirmAction === "unapprove"
       ? "bg-yellow-500 hover:bg-yellow-600"
       : "bg-red-500 hover:bg-red-600"
+  } ${
+    confirmAction === "reject" &&
+    user?.user_type !== "salesman" &&
+    !rejectReason.trim()
+      ? "opacity-50 cursor-not-allowed"
+      : ""
   }`}
 >
-  {confirmAction === "approve"
-    ? "Approve"
-    : confirmAction === "unapprove"
-    ? "Unapprove"
-    : user?.user_type === "salesman"
-    ? "Delete"
-    : "Reject"}
-</button>
+                {confirmAction === "approve"
+                  ? "Approve"
+                  : confirmAction === "unapprove"
+                    ? "Unapprove"
+                    : user?.user_type === "salesman"
+                      ? "Delete"
+                      : "Reject"}
+              </button>
             </div>
           </div>
         </div>
@@ -1082,7 +1122,7 @@ export default function OrdersPage() {
                   onChange={(e) => setStatusFilter(e.target.value)}
                   className="text-gray-500 font-semibold bg-transparent focus:outline-none cursor-pointer"
                 >
-                  <option value="">Status</option>
+                  <option value="">All Status</option>
                   <option value="unapproved">Unapproved</option>
                   <option value="approved">Approved</option>
                   <option value="rejected">Rejected</option>
@@ -1125,117 +1165,109 @@ export default function OrdersPage() {
                       : "-"}
                   </td>
                   <td>
-                    <div className="flex justify-center gap-2">
-                      {user?.user_type === "salesman" &&
-                        o.status === "unapproved" &&
-                        o?.createdBy?._id === user?._id && (
-                          <button
-                            onClick={() => handleAction(o?._id, "reject")}
-                            className="p-2 bg-red-100 text-red-600 rounded-md"
-                          >
-                            <X size={16} />
-                          </button>
-                        )}
-                      {user?.user_type === "admin" &&
-  (o.status === "unapproved" || o.status === "approved") && (
-  <>
-    {/* APPROVE */}
-    {o.status === "unapproved" && (
-      <button
-        onClick={() => handleAction(o._id, "approve")}
-        className="p-2 bg-green-100 text-green-600 rounded-md"
-      >
-        <Check size={16} />
-      </button>
-    )}
-
-    {/* UNAPPROVE */}
-    {o.status === "approved" && (
-      <button
-        onClick={() => handleAction(o._id, "unapprove")}
-        className="p-2 bg-yellow-100 text-yellow-600 rounded-md"
-      >
-        <X size={16} />
-      </button>
-    )}
-
-    {/* REJECT */}
-    <button
-      onClick={() => handleAction(o._id, "reject")}
-      className="p-2 bg-red-100 text-red-600 rounded-md"
-    >
-      <X size={16} />
-    </button>
-  </>
-)}
+                    <div className="relative">
                       <button
-                        onClick={() => handleView(o._id)}
-                        className="p-2 bg-gray-100 text-gray-600 rounded-md"
+                        onClick={(e) => {
+                          e.stopPropagation(); // ✅ VERY IMPORTANT
+                          setOpenMenu(openMenu === o._id ? null : o._id);
+                        }}
+                        className="p-2 bg-gray-100 rounded-md"
                       >
-                        <Eye size={16} />
+                        <MoreVertical size={16} />
                       </button>
-                      {/* EDIT: SALESMAN + UNAPPROVED + OWN ORDER */}
-                      {user?.user_type === "salesman" && o?.status!=="partial" && o?.status!=="dispatched" && o?.status!=="posted" &&
-                        o?.createdBy?._id === user?._id && (
-                          <button
-                            onClick={() => handleEdit(o._id)}
-                            className="p-2 bg-blue-100 text-blue-600 rounded-md"
-                          >
-                            <Pencil size={16} />
-                          </button>
-                        )}
-                      {/* EDIT: ADMIN + ANY STATUS EXCEPT DELIVERED */}
-                      {user?.user_type === "admin" &&
-                        o?.status !== "dispatched" &&
-                        o?.status !== "partial" &&
-                        o?.status !== "rejected" &&
-                        o?.status !== "posted" && (
-                          <button
-                            onClick={() => handleEdit(o?._id)}
-                            className="p-2 bg-blue-100 text-blue-600 rounded-md"
-                          >
-                            <Pencil size={16} />
-                          </button>
-                        )}
-                      {/* DISPATCHER EDIT */}
-                      {user?.user_type === "dispatcher" &&
-                        o?.status !== "dispatched" && (
-                          <button
-                            onClick={() => handleEdit(o._id)}
-                            className="p-2 bg-purple-100 text-purple-600 rounded-md"
-                          >
-                            <Pencil size={16} />
-                          </button>
-                        )}
-                      {(user?.user_type === "admin" ||
-                        (user?.user_type === "salesman" &&
-                          o.status === "approved")) && (
-                        <button
-                          onClick={async () => {
-                            const blob = await order.downloadPDF(o._id);
 
-                            const url = window.URL.createObjectURL(blob);
-                            const a = document.createElement("a");
+                      {openMenu === o._id && (
+                        <div className="absolute right-0 mt-2 w-40 bg-white border rounded-lg shadow-lg z-50">
+                          {/* VIEW */}
+                          <button
+                            onClick={() => {
+                              handleView(o._id);
+                              setOpenMenu(null);
+                            }}
+                            className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+                          >
+                            View
+                          </button>
 
-                            a.href = url;
-                            a.download = `order-${o.order_number}.pdf`;
-                            a.click();
+                          {/* EDIT */}
+                          {(canEditFull ||
+                            user?.user_type === "dispatcher") && (
+                            <button
+                              onClick={() => {
+                                handleEdit(o._id);
+                                setOpenMenu(null);
+                              }}
+                              className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+                            >
+                              Edit
+                            </button>
+                          )}
 
-                            window.URL.revokeObjectURL(url);
-                          }}
-                          className="p-2 bg-black text-white rounded-md"
-                        >
-                          PDF
-                        </button>
-                      )}
-                      {/* ACCOUNTANT EDIT */}
-                      {user?.user_type === "accountant" && (
-                        <button
-                          onClick={() => handleEdit(o._id)}
-                          className="p-2 bg-yellow-100 text-yellow-600 rounded-md"
-                        >
-                          <Pencil size={16} />
-                        </button>
+                          {/* APPROVE */}
+                          {user?.user_type === "admin" &&
+                            (o.status === "unapproved" ||
+                              o.status === "rejected") && (
+                              <button
+                                onClick={() => {
+                                  handleAction(o._id, "approve");
+                                  setOpenMenu(null);
+                                }}
+                                className="block w-full text-left px-4 py-2 text-green-600 hover:bg-gray-100"
+                              >
+                                Approve
+                              </button>
+                            )}
+
+                          {/* UNAPPROVE */}
+                          {user?.user_type === "admin" &&
+                            o.status === "approved" && (
+                              <button
+                                onClick={() => {
+                                  handleAction(o._id, "unapprove");
+                                  setOpenMenu(null);
+                                }}
+                                className="block w-full text-left px-4 py-2 text-yellow-600 hover:bg-gray-100"
+                              >
+                                Unapprove
+                              </button>
+                            )}
+
+                          {/* REJECT / DELETE */}
+                          {!(
+                            (o?.status === "posted" ||
+                              o?.status === "rejected") &&
+                            user?.user_type !== "salesman"
+                          ) && (
+                            <button
+                              onClick={() => {
+                                handleAction(o._id, "reject");
+                                setOpenMenu(null);
+                              }}
+                              className="block w-full text-left px-4 py-2 text-red-600 hover:bg-gray-100"
+                            >
+                              {user?.user_type === "salesman"
+                                ? "Delete"
+                                : "Reject"}
+                            </button>
+                          )}
+
+                          {/* PDF */}
+                          <button
+                            onClick={async () => {
+                              const blob = await order.downloadPDF(o._id);
+                              const url = window.URL.createObjectURL(blob);
+                              const a = document.createElement("a");
+                              a.href = url;
+                              a.download = `order-${o.order_number}.pdf`;
+                              a.click();
+                              window.URL.revokeObjectURL(url);
+                              setOpenMenu(null);
+                            }}
+                            className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+                          >
+                            Download PDF
+                          </button>
+                        </div>
                       )}
                     </div>
                   </td>
