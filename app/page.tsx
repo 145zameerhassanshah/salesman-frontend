@@ -67,7 +67,7 @@ export default function LoginPage() {
     toast.success("Login successful");
 
     dispatch(setUser(res.isUser));
-    const role = res?.isUuser.user_type;
+    const role = res?.isUser.user_type;
 
     if (role === USER_ROLES.SUPER_ADMIN) {
       router.push("/super-admin");
