@@ -196,20 +196,22 @@ async updateIndustry(id, data) {
   /* =========================
      DELETE INDUSTRY
   ========================= */
-  async deleteIndustry(id) {
-    try {
-      const res = await fetch(`${API.industry}/${id}`, {
-        method: "DELETE",
-        credentials: "include"
-      });
-      const result = await res.json();
-      if (!res.ok) return false;
-      return result.message;
-    } catch (error) {
-      throw error.message;
-    }
+async deleteIndustry(id) {
+  try {
+    const res = await fetch(`${API.industry}/${id}`, {
+      method: "DELETE",
+      credentials: "include"
+    });
+
+    const result = await res.json();
+
+    if (!res.ok) return result;
+
+    return result; // 🔥 full object
+  } catch (error) {
+    throw error.message;
   }
-}
+}}
 
 // Exporting as an instance
 export const industry = new IndustryService();

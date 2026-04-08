@@ -96,7 +96,6 @@ const [salesmen, setSalesmen] = useState([]);
           </select>
 
           {/* ADD BUTTON */}
-            {user?.user_type !== "salesman" && (
     
 
           <button
@@ -106,7 +105,7 @@ const [salesmen, setSalesmen] = useState([]);
             Add Dealer
             <Plus size={16} />
           </button>
-  )}
+  
 
         </div>
       </div>

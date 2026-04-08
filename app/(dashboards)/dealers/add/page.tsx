@@ -18,12 +18,12 @@ useEffect(() => {
   // console.log("USER:", user);
   // console.log("INDUSTRY:", user?.industry);
 }, [user]);
-
-// 🔥 FETCH SALESMEN
 useEffect(() => {
   const fetchSalesmen = async () => {
+
+    if (user?.user_type  !== "admin") return; 
+
     const res = await UserService.getSalesmen(user?.industry);
-        // console.log("SALESMEN API RESPONSE:", res); 
 
     if (res.success) {
       setSalesmen(res.salesmen);
@@ -32,7 +32,6 @@ useEffect(() => {
 
   if (user?.industry) fetchSalesmen();
 }, [user]);
-
   const [form, setForm] = useState({
     name: "",
     email: "",
@@ -101,8 +100,9 @@ useEffect(() => {
   if (!form.city.trim()) return "City is required";
   if (!form.country.trim()) return "Country is required";
 
-  if (!form.userId) return "Salesman is required"; // 🔥 ADD
-
+if (user?.user_type  === "admin" && !form.userId) {
+  return "Salesman is required";
+}
   return null;
 };
 
@@ -130,8 +130,9 @@ if (error) {
       formData.append("city",form.city);
       formData.append("country",form.country);
       formData.append("is_active",String(form.is_active));
-      formData.append("userId", form.userId); // 🔥 ADD
-
+if (user?.user_type  === "admin") {
+  formData.append("userId", form.userId);
+}
       if(form.business_logo){
         formData.append("business_logo",form.business_logo);
       }
@@ -252,27 +253,33 @@ className="w-full mt-1 bg-gray-200 rounded-xl px-4 py-3 outline-none"/>
 </div>
 
 {/* 🔥 SALESMAN DROPDOWN */}
-<div>
-<label className="text-xs text-gray-500">
-Assign Salesman <span className="text-red-500">*</span>
-</label>
-<select
-name="userId"
-value={form.userId}
-onChange={handleChange}
-className="w-full mt-1 bg-gray-200 rounded-xl px-4 py-3 outline-none"
->
-<option value="">Select Salesman</option>
-{salesmen.map((s:any)=>(
-<option key={s._id} value={s._id}>
-{s.name} 
-</option>
-))}
-</select>
-</div>
+{user?.user_type  === "admin" && (
+  <div>
+    <label className="text-xs text-gray-500">
+      Assign Salesman <span className="text-red-500">*</span>
+    </label>
 
+    <select
+      name="userId"
+      value={form.userId}
+      onChange={handleChange}
+      className="w-full mt-1 bg-gray-200 rounded-xl px-4 py-3 outline-none"
+    >
+      <option value="">Select Salesman</option>
+      {salesmen.map((s:any)=>(
+        <option key={s._id} value={s._id}>
+          {s.name}
+        </option>
+      ))}
+    </select>
+  </div>
+)}
 </div>
-
+{user?.user_type  === "salesman" && (
+  <p className="text-xs text-gray-500 mt-1">
+    Dealer will be assigned to you automatically
+  </p>
+)}
 <div className="flex flex-col gap-4">
 
 <div>

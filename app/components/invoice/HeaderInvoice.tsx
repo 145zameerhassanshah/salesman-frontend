@@ -96,7 +96,7 @@ export default function HeaderInvoice({ order }) {
   <img
     src={`${process.env.NEXT_PUBLIC_API_URL}/uploads/${order?.businessId?.business_logo}`}
     alt="Company Logo"
-    className="h-60 object-cover"
+    className="h-50 object-cover"
     style={{ aspectRatio: "auto" }}
   />
 </div>
