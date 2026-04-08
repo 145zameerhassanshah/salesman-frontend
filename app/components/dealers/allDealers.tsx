@@ -141,14 +141,18 @@ import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import DealerService from "@/app/components/services/dealerService";
 import { useSelector } from "react-redux";
-import { useState } from "react";
-
+import { useState,useEffect } from "react";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem
+} from "@/components/ui/dropdown-menu";
 export default function DealersTable({ dealers, refresh, onEdit }: any) {
 
   const router = useRouter();
   const user = useSelector((state:any)=>state.user.user);
-
-  const [rejectDealer, setRejectDealer] = useState(null);
+const [rejectDealer, setRejectDealer] = useState<any | null>(null);
   const [rejectReason, setRejectReason] = useState("");
 
   const handleDelete = async (id:string)=>{
@@ -164,6 +168,12 @@ export default function DealersTable({ dealers, refresh, onEdit }: any) {
     toast.success("Dealer deleted");
     refresh();
   };
+  useEffect(() => {
+  const handleClick = () => setOpenMenu(null);
+  window.addEventListener("click", handleClick);
+
+  return () => window.removeEventListener("click", handleClick);
+}, []);
 
   const handleApprove = async (id:string)=>{
     const res = await DealerService.updateDealerStatus(id,{
@@ -176,28 +186,32 @@ export default function DealersTable({ dealers, refresh, onEdit }: any) {
     }
   };
 
-  const handleReject = async ()=>{
-    if(!rejectReason){
-      toast.error("Reason required");
-      return;
+const handleReject = async () => {
+  if (!rejectDealer) return; // ✅ fix
+
+  if (!rejectReason.trim()) {
+    toast.error("Reason required");
+    return;
+  }
+
+  const res = await DealerService.updateDealerStatus(
+    rejectDealer._id,
+    {
+      status: "rejected",
+      rejectReason
     }
+  );
 
-    const res = await DealerService.updateDealerStatus(
-      rejectDealer._id,
-      {
-        status:"rejected",
-        rejectReason
-      }
-    );
+  if (!res.success) {
+    toast.error(res.message || "Reject failed");
+    return;
+  }
 
-    if(res.success){
-      toast.success("Rejected");
-      setRejectDealer(null);
-      setRejectReason("");
-      refresh();
-    }
-  };
-
+  toast.success("Dealer rejected");
+  setRejectDealer(null);
+  setRejectReason("");
+  refresh();
+};
   const handleUnapprove = async (id:string)=>{
     const res = await DealerService.unapproveDealer(id);
 
@@ -273,58 +287,78 @@ export default function DealersTable({ dealers, refresh, onEdit }: any) {
               </td>
 
               {/* ACTIONS */}
-              {user?.user_type  === "admin" && (
-                <td className="text-right flex gap-2 justify-end flex-wrap">
+<td className="text-right flex gap-2 justify-end flex-wrap">
 
-                  {/* EDIT */}
-                  <button
-                    onClick={() => onEdit(d)}
-                    className="p-1 hover:bg-gray-200 rounded"
-                  >
-                    <Pencil size={16} />
-                  </button>
+  {/* EDIT (ADMIN + SALESMAN) */}
+  {(user?.user_type === "admin" || user?.user_type === "salesman") && (
+    <button
+      onClick={() => onEdit(d)}
+      className="p-1 hover:bg-gray-200 rounded"
+    >
+      <Pencil size={16} />
+    </button>
+  )}
 
-                  {/* DELETE */}
-                  <button
-                    onClick={()=>handleDelete(d._id)}
-                    className="p-1 hover:bg-red-100 rounded text-red-500"
-                  >
-                    <Trash2 size={16} />
-                  </button>
+  {/* DELETE (ONLY ADMIN) */}
+  {user?.user_type === "admin" && (
+    <button
+      onClick={()=>handleDelete(d._id)}
+      className="p-1 hover:bg-red-100 rounded text-red-500"
+    >
+      <Trash2 size={16} />
+    </button>
+  )}
 
-                  {/* APPROVE */}
-                  {d.status === "pending" && (
-                    <button
-                      onClick={()=>handleApprove(d._id)}
-                      className="px-2 py-1 bg-green-500 text-white rounded text-xs"
-                    >
-                      Approve
-                    </button>
-                  )}
+  {/* APPROVE */}
+  {(d.status === "pending" || d.status === "rejected" || d.status === "unapproved") && user?.user_type === "admin" && (
+    <button
+      onClick={()=>handleApprove(d._id)}
+      className="px-2 py-1 bg-green-500 text-white rounded text-xs"
+    >
+      Approve
+    </button>
+  )}
 
-                  {/* REJECT */}
-                  {d.status === "pending" && (
-                    <button
-                      onClick={()=>setRejectDealer(d)}
-                      className="px-2 py-1 bg-red-500 text-white rounded text-xs"
-                    >
-                      Reject
-                    </button>
-                  )}
+  {/* REJECT */}
+  {(d.status === "pending" || d.status === "approved") && user?.user_type === "admin" && (
+    <button
+      onClick={()=>setRejectDealer(d)}
+      className="px-2 py-1 bg-red-500 text-white rounded text-xs"
+    >
+      Reject
+    </button>
+  )}
 
-                  {/* UNAPPROVE */}
-                  {d.status === "approved" && (
-                    <button
-                      onClick={()=>handleUnapprove(d._id)}
-                      className="px-2 py-1 bg-yellow-500 text-white rounded text-xs"
-                    >
-                      Unapprove
-                    </button>
-                  )}
+  {/* UNAPPROVE */}
+  {d.status === "approved" && user?.user_type === "admin" && (
+    <button
+      onClick={()=>handleUnapprove(d._id)}
+      className="px-2 py-1 bg-yellow-500 text-white rounded text-xs"
+    >
+      Unapprove
+    </button>
+  )}
+{user?.user_type === "admin" && (
+  <button
+    onClick={() => {
+      const newId = prompt("Enter new salesman ID");
+      if (!newId) return;
 
-                </td>
-              )}
-
+      DealerService.reassignDealer(d._id, newId).then((res) => {
+        if (res.success) {
+          toast.success("Reassigned");
+          refresh();
+        } else {
+          toast.error(res.message || "Failed");
+        }
+      });
+    }}
+    className="px-2 py-1 bg-blue-500 text-white rounded text-xs"
+  >
+    Reassign
+  </button>
+)}
+</td>
             </tr>
           ))}
         </tbody>

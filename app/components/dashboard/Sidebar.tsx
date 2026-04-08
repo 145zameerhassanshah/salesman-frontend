@@ -258,16 +258,6 @@ const salesmanMenu = [
         })}
       </div>
 
-      {/* PROFILE */}
-      <div className="absolute bottom-3 flex items-center gap-2 px-3">
-        <img src="/profile.png" className="w-8 h-8 rounded-full" />
-
-        {expanded && (
-          <span className="text-sm">
-            {user?.user_type}
-          </span>
-        )}
-      </div>
     </div>
   );
 }

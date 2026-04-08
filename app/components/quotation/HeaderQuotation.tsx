@@ -6,7 +6,7 @@ export default function HeaderQuotation({ quotation }) {
         <img
           src={`${process.env.NEXT_PUBLIC_API_URL}/uploads/${quotation?.businessId?.business_logo}`}
           alt="Company Logo"
-          className="h-60 object-cover"
+          className="h-20 object-cover"
           style={{ aspectRatio: "auto" }}
         />
       </div>

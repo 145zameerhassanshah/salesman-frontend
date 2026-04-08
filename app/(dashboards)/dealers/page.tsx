@@ -131,6 +131,7 @@ const [salesmen, setSalesmen] = useState([]);
           dealer={editDealer}
           onClose={() => setEditDealer(null)}
           refresh={fetchDealers}
+            user={user} 
         />
       )}
 
@@ -141,7 +142,7 @@ const [salesmen, setSalesmen] = useState([]);
 
 /* ================= EDIT MODAL ================= */
 
-function DealerEditModal({ dealer, onClose, refresh }: any) {
+function DealerEditModal({ dealer, onClose, refresh,user }: any) {
 
   const [salesmen, setSalesmen] = useState([]);
 
@@ -157,7 +158,8 @@ function DealerEditModal({ dealer, onClose, refresh }: any) {
     country: dealer?.country || "",
     is_active: dealer?.is_active ?? true,
     business_logo: null as File | null,
-userId: dealer?.userId?._id || dealer?.userId || ""});
+userId: dealer?.assigned_to?._id || dealer?.assigned_to || ""
+});
 
   const [preview, setPreview] = useState(
     dealer?.business_logo
@@ -358,25 +360,27 @@ userId: dealer?.userId?._id || dealer?.userId || ""});
 </div>
 
         {/* SALESMAN */}
-<div>
-  <label className="text-xs text-gray-500">
-    Assign Salesman <span className="text-red-500">*</span>
-  </label>
+{user?.user_type === "admin" && (
+  <div>
+    <label className="text-xs text-gray-500">
+      Assign Salesman <span className="text-red-500">*</span>
+    </label>
 
-  <select
-    name="userId"
-    value={String(form.userId)}
-    onChange={handleChange}
-    className="w-full mt-1 border p-2 rounded"
-  >
-    <option value="">Select Salesman</option>
-    {salesmen.map((s:any)=>(
-      <option key={s._id} value={String(s._id)}>
-        {s.name}
-      </option>
-    ))}
-  </select>
-</div>
+    <select
+      name="userId"
+      value={String(form.userId)}
+      onChange={handleChange}
+      className="w-full mt-1 border p-2 rounded"
+    >
+      <option value="">Select Salesman</option>
+      {salesmen.map((s:any)=>(
+        <option key={s._id} value={String(s._id)}>
+          {s.name}
+        </option>
+      ))}
+    </select>
+  </div>
+)}
 <div>
   <label className="text-xs text-gray-500">
     Status <span className="text-red-500">*</span>
