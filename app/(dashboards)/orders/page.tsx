@@ -545,7 +545,7 @@ const [rejectReason, setRejectReason] = useState("");
                           <th className="text-left px-4 py-3">Product</th>
                           <th className="px-4 py-3">Qty</th>
                           <th className="px-4 py-3">Unit Price</th>
-                          <th className="px-4 py-3">Discount</th>
+                          <th className="px-4 py-3">Discount %/Amt</th>
                           <th className="px-4 py-3 text-right">Total</th>
                         </tr>
                       </thead>
@@ -562,7 +562,7 @@ const [rejectReason, setRejectReason] = useState("");
                               {item?.unit_price}
                             </td>
                             <td className="px-4 py-3 text-center">
-                              {item?.discount_percent}%
+                              {item?.discount_percent}
                             </td>
                             <td className="px-4 py-3 text-right">
                               {item?.total?.toFixed(2)}
@@ -572,6 +572,16 @@ const [rejectReason, setRejectReason] = useState("");
                       </tbody>
                     </table>
                   </div>
+                  {viewOrder?.rejectReason && (
+  <div className="mt-5 bg-red-50 border border-red-200 rounded-xl p-4">
+    <p className="text-xs text-red-600 font-semibold mb-1">
+      Rejection Reason
+    </p>
+    <p className="text-sm text-gray-700 leading-relaxed">
+      {viewOrder?.rejectReason}
+    </p>
+  </div>
+)}
                 </div>
                 <div className="bg-gray-50 rounded-xl p-4 space-y-2 text-sm">
                   <div className="flex justify-between">
@@ -723,7 +733,7 @@ const [rejectReason, setRejectReason] = useState("");
                             <th className="text-left px-4 py-3">Product</th>
                             <th className="px-4 py-3">Qty</th>
                             <th className="px-4 py-3">Unit Price</th>
-                            <th className="px-4 py-3">Discount</th>
+                            <th className="px-4 py-3">Discount %/Amt</th>
                             <th className="px-4 py-3 text-right">Total</th>
                           </tr>
                         </thead>

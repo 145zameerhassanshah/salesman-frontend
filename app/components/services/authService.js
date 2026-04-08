@@ -123,6 +123,17 @@ class AuthService {
       throw err;
     }
   }
+
+  static async verifyUser(data){
+    const res=await fetch(`${API.users}/verify-user`,{method:"POST", headers:{
+          "Content-Type":"application/json"
+        },
+        credentials:"include",
+        body:JSON.stringify(data)});
+
+    const result=await res.json();
+    return result;
+  }
  static async resetPassword(data){  
     try{
 

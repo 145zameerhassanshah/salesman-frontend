@@ -19,7 +19,7 @@ export default function DashboardHeader() {
   return (
     <div className="mb-6">
       <p className="text-gray-600 text-sm">Welcome Back!</p>
-      <h1 className="text-4xl font-semibold">{user?.name}</h1>
+      <h1 className="text-4xl font-semibold">{user?.name[0].toUpperCase()+user?.name.slice(1)}</h1>
       <h3>{user?.user_type[0].toUpperCase()+user?.user_type.slice(1)}</h3>
     </div>
   );
