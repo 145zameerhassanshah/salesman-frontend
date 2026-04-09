@@ -27,9 +27,9 @@ export default function DashboardLayout({
       >
 
         {/* Topbar */}
-        <div className="sticky top-0 z-40 bg-white shadow-sm">
+        {/* <div className="sticky top-0 z-40 bg-white shadow-sm">
           <Topbar />
-        </div>
+        </div> */}
 
         {/* Page Content */}
         <main className="flex-1 p-4 md:p-6">
