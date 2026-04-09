@@ -35,7 +35,7 @@ export default function Quotation() {
         id="invoice"
         className="
           w-[210mm] min-h-[297mm] 
-          bg-gray-100 shadow-lg 
+          bg-white shadow-lg 
           p-6 md:p-10
           text-[10px] md:text-[12px]
           leading-relaxed

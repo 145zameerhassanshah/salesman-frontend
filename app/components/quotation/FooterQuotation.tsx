@@ -14,12 +14,12 @@ export default function QuotationFooter({ quotation }) {
     <div className="mt-8 flex justify-between items-start gap-8">
       {/* Left */}
       <div className="max-w-[360px] space-y-5 text-[13px]">
-        <div>
+        {/* <div>
           <p className="mb-1 font-semibold text-gray-800">Payment Method:</p>
           <p className="text-gray-700">
             {quotation?.payment_mode || "Advance  / Cash / Periodical"}
           </p>
-        </div>
+        </div> */}
 
         <div>
           <p className="mb-1 font-semibold text-gray-800">Terms & Conditions:</p>
