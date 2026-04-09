@@ -31,12 +31,11 @@ export default function Quotation() {
     if (id) fetchData();
   }, [id]);
 
+  console.log(orderData)
+
   if (!orderData) return <div className="text-center py-20">Loading...</div>;
 if (!orderData) return <div className="text-center py-20">Loading...</div>;
 
-// 👇 YAHAN LAGAO
-console.log("BUSINESS:", orderData.businessId);
-console.log("LOGO:", orderData.businessId?.addressLogo);
   return (
     <div className="flex justify-center bg-gray-200 py-8 px-3 print:bg-white print:py-0">
       
@@ -69,7 +68,7 @@ console.log("LOGO:", orderData.businessId?.addressLogo);
         <div className="border-t pt-3 flex justify-between text-gray-500 text-xs">
           {orderData?.businessId.addressLogo && (
             <img
-              src={`${process.env.NEXT_PUBLIC_API_URL}/uploads/${orderData.businessId.addressLogo}`}
+              src={orderData.businessId.addressLogo}
               alt="Address Logo"
       className="
         w-full 

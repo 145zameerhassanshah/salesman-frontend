@@ -1212,8 +1212,6 @@ export default function OrdersPage() {
                           {/* EDIT */}
                           {user?.user_type === "admin" &&
                             o.status !== "dispatched" &&
-                            o.status !== "partial" &&
-                            o.status !== "rejected" &&
                             o.status !== "posted" && (
                               <button
                                 onClick={() => {
@@ -1227,7 +1225,7 @@ export default function OrdersPage() {
                             )}
 
                           {user?.user_type === "salesman" &&
-                            o.status === "unapproved" &&
+                            (o.status === "unapproved" || o.status==="approved" || o.status==="rejected") &&
                             o?.createdBy?._id === user?._id && (
                               <button
                                 onClick={() => {
@@ -1269,6 +1267,7 @@ export default function OrdersPage() {
                                 Edit
                               </button>
                             )}
+                            
 
                           {/* APPROVE — admin only */}
                           {user?.user_type === "admin" &&
@@ -1302,6 +1301,7 @@ export default function OrdersPage() {
                           {/* REJECT — admin only, not already rejected/posted */}
                           {user?.user_type === "admin" &&
                             o.status !== "rejected" &&
+                            o.status!=="dispatched" &&
                             o.status !== "posted" && (
                               <button
                                 onClick={() => {
@@ -1330,7 +1330,7 @@ export default function OrdersPage() {
                             )}
 
                           {/* PDF */}
-                          {o?.status!=="unapproved" && <button
+                          {o?.status!=="unapproved" && o?.status!=="rejected" && <button
                             onClick={async () => {
                               const blob = await order.downloadPDF(o._id);
                               const url = window.URL.createObjectURL(blob);

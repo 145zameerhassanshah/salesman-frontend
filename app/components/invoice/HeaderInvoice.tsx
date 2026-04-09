@@ -94,7 +94,7 @@ export default function HeaderInvoice({ order }) {
       {/* 🔝 COMPANY LOGO CENTER (BIG) */}
 <div className="flex justify-center">
   <img
-    src={`${process.env.NEXT_PUBLIC_API_URL}/uploads/${order?.businessId?.business_logo}`}
+    src={order?.businessId?.business_logo}
     alt="Company Logo"
     className="h-20 object-cover"
     style={{ aspectRatio: "auto" }}
@@ -114,7 +114,7 @@ export default function HeaderInvoice({ order }) {
           {/* LOGO + NAME SAME ROW */}
           <div className="flex items-center gap-2">
             <img
-              src={`${process.env.NEXT_PUBLIC_API_URL}/uploads/${order?.dealer_id?.business_logo}`}
+              src={order?.dealer_id?.business_logo}
               alt="Dealer"
               className="w-6 h-6 object-contain bg-gray-100 rounded-md p-1"
             />

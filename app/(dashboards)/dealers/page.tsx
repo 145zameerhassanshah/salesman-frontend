@@ -163,8 +163,6 @@ userId: dealer?.assigned_to?._id || dealer?.assigned_to || ""
 
   const [preview, setPreview] = useState(
     dealer?.business_logo
-      ? `${process.env.NEXT_PUBLIC_API_URL}/uploads/${dealer.business_logo}`
-      : null
   );
 
   /* FETCH SALESMEN */

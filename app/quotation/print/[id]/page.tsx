@@ -55,7 +55,7 @@ export default function Quotation() {
                 <div className="border-t pt-3 flex justify-between text-gray-500 text-xs">
           {quotation?.businessId.addressLogo && (
             <img
-              src={`${process.env.NEXT_PUBLIC_API_URL}/uploads/${quotation.businessId.addressLogo}`}
+              src={quotation.businessId.addressLogo}
               alt="Address Logo"
       className="
         w-full 
