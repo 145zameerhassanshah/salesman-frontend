@@ -64,8 +64,6 @@ export default function StaffPage({ role }: { role: string }) {
   status: u.status || "Active",
   joined: new Date(u.createdAt).toLocaleDateString(),
   image: u.profile_image
-    ? `${process.env.NEXT_PUBLIC_API_URL}/uploads/${u.profile_image}`
-    : "/profile.png",
 }))}
           onEdit={handleEdit}
         />

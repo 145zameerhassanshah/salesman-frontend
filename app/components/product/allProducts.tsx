@@ -235,8 +235,8 @@ export default function ProductsTable({ products, refetch }: any) {
               <img
                 src={
                   p.image
-                    ? `${process.env.NEXT_PUBLIC_API_URL}/uploads/${p.image}`
-                    : "/placeholder.png"
+                    // ? `${process.env.NEXT_PUBLIC_API_URL}/uploads/${p.image}`
+                    // : "/placeholder.png"
                 }
                 alt={p.name}
                 className="w-11 h-11 rounded-xl object-cover border border-gray-200 shrink-0"

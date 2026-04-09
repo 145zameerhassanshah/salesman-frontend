@@ -37,6 +37,7 @@ export default function AllSaleman() {
     return users.filter((u: any) => u.user_type === "salesman");
   }, [users]);
 
+  console.log(salesman)
   /* ==============================
      OPEN EDIT
   ============================== */
@@ -171,8 +172,8 @@ export default function AllSaleman() {
       <img
         src={
           salesman?.profile_image
-            ? `${API_URL}/uploads/${salesman.profile_image}`
-            : "/profile.png"
+            // ? `${API_URL}/uploads/${salesman.profile_image}`
+            // : "/profile.png"
         }
         className="w-9 h-8 rounded-full"
       />

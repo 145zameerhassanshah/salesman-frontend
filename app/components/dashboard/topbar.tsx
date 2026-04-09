@@ -40,8 +40,6 @@ export default function Topbar() {
   <img
     src={
       user?.profile_image
-        ? `${process.env.NEXT_PUBLIC_API_URL}/uploads/${user.profile_image}`
-        : "/default-avatar.png"
     }
     className="w-9 h-9 rounded-lg object-cover"
   />
