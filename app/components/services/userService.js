@@ -19,6 +19,27 @@ class UserService {
       return result;
   }
 
+  static async getSalesmen(businessId){
+  try{
+    const res = await fetch(`${API.users}/salesmen/${businessId}`,{
+      method:"GET",
+      credentials:"include"
+    });
+
+    const result = await res.json();
+
+    if(!res.ok){
+      return result;
+    }
+
+    return result;
+
+  }catch(err){
+    console.error("Fetch salesmen error:",err);
+    throw err;
+  }
+}
+
   static async createTeamMember(data){
     try{
 
@@ -63,7 +84,6 @@ class UserService {
       throw err;
     }
   }
-
   static async getUserById(id){
     try{
 

@@ -12,15 +12,17 @@ export default function AddSalesman() {
   const user = useSelector((state: any) => state.user.user);
 
   const [form, setForm] = useState({
-    name: "",
-    email: "",
-    phone_number: "",
-    whatsapp_number: "",
-    city: "",
-    address: "",
-    password: "",
-    profile_image: null as File | null,
-  });
+  name: "",
+  email: "",
+  phone_number: "",
+  whatsapp_number: "",
+  city: "",
+  address: "",
+  territory: "",        // ✅ NEW
+  designation: "",      // ✅ NEW
+  password: "",
+  profile_image: null,
+});
 
   const cancel=()=>{
     setForm({
@@ -31,6 +33,8 @@ export default function AddSalesman() {
         city: "",
         address: "",
         password: "",
+        territory:"",
+        designation:"",
         profile_image:null
       });
   }
@@ -48,7 +52,6 @@ export default function AddSalesman() {
   toast.error("Image must be < 2MB");
   return;
 }
-
 
   setForm({
     ...form,
@@ -73,17 +76,25 @@ export default function AddSalesman() {
   ============================== */
   const handleSubmit = async () => {
     if (
-      !form.name ||
-      !form.email ||
-      !form.phone_number ||
-      !form.whatsapp_number ||
-      !form.city ||
-      !form.address ||
-      !form.password
-    ) {
-      return toast.error("Please fill all required fields");
-    }
+  !form.name ||
+  !form.email ||
+  !form.phone_number ||
+  !form.whatsapp_number ||
+  !form.city ||
+  !form.address ||
+  !form.password ||
+  !form.territory ||       // ✅ NEW
+  !form.designation        // ✅ NEW
+) {
+  return toast.error("Please fill all required fields");
+}
+if (form.territory.length < 3) {
+  return toast.error("Territory must be at least 3 characters");
+}
 
+if (form.designation.length < 2) {
+  return toast.error("Designation is too short");
+}
     if (!user?.industry) {
       return toast.error("Industry not found");
     }
@@ -100,6 +111,8 @@ export default function AddSalesman() {
     formData.append("password", form.password);
     formData.append("user_type", "salesman");
     formData.append("industry", user.industry);
+    formData.append("territory", form.territory);
+    formData.append("designation", form.designation);
 
     if (form.profile_image) {
       formData.append("profile_image", form.profile_image);
@@ -117,6 +130,8 @@ export default function AddSalesman() {
         city: "",
         address: "",
         password: "",
+        territory:"",
+        designation:"",
         profile_image:null,
       });
     } catch (err: any) {
@@ -158,7 +173,7 @@ export default function AddSalesman() {
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
 
             <div>
-              <label className="text-sm text-gray-500">Full Name</label>
+              <label className="text-sm text-gray-500">Full Name</label><span className="text-red-500">*</span>
               <input
                 name="name"
                 value={form.name}
@@ -171,7 +186,7 @@ export default function AddSalesman() {
             </div>
 
             <div>
-              <label className="text-sm text-gray-500">Email Address</label>
+              <label className="text-sm text-gray-500">Email Address</label><span className="text-red-500">*</span>
               <input
                 name="email"
                 value={form.email}
@@ -184,7 +199,7 @@ export default function AddSalesman() {
             </div>
 
             <div>
-              <label className="text-sm text-gray-500">Phone Number</label>
+              <label className="text-sm text-gray-500">Phone Number</label><span className="text-red-500">*</span>
               <input
                 name="phone_number"
                 value={form.phone_number}
@@ -196,7 +211,7 @@ export default function AddSalesman() {
               />
             </div>
             <div>
-  <label className="text-sm text-gray-500">Profile Image</label>
+  <label className="text-sm text-gray-500">Profile Image</label><span className="text-red-500">*</span>
   <input
     type="file"
     accept="image/*"
@@ -207,7 +222,7 @@ export default function AddSalesman() {
 </div>
 
             <div>
-              <label className="text-sm text-gray-500">WhatsApp Number</label>
+              <label className="text-sm text-gray-500">WhatsApp Number</label><span className="text-red-500">*</span>
               <input
                 name="whatsapp_number"
                 value={form.whatsapp_number}
@@ -218,9 +233,34 @@ export default function AddSalesman() {
                 className="w-full mt-1 bg-gray-100 rounded-lg px-3 py-2 outline-none"
               />
             </div>
+            <div>
+  <label className="text-sm text-gray-500">Territory</label><span className="text-red-500">*</span>
+  <input
+    name="territory"
+    value={form.territory}
+    onChange={handleChange}
+    type="text"
+    required
+    placeholder="e.g Lahore Region"
+    className="w-full mt-1 bg-gray-100 rounded-lg px-3 py-2 outline-none"
+  />
+</div>
+
+<div>
+  <label className="text-sm text-gray-500">Designation</label><span className="text-red-500">*</span>
+  <input
+    name="designation"
+    value={form.designation}
+    onChange={handleChange}
+    type="text"
+    required
+    placeholder="e.g Sales Executive"
+    className="w-full mt-1 bg-gray-100 rounded-lg px-3 py-2 outline-none"
+  />
+</div>
 
             <div>
-              <label className="text-sm text-gray-500">City</label>
+              <label className="text-sm text-gray-500">City</label><span className="text-red-500">*</span>
               <input
                 name="city"
                 value={form.city}
@@ -233,7 +273,7 @@ export default function AddSalesman() {
             </div>
 
             <div>
-              <label className="text-sm text-gray-500">Address</label>
+              <label className="text-sm text-gray-500">Address</label><span className="text-red-500">*</span>
               <input
                 name="address"
                 value={form.address}
@@ -245,7 +285,7 @@ export default function AddSalesman() {
               />
             </div>
              <div>
-              <label className="text-sm text-gray-500">Password</label>
+              <label className="text-sm text-gray-500">Password</label><span className="text-red-500">*</span>
               <input
                 name="password"
                 value={form.password}

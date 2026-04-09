@@ -24,6 +24,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import { useDispatch, useSelector } from "react-redux";
+import { useOrders } from "@/hooks/useOrders";
+import { useQuotations } from "@/hooks/useQuotations";
 
 export default function Sidebar({
   expanded,
@@ -35,6 +37,34 @@ export default function Sidebar({
   const router = useRouter();
   const dispatch = useDispatch();
   const user = useSelector((state: any) => state.user.user);
+  const {data:ordersList}=useOrders(user?.industry);
+  const {data:quotationsList}=useQuotations(user?.industry);
+
+// ✅ ORDER COUNT BASED ON ROLE
+let orderCount = 0;
+
+if (user?.user_type === "admin" || user?.user_type === "salesman") {
+  orderCount = ordersList?.filter((o: any) => o.status === "unapproved").length;
+}
+
+if (user?.user_type === "dispatcher") {
+  orderCount = ordersList?.filter((o: any) => o.status === "approved").length;
+}
+
+if (user?.user_type === "accountant") {
+  orderCount = ordersList?.filter(
+    (o: any) => o.status === "dispatched" || o.status === "partial"
+  ).length;
+}
+
+// ✅ QUOTATION COUNT
+let quotationCount = 0;
+
+if (user?.user_type === "admin" || user?.user_type === "salesman") {
+  quotationCount = quotationsList?.filter(
+    (q: any) => q.status === "pending"
+  ).length;
+}
 
   const logout = async () => {
     try {
@@ -77,6 +107,8 @@ export default function Sidebar({
 const salesmanMenu = [
     { icon: ShoppingCart, label: "Orders", href: "/orders" },
     { icon: ClipboardList, label: "Quotations", href: "/quotations" },
+      { icon: Package, label: "My Dealers", href: "/dealers" },
+
   ];
 
   const staffMenu = [
@@ -126,8 +158,8 @@ const salesmanMenu = [
     `}
   >
     <Image
-      src="/images/Logo.webp"
-      alt="Logo"
+      src="/images/logo.webp"
+      alt="logo"
       width={48}
       height={48}
       className="object-contain"
@@ -153,7 +185,23 @@ const salesmanMenu = [
               href={item.href}
               className="group relative flex items-center gap-3 p-2 rounded-lg hover:bg-gray-300 w-full"
             >
-              <Icon size={18} />
+              <div className="relative">
+  <Icon size={18} />
+
+  {/* ORDER NOTIFICATION */}
+  {item.label === "Orders" && orderCount > 0 && (
+    <span className="absolute -top-2 -right-2 bg-red-500 text-white text-[10px] px-1.5 py-0.5 rounded-full">
+      {orderCount}
+    </span>
+  )}
+
+  {/* QUOTATION NOTIFICATION */}
+  {item.label === "Quotations" && quotationCount > 0 && (
+    <span className="absolute -top-2 -right-2 bg-red-500 text-white text-[10px] px-1.5 py-0.5 rounded-full">
+      {quotationCount}
+    </span>
+  )}
+</div>
 
               {expanded && <span className="text-sm">{item.label}</span>}
 
@@ -210,16 +258,6 @@ const salesmanMenu = [
         })}
       </div>
 
-      {/* PROFILE */}
-      <div className="absolute bottom-3 flex items-center gap-2 px-3">
-        <img src="/profile.png" className="w-8 h-8 rounded-full" />
-
-        {expanded && (
-          <span className="text-sm">
-            {user?.user_type}
-          </span>
-        )}
-      </div>
     </div>
   );
 }

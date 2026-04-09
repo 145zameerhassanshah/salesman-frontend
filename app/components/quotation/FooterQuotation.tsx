@@ -1,58 +1,75 @@
 export default function QuotationFooter({ quotation }) {
-  return (
-    <div className="mt-6 flex justify-between items-start gap-6">
+  const subtotal = Number(quotation?.subtotal) || 0;
+  const tax = Number(quotation?.tax) || 0;
+  const discount = Number(quotation?.discount) || 0;
+  const total = Number(quotation?.total) || 0;
 
+  const formatCurrency = (value) =>
+    `PKR ${value.toLocaleString(undefined, {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    })}`;
+
+  return (
+    <div className="mt-8 flex justify-between items-start gap-8">
       {/* Left */}
-      <div className="space-y-4 max-w-sm text-sm">
+      <div className="max-w-[360px] space-y-5 text-[13px]">
         <div>
-          <p className="font-semibold mb-1">Payment Mode</p>
-          <p className="text-gray-500 text-xs">
-            Advance · Account · Cash · Periodical
+          <p className="mb-1 font-semibold text-gray-800">Payment Method:</p>
+          <p className="text-gray-700">
+            {quotation?.payment_mode || "Advance  / Cash / Periodical"}
           </p>
         </div>
 
         <div>
-          <p className="font-semibold mb-1">Terms & Conditions</p>
-          <p className="text-gray-500 text-xs leading-snug">
+          <p className="mb-1 font-semibold text-gray-800">Terms & Conditions:</p>
+          <p className="leading-6 text-gray-700">
             Goods supplied upon payment. Kindly verify items at delivery.
             Delayed payments may affect future orders.
           </p>
         </div>
       </div>
 
-      {/* ✅ Right Card (FIXED DESIGN) */}
-      <div className="bg-white rounded-2xl p-5 w-[280px] shadow-md space-y-3 text-sm ">
-
-        <div className="flex justify-between text-gray-500">
-          <span>Subtotal</span>
-          <span>{quotation?.subtotal?.toFixed(2) || "0.00"}</span>
-        </div>
-
-        <div className="flex justify-between text-gray-500">
-          <span>
-            Tax ({quotation?.tax_type === "percent" ? "%" : "PKR"})
-          </span>
-          <span>{quotation?.tax?.toFixed(2) || "0.00"}</span>
-        </div>
-
-        {quotation?.discount > 0 && (
-          <div className="flex justify-between text-gray-500">
-            <span>
-              Discount ({quotation?.discount_type === "percent" ? "%" : "PKR"})
-            </span>
-            <span>- {quotation?.discount?.toFixed(2)}</span>
+      {/* Right */}
+      <div className="w-[320px] text-[13px]">
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <span className="text-gray-700">Subtotal:</span>
+            <span className="text-gray-900">{formatCurrency(subtotal)}</span>
           </div>
-        )}
 
-        <div className="border-t pt-3 flex justify-between items-center">
-          <span className="font-semibold text-gray-800">Total</span>
-          <span className="text-xl font-bold text-black">
-            {quotation?.total?.toFixed(2) || "0.00"}
-          </span>
+          <div className="flex items-center justify-between">
+            <span className="text-gray-700">
+              Discount
+              {discount > 0
+                ? ` (${quotation?.discount_type === "percentage" ? "%" : "PKR"})`
+                : ""}
+              :
+            </span>
+            <span className="text-gray-900">
+              {discount > 0 ? `- ${formatCurrency(discount)}` : formatCurrency(0)}
+            </span>
+          </div>
+
+          <div className="flex items-center justify-between">
+            <span className="text-gray-700">
+              Tax
+              {tax > 0
+                ? ` (${quotation?.tax_type === "percentage" ? "%" : "PKR"})`
+                : ""}
+              :
+            </span>
+            <span className="text-gray-900">{formatCurrency(tax)}</span>
+          </div>
         </div>
 
+        <div className="mt-3 bg-[#0a4da2] px-4 py-3 text-white">
+          <div className="flex items-center justify-between font-semibold">
+            <span>Total:</span>
+            <span>{formatCurrency(total)}</span>
+          </div>
+        </div>
       </div>
-
     </div>
   );
 }

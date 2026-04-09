@@ -9,15 +9,16 @@ import {
   X,
   Eye,
   Plus,
-  Download, 
+  Download,
   Search,
   SlidersHorizontal,
   Pencil,
+  MoreVertical,
   Save,
   Loader2,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useState, useMemo,useEffect } from "react";
+import { useState, useMemo, useEffect } from "react";
 import toast from "react-hot-toast";
 import { useSelector } from "react-redux";
 
@@ -32,26 +33,26 @@ const statusStyle: any = {
 };
 
 export default function OrdersPage() {
+  const [openMenu, setOpenMenu] = useState(null);
   const user = useSelector((state: any) => state.user.user);
-    // const [downloadOrderId, setDownloadOrderId] = useState(null); 
+  // const [downloadOrderId, setDownloadOrderId] = useState(null);
   const isDispatcher = user?.user_type === "dispatcher";
   const canEditFull =
-  user?.user_type === "admin" || user?.user_type === "salesman";
+    user?.user_type === "admin" || user?.user_type === "salesman";
   const { data: categories = [] } = useCategory(user?.industry);
   const { data, refetch } = useOrders(user?.industry);
-  console.log(data);
   const router = useRouter();
 
   const [search, setSearch] = useState("");
   const [confirmOrderId, setConfirmOrderId] = useState<string | null>(null);
   const [confirmAction, setConfirmAction] = useState<
-    "approve" | "reject" | null
+    "approve" | "reject" | "unapprove" | null
   >(null);
 
   const [viewOrder, setViewOrder] = useState<any>(null);
   const [viewItems, setViewItems] = useState<any[]>([]);
   const [viewLoading, setViewLoading] = useState(false);
-
+const [rejectReason, setRejectReason] = useState("");
   const [editOrder, setEditOrder] = useState<any>(null);
   const [editItems, setEditItems] = useState<any[]>([]);
   const [productMap, setProductMap] = useState<any>({});
@@ -60,83 +61,121 @@ export default function OrdersPage() {
   const [editFields, setEditFields] = useState<any>({});
 
   useEffect(() => {
-  const loadProducts = async () => {
-    const newMap: any = { ...productMap };
+    const handleClickOutside = () => setOpenMenu(null);
+    window.addEventListener("click", handleClickOutside);
+    return () => window.removeEventListener("click", handleClickOutside);
+  }, []);
 
-    for (const item of editItems) {
-      if (item.category_id && !newMap[item.category_id]) {
-        const res = await order.getProductsByCategory(item.category_id);
-        newMap[item.category_id] = res;
+  useEffect(() => {
+    const loadProducts = async () => {
+      const newMap: any = { ...productMap };
+
+      for (const item of editItems) {
+        if (item.category_id && !newMap[item.category_id]) {
+          const res = await order.getProductsByCategory(item.category_id);
+          newMap[item.category_id] = res;
+        }
       }
+
+      setProductMap(newMap);
+    };
+
+    if (editItems.length > 0) {
+      loadProducts();
     }
+  }, [editItems]);
+  const [statusFilter, setStatusFilter] = useState("");
 
-    setProductMap(newMap);
-  };
-
-  if (editItems.length > 0) {
-    loadProducts();
-  }
-}, [editItems]);
   const filtered = useMemo(() => {
-    if (!search.trim()) return data;
-    return data?.filter((o: any) =>
-      o?.order_number?.toLowerCase().includes(search.toLowerCase()),
-    );
-  }, [search, data]);
+    let result = data;
+    if (search.trim()) {
+      result = result?.filter((o: any) =>
+        o?.order_number?.toLowerCase().includes(search.toLowerCase()),
+      );
+    }
+    if (statusFilter) {
+      result = result?.filter(
+        (o: any) => o?.status?.toLowerCase() === statusFilter.toLowerCase(),
+      );
+    }
+    return result;
+  }, [search, statusFilter, data]);
 
   const formatStatus = (status: string) =>
     status ? status.charAt(0).toUpperCase() + status.slice(1) : "-";
 
-  const handleAction = (orderId: string, action: "approve" | "reject") => {
+  const handleAction = (
+    orderId: string,
+    action: "approve" | "reject" | "unapprove",
+  ) => {
     setConfirmOrderId(orderId);
     setConfirmAction(action);
-  };
-const handleDownload = async (id:any) => {
-  try {
-    const res = await fetch(`${API_URL}/orders/pdf/${id}`, {
-      method: "GET",
-      credentials: "include",
-    });
 
-    const blob = await res.blob();
-
-    const url = window.URL.createObjectURL(blob);
-
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `order-${id}.pdf`;
-
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-
-    window.URL.revokeObjectURL(url);
-  } catch (error) {
-    console.log(error);
+      if (action === "reject") {
+    setRejectReason(""); // reset every time
   }
-};
+  };
+  const handleDownload = async (id: any) => {
+    try {
+      const res = await fetch(`${API_URL}/orders/pdf/${id}`, {
+        method: "GET",
+        credentials: "include",
+      });
+
+      const blob = await res.blob();
+
+      const url = window.URL.createObjectURL(blob);
+
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `order-${id}.pdf`;
+
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.log(error);
+    }
+  };
   const handleConfirm = async () => {
     if (confirmAction === "approve") {
-      const res = await order.updateStatus(confirmOrderId, "approved");
+      const res = await order.updateStatus(confirmOrderId, {status:"approved"});
+
       if (!res.success)
         return toast.error(res?.message || "Problem approving order");
+
       toast.success(res?.message);
+      await refetch();
+    } else if (confirmAction === "unapprove") {
+      const res = await order.updateStatus(confirmOrderId, {status:"unapproved"});
+
+      if (!res.success)
+        return toast.error(res?.message || "Problem unapproving order");
+
+      toast.success(res?.message || "Order unapproved successfully");
       await refetch();
     } else if (confirmAction === "reject") {
       if (user?.user_type === "salesman") {
         const res = await order.deleteOrder(confirmOrderId);
+
         if (!res.success)
           return toast.error(res?.message || "Problem deleting order");
+
         toast.success(res?.message);
-        await refetch();
       } else {
-        const res = await order.updateStatus(confirmOrderId, "rejected");
+        const res = await order.updateStatus(confirmOrderId, {status:"rejected",rejectReason});
+
         if (!res.success)
           return toast.error(res?.message || "Problem rejecting order");
+
         toast.success(res?.message);
-        await refetch();
       }
+
+      await refetch();
     }
+
     setConfirmOrderId(null);
     setConfirmAction(null);
   };
@@ -173,17 +212,37 @@ const handleDownload = async (id:any) => {
       setEditOrder(res.order);
       // setEditItems(res.items.map((item: any) => ({ ...item })));
       setEditItems(
-  res.items.map((item: any) => ({
-    ...item,
-    product_id: item.product_id || "",
-    category_id: item.category_id || "",
-  }))
-);
+        res.items.map((item: any) => ({
+          ...item,
+          product_id: item.product_id || "",
+          category_id: item.category_id || "",
+        })),
+      );
+      // Add these to editFields state when opening edit modal
       setEditFields({
         due_date: res.order?.due_date
           ? new Date(res.order.due_date).toISOString().split("T")[0]
           : "",
         deliveryNotes: res.order?.deliveryNotes || "",
+        payment_term: res.order?.payment_term || "cash",
+        discount_type: res.order?.discount_type || "amount",
+        tax_type: res.order?.tax_type || "amount",
+        // ✅ store raw input — for percent orders, back-calculate the rate
+        discount:
+          res.order?.discount_type === "percent"
+            ? res.order?.subtotal > 0
+              ? ((res.order.discount / res.order.subtotal) * 100).toFixed(2)
+              : 0
+            : res.order?.discount || 0,
+        tax:
+          res.order?.tax_type === "percent"
+            ? res.order?.subtotal - res.order?.discount > 0
+              ? (
+                  (res.order.tax / (res.order.subtotal - res.order.discount)) *
+                  100
+                ).toFixed(2)
+              : 0
+            : res.order?.tax || 0,
       });
     } catch {
       setEditOrder(null);
@@ -192,8 +251,6 @@ const handleDownload = async (id:any) => {
       setEditLoading(false);
     }
   };
-
-  
 
   const handleEditItemChange = (index: number, field: string, value: any) => {
     setEditItems((prev) => {
@@ -207,7 +264,7 @@ const handleDownload = async (id:any) => {
     });
   };
 
-  const handleAddItem = () => { 
+  const handleAddItem = () => {
     setEditItems((prev) => [
       ...prev,
       {
@@ -226,85 +283,96 @@ const handleDownload = async (id:any) => {
   };
 
   const computedTotals = useMemo(() => {
-    const subtotal = editItems.reduce(
-      (sum, item) =>
-        sum +
-        (parseFloat(item.quantity) || 0) * (parseFloat(item.unit_price) || 0),
+    // item.total already has item-level discount applied
+    const itemsSubtotal = editItems.reduce(
+      (sum, item) => sum + (parseFloat(item.total) || 0),
       0,
     );
-    const discountAmt = editItems.reduce(
-      (sum, item) =>
-        sum +
-        (parseFloat(item.quantity) || 0) *
-          (parseFloat(item.unit_price) || 0) *
-          ((parseFloat(item.discount_percent) || 0) / 100),
-      0,
-    );
-    const tax = parseFloat(editOrder?.tax) || 0;
-    return { subtotal, discountAmt, total: subtotal - discountAmt + tax };
-  }, [editItems, editOrder]);
-  
+
+    const discount = Number(editFields.discount) || 0;
+    const tax = Number(editFields.tax) || 0;
+
+    const discountAmt =
+      editFields.discount_type === "percent"
+        ? (itemsSubtotal * discount) / 100
+        : discount;
+
+    const taxAmt =
+      editFields.tax_type === "percent"
+        ? ((itemsSubtotal - discountAmt) * tax) / 100
+        : tax;
+
+    const total = itemsSubtotal - discountAmt + taxAmt;
+
+    return { subtotal: itemsSubtotal, discountAmt, taxAmt, total };
+  }, [editItems, editFields]);
   const handleEditSave = async () => {
-  setEditSaving(true);
+    setEditSaving(true);
 
-  let payload;
+    let payload;
 
-  // ✅ DISPATCHER → ONLY STATUS + DELIVERY NOTES
-  if (user?.user_type === "dispatcher") {
-if (!editOrder?.status) {
-  setEditSaving(false);
-  return toast.error("Status is required");
-}    payload = {
-      status: editOrder?.status,
-      deliveryNotes: editFields.deliveryNotes,
-    };
-  }
+    // ✅ DISPATCHER → ONLY STATUS + DELIVERY NOTES
+    if (user?.user_type === "dispatcher") {
+      if (!editOrder?.status) {
+        setEditSaving(false);
+        return toast.error("Status is required");
+      }
+      payload = {
+        status: editOrder?.status,
+        deliveryNotes: editFields.deliveryNotes,
+        payment_term: editFields.payment_term,
+      };
+    }
 
-  // ✅ ACCOUNTANT → ONLY STATUS
-  else if (user?.user_type === "accountant") {
-if (!editOrder?.status) {
-  setEditSaving(false);
-  return toast.error("Status is required");
-}
-    payload = {
-      status: editOrder?.status,
-    };
-  }
+    // ✅ ACCOUNTANT → ONLY STATUS
+    else if (user?.user_type === "accountant") {
+      if (!editOrder?.status) {
+        setEditSaving(false);
+        return toast.error("Status is required");
+      }
+      payload = {
+        status: editOrder?.status,
+      };
+    }
 
-  // ✅ ADMIN + SALESMAN → FULL EDIT
-  else if (canEditFull) {
-    payload = {
-      due_date: editFields.due_date,
-      deliveryNotes: editFields.deliveryNotes,
-      items: editItems.map((item) => ({
-        _id: item._id,
-        product_id: item.product_id?._id || item.product_id,
-        quantity: parseFloat(item.quantity),
-        item_name: item?.item_name,
-        unit_price: parseFloat(item.unit_price),
-        discount_percent: parseFloat(item.discount_percent) || 0,
-        total: item.total,
-      })),
-      subtotal: computedTotals.subtotal,
-      discount: computedTotals.discountAmt,
-      total: computedTotals.total,
-      status: editOrder?.status,
-    };
-  }
+    // ✅ ADMIN + SALESMAN → FULL EDIT
+    else if (canEditFull) {
+      payload = {
+        due_date: editFields.due_date,
+        deliveryNotes: editFields.deliveryNotes,
+        payment_term: editFields.payment_term,
+        discount: editFields.discount, // ✅ raw input (e.g. "10" for 10%)
+        discount_type: editFields.discount_type,
+        tax: editFields.tax, // ✅ raw input
+        tax_type: editFields.tax_type,
+        items: editItems.map((item) => ({
+          _id: item._id,
+          product_id: item.product_id?._id || item.product_id,
+          quantity: parseFloat(item.quantity),
+          item_name: item?.item_name,
+          unit_price: parseFloat(item.unit_price),
+          discount_percent: parseFloat(item.discount_percent) || 0,
+          total: item.total,
+        })),
+        subtotal: computedTotals.subtotal,
+        total: computedTotals.total,
+        status: editOrder?.status,
+      };
+    }
 
-  const res = await order.updateOrder(payload, editOrder?._id);
+    const res = await order.updateOrder(payload, editOrder?._id);
 
-  if (!res.success) {
+    if (!res.success) {
+      setEditSaving(false);
+      return toast.error(res?.message || "Failed to update order");
+    }
+
+    toast.success(res?.message || "Order updated successfully");
+
+    closeEditModal();
     setEditSaving(false);
-    return toast.error(res?.message || "Failed to update order");
-  }
-
-  toast.success(res?.message || "Order updated successfully");
-
-  closeEditModal();
-  setEditSaving(false);
-  await refetch();
-};
+    await refetch();
+  };
   const closeEditModal = () => {
     setEditOrder(null);
     setEditItems([]);
@@ -313,6 +381,7 @@ if (!editOrder?.status) {
 
   return (
     <div className="p-4 md:p-8 bg-gray-100 min-h-screen">
+      
       {/* CONFIRMATION MODAL */}
       {confirmOrderId && confirmAction && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
@@ -320,14 +389,33 @@ if (!editOrder?.status) {
             <h2 className="text-lg font-semibold text-gray-800 mb-2">
               {confirmAction === "approve"
                 ? "Approve Order?"
-                : user?.user_type === "salesman"
-                  ? "Delete Order?"
-                  : "Reject Order?"}
+                : confirmAction === "unapprove"
+                  ? "Unapprove Order?"
+                  : user?.user_type === "salesman"
+                    ? "Delete Order?"
+                    : "Reject Order?"}
             </h2>
+            {confirmAction === "reject" && user?.user_type !== "salesman" && (
+  <div className="mb-4">
+    <label className="text-xs text-gray-500 font-medium mb-1 block">
+      Reject Reason <span className="text-red-500">*</span>
+    </label>
+
+    <textarea
+      value={rejectReason}
+      onChange={(e) => setRejectReason(e.target.value)}
+      placeholder="Write reason for rejection..."
+      className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-gray-300"
+      rows={3}
+    />
+  </div>
+)}
             <p className="text-sm text-gray-500 mb-6">
               {confirmAction === "approve"
                 ? "Are you sure you want to approve this order?"
-                : `Are you sure you want to ${user?.user_type === "admin" ? "reject" : "delete"} this order? This action cannot be undone.`}
+                : confirmAction === "unapprove"
+                  ? "Are you sure you want to move this order back to unapproved?"
+                  : `Are you sure you want to ${user?.user_type === "admin" ? "reject" : "delete"} this order? This action cannot be undone.`}
             </p>
             <div className="flex justify-end gap-3">
               <button
@@ -337,14 +425,33 @@ if (!editOrder?.status) {
                 Cancel
               </button>
               <button
-                onClick={handleConfirm}
-                className={`px-4 py-2 rounded-lg text-white ${confirmAction === "approve" ? "bg-green-500 hover:bg-green-600" : "bg-red-500 hover:bg-red-600"}`}
-              >
+  onClick={handleConfirm}
+  disabled={
+    confirmAction === "reject" &&
+    user?.user_type !== "salesman" &&
+    !rejectReason.trim()
+  }
+  className={`px-4 py-2 rounded-lg text-white ${
+    confirmAction === "approve"
+      ? "bg-green-500 hover:bg-green-600"
+      : confirmAction === "unapprove"
+      ? "bg-yellow-500 hover:bg-yellow-600"
+      : "bg-red-500 hover:bg-red-600"
+  } ${
+    confirmAction === "reject" &&
+    user?.user_type !== "salesman" &&
+    !rejectReason.trim()
+      ? "opacity-50 cursor-not-allowed"
+      : ""
+  }`}
+>
                 {confirmAction === "approve"
                   ? "Approve"
-                  : user?.user_type === "salesman"
-                    ? "Delete"
-                    : "Reject"}
+                  : confirmAction === "unapprove"
+                    ? "Unapprove"
+                    : user?.user_type === "salesman"
+                      ? "Delete"
+                      : "Reject"}
               </button>
             </div>
           </div>
@@ -438,7 +545,7 @@ if (!editOrder?.status) {
                           <th className="text-left px-4 py-3">Product</th>
                           <th className="px-4 py-3">Qty</th>
                           <th className="px-4 py-3">Unit Price</th>
-                          <th className="px-4 py-3">Discount</th>
+                          <th className="px-4 py-3">Discount %/Amt</th>
                           <th className="px-4 py-3 text-right">Total</th>
                         </tr>
                       </thead>
@@ -455,7 +562,7 @@ if (!editOrder?.status) {
                               {item?.unit_price}
                             </td>
                             <td className="px-4 py-3 text-center">
-                              {item?.discount_percent}%
+                              {item?.discount_percent}
                             </td>
                             <td className="px-4 py-3 text-right">
                               {item?.total?.toFixed(2)}
@@ -465,6 +572,16 @@ if (!editOrder?.status) {
                       </tbody>
                     </table>
                   </div>
+                  {viewOrder?.rejectReason && (
+  <div className="mt-5 bg-red-50 border border-red-200 rounded-xl p-4">
+    <p className="text-xs text-red-600 font-semibold mb-1">
+      Rejection Reason
+    </p>
+    <p className="text-sm text-gray-700 leading-relaxed">
+      {viewOrder?.rejectReason}
+    </p>
+  </div>
+)}
                 </div>
                 <div className="bg-gray-50 rounded-xl p-4 space-y-2 text-sm">
                   <div className="flex justify-between">
@@ -562,7 +679,26 @@ if (!editOrder?.status) {
                     />
                   </div>
                 </div>
+                <div className="mb-4">
+                  <label className="text-xs text-gray-500 font-medium">
+                    Payment Term
+                  </label>
 
+                  <select
+                    value={editFields.payment_term || "cash"}
+                    onChange={(e) =>
+                      setEditFields((prev) => ({
+                        ...prev,
+                        payment_term: e.target.value,
+                      }))
+                    }
+                    className="w-full border rounded-lg px-3 py-2 mt-1"
+                  >
+                    <option value="cash">Cash</option>
+                    <option value="advance">Advance</option>
+                    <option value="periodical">Periodical</option>
+                  </select>
+                </div>
                 {/* Delivery notes */}
                 <div className="mb-6">
                   <label className="text-xs text-gray-500 font-medium mb-1 block">
@@ -577,251 +713,350 @@ if (!editOrder?.status) {
                         deliveryNotes: e.target.value,
                       }))
                     }
-                    disabled={user?.user_type==="accountant"}
+                    disabled={user?.user_type === "accountant"}
                     placeholder="Add delivery notes..."
                     className="w-full text-sm border rounded-xl px-3 py-2 focus:outline-none focus:ring-1 focus:ring-gray-300 resize-none"
                   />
                 </div>
 
                 {/* Items table */}
-                {(isDispatcher || user?.user_type==="accountant") ? <div className="mb-5">
-  <p className="text-sm font-semibold text-gray-700 mb-3">
-    Order Items
-  </p>
+                {isDispatcher || user?.user_type === "accountant" ? (
+                  <div className="mb-5">
+                    <p className="text-sm font-semibold text-gray-700 mb-3">
+                      Order Items
+                    </p>
 
-  <div className="border rounded-xl overflow-hidden">
-    <table className="w-full text-sm">
-      <thead className="bg-gray-50 text-gray-500 text-xs">
-        <tr>
-          <th className="text-left px-4 py-3">Product</th>
-          <th className="px-4 py-3">Qty</th>
-          <th className="px-4 py-3">Unit Price</th>
-          <th className="px-4 py-3">Discount</th>
-          <th className="px-4 py-3 text-right">Total</th>
-        </tr>
-      </thead>
+                    <div className="border rounded-xl overflow-hidden">
+                      <table className="w-full text-sm">
+                        <thead className="bg-gray-50 text-gray-500 text-xs">
+                          <tr>
+                            <th className="text-left px-4 py-3">Product</th>
+                            <th className="px-4 py-3">Qty</th>
+                            <th className="px-4 py-3">Unit Price</th>
+                            <th className="px-4 py-3">Discount %/Amt</th>
+                            <th className="px-4 py-3 text-right">Total</th>
+                          </tr>
+                        </thead>
 
-      <tbody>
-        {editItems.map((item: any, i: number) => (
-          <tr key={i} className="border-t">
-            <td className="px-4 py-3">
-              {item?.item_name || item?.product_id?.name}
-            </td>
-            <td className="px-4 py-3 text-center">
-              {item?.quantity}
-            </td>
-            <td className="px-4 py-3 text-center">
-              {item?.unit_price}
-            </td>
-            <td className="px-4 py-3 text-center">
-              {item?.discount_percent}%
-            </td>
-            <td className="px-4 py-3 text-right">
-              {item?.total?.toFixed(2)}
-            </td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
-  </div>
-</div>:<div className="mb-6">
-                 <div className="flex items-center justify-between mb-3">
-  <p className="text-sm font-semibold text-gray-700">Order Items</p>
-  <button
-    onClick={handleAddItem}
-    className="flex items-center gap-1 text-xs bg-black text-white px-3 py-1 rounded-lg"
-  >
-    + Add Item
-  </button>
-</div>
-                  <div className="border rounded-xl overflow-hidden">
-                    <table className="w-full text-sm">
-                      <thead className="bg-gray-50 text-gray-500 text-xs">
-                        <tr>
-  <th className="px-4 py-3">Category</th>
-  <th className="px-4 py-3">Product</th>
-  <th className="px-4 py-3">Qty</th>
-  <th className="px-4 py-3">Price</th>
-  <th className="px-4 py-3">Discount %</th>
-  <th className="px-4 py-3 text-right">Total</th>
-  <th className="px-4 py-3 text-center">Action</th>
-</tr>
-                      </thead>
-                      <tbody>
-                       {editItems?.map((item: any, i: number) => {
-const rowProducts = productMap[item.category_id] || [];
-  return (
-    <tr key={i} className="border-t">
-
-      {/* CATEGORY */}
-      <td className="px-2 py-2">
-        <select
-          value={item.category_id}
-onChange={async (e) => {
-  const categoryId = e.target.value;
-
-handleEditItemChange(i, "category_id", categoryId);
-handleEditItemChange(i, "product_id", "");
-handleEditItemChange(i, "item_name", "");
-
-  if (!productMap[categoryId]) {
-    const res = await order.getProductsByCategory(categoryId);
-
-    setProductMap((prev: any) => ({
-      ...prev,
-      [categoryId]: res,
-    }));
-  }
-}}
-          className="w-full border rounded-lg px-2 py-1 text-sm"
-        >
-          <option value="">Category</option>
-          {categories.map((c: any) => (
-            <option key={c._id} value={c._id}>
-              {c.name}
-            </option>
-          ))}
-        </select>
-      </td>
-
-      {/* PRODUCT */}
-      <td className="px-2 py-2">
-        <select
-value={item.product_id?._id || item.product_id}
-          onChange={(e) => {
-const product = rowProducts.find(
-  (p: any) => String(p._id) === String(e.target.value)
-);
-            handleEditItemChange(i, "product_id", e.target.value);
-            handleEditItemChange(i, "item_name", product?.name || "");
-            handleEditItemChange(i, "unit_price", product?.mrp || 0);
-          }}
-          className="w-full border rounded-lg px-2 py-1 text-sm"
-        >
-          <option value="">Product</option>
-          {rowProducts.map((p: any) => (
-            <option key={p._id} value={p._id}>
-              {p.name}
-            </option>
-          ))}
-        </select>
-      </td>
-
-      {/* QTY */}
-      <td className="px-2 py-2">
-        <input
-          type="number"
-          value={item.quantity}
-          onChange={(e) =>
-            handleEditItemChange(i, "quantity", e.target.value)
-          }
-          className="w-full text-center border rounded-lg px-2 py-1 text-sm"
-        />
-      </td>
-
-      {/* PRICE */}
-      <td className="px-2 py-2">
-        <input
-          type="number"
-          value={item.unit_price}
-          onChange={(e) =>
-            handleEditItemChange(i, "unit_price", e.target.value)
-          }
-          className="w-full text-center border rounded-lg px-2 py-1 text-sm"
-        />
-      </td>
-
-      {/* DISCOUNT */}
-      <td className="px-2 py-2">
-        <input
-          type="number"
-          value={item.discount_percent}
-          onChange={(e) =>
-            handleEditItemChange(i, "discount_percent", e.target.value)
-          }
-          className="w-full text-center border rounded-lg px-2 py-1 text-sm"
-        />
-      </td>
-
-      {/* TOTAL */}
-      <td className="px-2 py-2 text-right font-medium">
-        {(item.total ?? 0).toFixed(2)}
-      </td>
-
-      {/* DELETE */}
-      <td className="px-2 py-2 text-center">
-        <button
-          onClick={() => handleRemoveItem(i)}
-          className="p-1 bg-red-100 text-red-600 rounded-md"
-        >
-          <X size={14} />
-        </button>
-      </td>
-
-    </tr>
-  );
-})}
-                      </tbody>
-                    </table>
+                        <tbody>
+                          {editItems.map((item: any, i: number) => (
+                            <tr key={i} className="border-t">
+                              <td className="px-4 py-3">
+                                {item?.item_name || item?.product_id?.name}
+                              </td>
+                              <td className="px-4 py-3 text-center">
+                                {item?.quantity}
+                              </td>
+                              <td className="px-4 py-3 text-center">
+                                {item?.unit_price}
+                              </td>
+                              <td className="px-4 py-3 text-center">
+                                {item?.discount_percent}%
+                              </td>
+                              <td className="px-4 py-3 text-right">
+                                {item?.total?.toFixed(2)}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
                   </div>
-                </div>}
+                ) : (
+                  <div className="mb-6">
+                    <div className="flex items-center justify-between mb-3">
+                      <p className="text-sm font-semibold text-gray-700">
+                        Order Items
+                      </p>
+                      <button
+                        onClick={handleAddItem}
+                        className="flex items-center gap-1 text-xs bg-black text-white px-3 py-1 rounded-lg"
+                      >
+                        + Add Item
+                      </button>
+                    </div>
+                    <div className="border rounded-xl overflow-hidden">
+                      <table className="w-full text-sm">
+                        <thead className="bg-gray-50 text-gray-500 text-xs">
+                          <tr>
+                            <th className="px-4 py-3">Category</th>
+                            <th className="px-4 py-3">Product</th>
+                            <th className="px-4 py-3">Qty</th>
+                            <th className="px-4 py-3">Price</th>
+                            <th className="px-4 py-3">Discount</th>
+                            <th className="px-4 py-3 text-right">Total</th>
+                            <th className="px-4 py-3 text-center">Action</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {editItems?.map((item: any, i: number) => {
+                            const rowProducts =
+                              productMap[item.category_id] || [];
+                            return (
+                              <tr key={i} className="border-t">
+                                {/* CATEGORY */}
+                                <td className="px-2 py-2">
+                                  <select
+                                    value={item.category_id}
+                                    onChange={async (e) => {
+                                      const categoryId = e.target.value;
 
-                {/* Live totals */}
-                <div className="bg-gray-50 rounded-xl p-4 space-y-2 text-sm mb-6">
+                                      handleEditItemChange(
+                                        i,
+                                        "category_id",
+                                        categoryId,
+                                      );
+                                      handleEditItemChange(i, "product_id", "");
+                                      handleEditItemChange(i, "item_name", "");
+
+                                      if (!productMap[categoryId]) {
+                                        const res =
+                                          await order.getProductsByCategory(
+                                            categoryId,
+                                          );
+
+                                        setProductMap((prev: any) => ({
+                                          ...prev,
+                                          [categoryId]: res,
+                                        }));
+                                      }
+                                    }}
+                                    className="w-full border rounded-lg px-2 py-1 text-sm"
+                                  >
+                                    <option value="">Category</option>
+                                    {categories.map((c: any) => (
+                                      <option key={c._id} value={c._id}>
+                                        {c.name}
+                                      </option>
+                                    ))}
+                                  </select>
+                                </td>
+
+                                {/* PRODUCT */}
+                                <td className="px-2 py-2">
+                                  <select
+                                    value={
+                                      item.product_id?._id || item.product_id
+                                    }
+                                    onChange={(e) => {
+                                      const product = rowProducts.find(
+                                        (p: any) =>
+                                          String(p._id) ===
+                                          String(e.target.value),
+                                      );
+                                      handleEditItemChange(
+                                        i,
+                                        "product_id",
+                                        e.target.value,
+                                      );
+                                      handleEditItemChange(
+                                        i,
+                                        "item_name",
+                                        product?.name || "",
+                                      );
+                                      handleEditItemChange(
+                                        i,
+                                        "unit_price",
+                                        product?.mrp || 0,
+                                      );
+                                    }}
+                                    className="w-full border rounded-lg px-2 py-1 text-sm"
+                                  >
+                                    <option value="">Product</option>
+                                    {rowProducts.map((p: any) => (
+                                      <option key={p._id} value={p._id}>
+                                        {p.name}
+                                      </option>
+                                    ))}
+                                  </select>
+                                </td>
+
+                                {/* QTY */}
+                                <td className="px-2 py-2">
+                                  <input
+                                    type="number"
+                                    value={item.quantity}
+                                    onChange={(e) =>
+                                      handleEditItemChange(
+                                        i,
+                                        "quantity",
+                                        e.target.value,
+                                      )
+                                    }
+                                    className="w-full text-center border rounded-lg px-2 py-1 text-sm"
+                                  />
+                                </td>
+
+                                {/* PRICE */}
+                                <td className="px-2 py-2">
+                                  <input
+                                    type="number"
+                                    value={item.unit_price}
+                                    onChange={(e) =>
+                                      handleEditItemChange(
+                                        i,
+                                        "unit_price",
+                                        e.target.value,
+                                      )
+                                    }
+                                    className="w-full text-center border rounded-lg px-2 py-1 text-sm"
+                                  />
+                                </td>
+
+                                {/* DISCOUNT */}
+                                <td className="px-2 py-2">
+                                  <input
+                                    type="number"
+                                    value={item.discount_percent}
+                                    onChange={(e) =>
+                                      handleEditItemChange(
+                                        i,
+                                        "discount_percent",
+                                        e.target.value,
+                                      )
+                                    }
+                                    className="w-full text-center border rounded-lg px-2 py-1 text-sm"
+                                  />
+                                </td>
+
+                                {/* TOTAL */}
+                                <td className="px-2 py-2 text-right font-medium">
+                                  {(item.total ?? 0).toFixed(2)}
+                                </td>
+
+                                {/* DELETE */}
+                                <td className="px-2 py-2 text-center">
+                                  <button
+                                    onClick={() => handleRemoveItem(i)}
+                                    className="p-1 bg-red-100 text-red-600 rounded-md"
+                                  >
+                                    <X size={14} />
+                                  </button>
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                )}
+                <div className="bg-gray-50 rounded-xl p-4 space-y-3 text-sm mb-6">
                   <div className="flex justify-between">
-                    <span className="text-gray-500">Subtotal</span>
+                    <span className="text-gray-500">Items Subtotal</span>
                     <span>{computedTotals.subtotal.toFixed(2)}</span>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-500">Discount</span>
-                    <span>- {computedTotals.discountAmt.toFixed(2)}</span>
+
+                  {/* OVERALL DISCOUNT */}
+                  <div className="flex items-center gap-2">
+                    <span className="text-gray-500 w-20 shrink-0">
+                      Discount
+                    </span>
+                    <select
+                      value={editFields.discount_type}
+                      onChange={(e) =>
+                        setEditFields((prev: any) => ({
+                          ...prev,
+                          discount_type: e.target.value,
+                        }))
+                      }
+                      className="border rounded-lg px-2 py-1 text-xs focus:outline-none w-20 bg-white"
+                    >
+                      <option value="amount">Amt</option>
+                      <option value="percent">%</option>
+                    </select>
+                    <input
+                      type="number"
+                      value={editFields.discount}
+                      onChange={(e) =>
+                        setEditFields((prev: any) => ({
+                          ...prev,
+                          discount: e.target.value,
+                        }))
+                      }
+                      className="flex-1 border rounded-lg px-2 py-1 text-xs focus:outline-none bg-white min-w-0"
+                    />
+                    <span className="text-red-500 w-20 text-right shrink-0">
+                      - {computedTotals.discountAmt.toFixed(2)}
+                    </span>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-500">Tax</span>
-                    <span>+ {editOrder?.tax ?? 0}</span>
+
+                  {/* OVERALL TAX */}
+                  <div className="flex items-center gap-2">
+                    <span className="text-gray-500 w-20 shrink-0">Tax</span>
+                    <select
+                      value={editFields.tax_type}
+                      onChange={(e) =>
+                        setEditFields((prev: any) => ({
+                          ...prev,
+                          tax_type: e.target.value,
+                        }))
+                      }
+                      className="border rounded-lg px-2 py-1 text-xs focus:outline-none w-20 bg-white"
+                    >
+                      <option value="amount">Amt</option>
+                      <option value="percent">%</option>
+                    </select>
+                    <input
+                      type="number"
+                      value={editFields.tax}
+                      onChange={(e) =>
+                        setEditFields((prev: any) => ({
+                          ...prev,
+                          tax: e.target.value,
+                        }))
+                      }
+                      className="flex-1 border rounded-lg px-2 py-1 text-xs focus:outline-none bg-white min-w-0"
+                    />
+                    <span className="text-green-600 w-20 text-right shrink-0">
+                      + {computedTotals.taxAmt.toFixed(2)}
+                    </span>
                   </div>
+
                   <div className="flex justify-between font-semibold border-t pt-2">
                     <span>Total</span>
                     <span>{computedTotals.total.toFixed(2)}</span>
                   </div>
                 </div>
-                {(isDispatcher || user?.user_type==="accountant") && <div className="mb-6">
-  <label className="text-xs text-gray-500 font-medium">
-    Order Status <span className="text-red-500">*</span>
-  </label>
+                {(isDispatcher || user?.user_type === "accountant") && (
+                  <div className="mb-6">
+                    <label className="text-xs text-gray-500 font-medium">
+                      Order Status <span className="text-red-500">*</span>
+                    </label>
 
-  <select
-    value={editOrder?.status || ""}
-    onChange={(e) =>
-      setEditOrder((prev: any) => ({
-        ...prev,
-        status: e.target.value,
-      }))
-    }
-    required
-    className="w-full border rounded-lg px-3 py-2 mt-1"
-  >
-    <option value="">Select Status</option>
+                    <select
+                      value={editOrder?.status || ""}
+                      onChange={(e) =>
+                        setEditOrder((prev: any) => ({
+                          ...prev,
+                          status: e.target.value,
+                        }))
+                      }
+                      required
+                      className="w-full border rounded-lg px-3 py-2 mt-1"
+                    >
+                      <option value="">Select Status</option>
 
-    {isDispatcher && (
-      <>
-        <option value="partial">Partial</option>
-        <option value="dispatched">Dispatched</option>
-      </>
-    )}
+                      {isDispatcher && (
+                        <>
+                          <option value="partial">Partial</option>
+                          <option value="dispatched">Dispatched</option>
+                        </>
+                      )}
 
-    {user?.user_type === "accountant" && (
-      <option value="posted">Posted</option>
-    )}
+                      {user?.user_type === "accountant" && (
+                        <option value="posted">Posted</option>
+                      )}
 
-    {user?.user_type === "admin" && (
-      <>
-        <option value="approved">Approved</option>
-        <option value="rejected">Rejected</option>
-      </>
-    )}
-  </select>
-</div>}
+                      {user?.user_type === "admin" && (
+                        <>
+                          <option value="approved">Approved</option>
+                          <option value="rejected">Rejected</option>
+                        </>
+                      )}
+                    </select>
+                  </div>
+                )}
 
                 {/* Footer */}
                 <div className="flex justify-end gap-3">
@@ -870,12 +1105,14 @@ const product = rowProducts.find(
           <button className="p-2 bg-white border rounded-lg">
             <SlidersHorizontal size={18} />
           </button>
-          {!(isDispatcher || user?.user_type==="accountant") && <button
-            onClick={() => router.push("/orders/add")}
-            className="flex items-center gap-2 bg-black text-white px-4 py-2 rounded-lg"
-          >
-            Add Order <Plus size={16} />
-          </button>}
+          {!(isDispatcher || user?.user_type === "accountant") && (
+            <button
+              onClick={() => router.push("/orders/add")}
+              className="cursor-pointer flex items-center gap-2 bg-black text-white px-4 py-2 rounded-lg"
+            >
+              Add Order <Plus size={16} />
+            </button>
+          )}
         </div>
       </div>
 
@@ -889,7 +1126,22 @@ const product = rowProducts.find(
               <th>Salesman/Director</th>
               <th>Total</th>
               <th>Discount</th>
-              <th>Status</th>
+              <th>
+                <select
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value)}
+                  className="text-gray-500 font-semibold bg-transparent focus:outline-none cursor-pointer"
+                >
+                  <option value="">All Status</option>
+                  <option value="unapproved">Unapproved</option>
+                  <option value="approved">Approved</option>
+                  <option value="rejected">Rejected</option>
+                  <option value="pending">Pending</option>
+                  <option value="dispatched">Dispatched</option>
+                  <option value="partial">Partial</option>
+                  <option value="posted">Posted</option>
+                </select>
+              </th>
               <th>Due Date</th>
               <th className="text-center">Action</th>
             </tr>
@@ -923,99 +1175,110 @@ const product = rowProducts.find(
                       : "-"}
                   </td>
                   <td>
-                    <div className="flex justify-center gap-2">
-                      {user?.user_type === "salesman" &&
-                        o.status === "unapproved" &&
-                        o?.createdBy?._id === user?._id && (
-                          <button
-                            onClick={() => handleAction(o?._id, "reject")}
-                            className="p-2 bg-red-100 text-red-600 rounded-md"
-                          >
-                            <X size={16} />
-                          </button>
-                        )}
-                      {user?.user_type === "admin" &&
-                        o.status === "unapproved" && (
-                          <>
-                            <button
-                              onClick={() => handleAction(o?._id, "approve")}
-                              className="p-2 bg-green-100 text-green-600 rounded-md"
-                            >
-                              <Check size={16} />
-                            </button>
-                            <button
-                              onClick={() => handleAction(o._id, "reject")}
-                              className="p-2 bg-red-100 text-red-600 rounded-md"
-                            >
-                              <X size={16} />
-                            </button>
-                          </>
-                        )}
+                    <div className="relative">
                       <button
-                        onClick={() => handleView(o._id)}
-                        className="p-2 bg-gray-100 text-gray-600 rounded-md"
+                        onClick={(e) => {
+                          e.stopPropagation(); // ✅ VERY IMPORTANT
+                          setOpenMenu(openMenu === o._id ? null : o._id);
+                        }}
+                        className="p-2 bg-gray-100 rounded-md"
                       >
-                        <Eye size={16} />
+                        <MoreVertical size={16} />
                       </button>
-                      {/* EDIT: SALESMAN + UNAPPROVED + OWN ORDER */}
-                      {user?.user_type === "salesman" &&
-                        o?.status === "unapproved" &&
-                        o?.createdBy?._id === user?._id && (
+
+                      {openMenu === o._id && (
+                        <div className="absolute right-0 mt-2 w-40 bg-white border rounded-lg shadow-lg z-50">
+                          {/* VIEW */}
                           <button
-                            onClick={() => handleEdit(o._id)}
-                            className="p-2 bg-blue-100 text-blue-600 rounded-md"
+                            onClick={() => {
+                              handleView(o._id);
+                              setOpenMenu(null);
+                            }}
+                            className="block w-full text-left px-4 py-2 hover:bg-gray-100"
                           >
-                            <Pencil size={16} />
+                            View
                           </button>
-                        )}
-                      {/* EDIT: ADMIN + ANY STATUS EXCEPT DELIVERED */}
-                      {user?.user_type === "admin" &&
-                        o?.status !== "dispatched" && o?.status!=="partial" && o?.status!=="rejected" && o?.status!=="posted" && (
+
+                          {/* EDIT */}
+                          {(canEditFull ||
+                            user?.user_type === "dispatcher") && (
+                            <button
+                              onClick={() => {
+                                handleEdit(o._id);
+                                setOpenMenu(null);
+                              }}
+                              className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+                            >
+                              Edit
+                            </button>
+                          )}
+
+                          {/* APPROVE */}
+                          {user?.user_type === "admin" &&
+                            (o.status === "unapproved" ||
+                              o.status === "rejected") && (
+                              <button
+                                onClick={() => {
+                                  handleAction(o._id, "approve");
+                                  setOpenMenu(null);
+                                }}
+                                className="block w-full text-left px-4 py-2 text-green-600 hover:bg-gray-100"
+                              >
+                                Approve
+                              </button>
+                            )}
+
+                          {/* UNAPPROVE */}
+                          {user?.user_type === "admin" &&
+                            o.status === "approved" && (
+                              <button
+                                onClick={() => {
+                                  handleAction(o._id, "unapprove");
+                                  setOpenMenu(null);
+                                }}
+                                className="block w-full text-left px-4 py-2 text-yellow-600 hover:bg-gray-100"
+                              >
+                                Unapprove
+                              </button>
+                            )}
+
+                          {/* REJECT / DELETE */}
+                          {!(
+                            (o?.status === "posted" ||
+                              o?.status === "rejected") &&
+                            user?.user_type !== "salesman"
+                          ) && (
+                            <button
+                              onClick={() => {
+                                handleAction(o._id, "reject");
+                                setOpenMenu(null);
+                              }}
+                              className="block w-full text-left px-4 py-2 text-red-600 hover:bg-gray-100"
+                            >
+                              {user?.user_type === "salesman"
+                                ? "Delete"
+                                : "Reject"}
+                            </button>
+                          )}
+
+                          {/* PDF */}
                           <button
-                            onClick={() => handleEdit(o?._id)}
-                            className="p-2 bg-blue-100 text-blue-600 rounded-md"
+                            onClick={async () => {
+                              const blob = await order.downloadPDF(o._id);
+                              const url = window.URL.createObjectURL(blob);
+                              const a = document.createElement("a");
+                              a.href = url;
+                              a.download = `order-${o.order_number}.pdf`;
+                              a.click();
+                              window.URL.revokeObjectURL(url);
+                              setOpenMenu(null);
+                            }}
+                            className="block w-full text-left px-4 py-2 hover:bg-gray-100"
                           >
-                            <Pencil size={16} />
+                            Download PDF
                           </button>
-                        )}
-                        {/* DISPATCHER EDIT */}
-{user?.user_type === "dispatcher" && o?.status !== "dispatched" && (
-  <button
-    onClick={() => handleEdit(o._id)}
-    className="p-2 bg-purple-100 text-purple-600 rounded-md"
-  >
-    <Pencil size={16} />
-  </button>
-)}
-{(user?.user_type === "admin" ||
-  (user?.user_type === "salesman" && o.status === "approved")) && (
-  <button
-    onClick={async () => {
-      const blob = await order.downloadPDF(o._id);
-
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement("a");
-
-      a.href = url;
-      a.download = `order-${o.order_number}.pdf`;
-      a.click();
-
-      window.URL.revokeObjectURL(url);
-    }}
-    className="p-2 bg-black text-white rounded-md"
-  >
-    PDF
-  </button>
-)}
-{/* ACCOUNTANT EDIT */}
-{user?.user_type === "accountant" && (
-  <button
-    onClick={() => handleEdit(o._id)}
-    className="p-2 bg-yellow-100 text-yellow-600 rounded-md"
-  >
-    <Pencil size={16} />
-  </button>
-)}
+                        </div>
+                      )}
                     </div>
                   </td>
                 </tr>

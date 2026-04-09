@@ -7,6 +7,7 @@ import { useSelector } from "react-redux";
 import DealerService from "@/app/components/services/dealerService";
 import DealersTable from "@/app/components/dealers/allDealers";
 import toast from "react-hot-toast";
+import UserService from "@/app/components/services/userService"; 
 
 export default function Page() {
   const user = useSelector((state:any)=>state.user.user);
@@ -15,7 +16,7 @@ export default function Page() {
   const [dealers, setDealers] = useState<any[]>([]);
   const [filtered, setFiltered] = useState<any[]>([]);
   const [editDealer, setEditDealer] = useState<any>(null);
-
+const [salesmen, setSalesmen] = useState([]);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
   const [loading, setLoading] = useState(true);
@@ -95,6 +96,8 @@ export default function Page() {
           </select>
 
           {/* ADD BUTTON */}
+    
+
           <button
             onClick={() => router.push("/dealers/add")}
             className="bg-black text-white flex items-center gap-2 px-3 py-2 rounded-xl text-sm"
@@ -102,6 +105,7 @@ export default function Page() {
             Add Dealer
             <Plus size={16} />
           </button>
+  
 
         </div>
       </div>
@@ -127,6 +131,7 @@ export default function Page() {
           dealer={editDealer}
           onClose={() => setEditDealer(null)}
           refresh={fetchDealers}
+            user={user} 
         />
       )}
 
@@ -137,28 +142,44 @@ export default function Page() {
 
 /* ================= EDIT MODAL ================= */
 
-function DealerEditModal({ dealer, onClose, refresh }: any) {
+function DealerEditModal({ dealer, onClose, refresh,user }: any) {
+
+  const [salesmen, setSalesmen] = useState([]);
 
   const [form, setForm] = useState({
     name: dealer?.name || "",
     email: dealer?.email || "",
     phone_number: dealer?.phone_number || "",
+    whatsapp_number: dealer?.whatsapp_number || "",
     company_name: dealer?.company_name || "",
+    billing_address: dealer?.billing_address || "",
+    shipping_address: dealer?.shipping_address || "",
+    city: dealer?.city || "",
+    country: dealer?.country || "",
     is_active: dealer?.is_active ?? true,
     business_logo: null as File | null,
-  });
+userId: dealer?.assigned_to?._id || dealer?.assigned_to || ""
+});
 
   const [preview, setPreview] = useState(
-    dealer?.business_logo || null
+    dealer?.business_logo
+      ? `${process.env.NEXT_PUBLIC_API_URL}/uploads/${dealer.business_logo}`
+      : null
   );
 
+  /* FETCH SALESMEN */
   useEffect(() => {
-  document.body.style.overflow = "hidden";
+    const fetchSalesmen = async () => {
+      const res = await UserService.getSalesmen(dealer?.businessId);
+      if (res.success) setSalesmen(res.salesmen);
+    };
+    if (dealer?.businessId) fetchSalesmen();
+  }, [dealer]);
 
-  return () => {
-    document.body.style.overflow = "auto";
-  };
-}, []);
+  useEffect(() => {
+    document.body.style.overflow = "hidden";
+    return () => { document.body.style.overflow = "auto"; };
+  }, []);
 
   const handleChange = (e:any)=>{
     const {name,value,type,checked} = e.target;
@@ -188,16 +209,39 @@ function DealerEditModal({ dealer, onClose, refresh }: any) {
     setPreview(URL.createObjectURL(file));
   };
 
-  const handleUpdate = async ()=>{
-    try {
+  const validate = () => {
+    if (!form.name.trim()) return "Name is required";
+    if (!form.email.trim()) return "Email is required";
+    if (!form.phone_number.trim()) return "Phone is required";
+    if (!form.whatsapp_number.trim()) return "WhatsApp is required";
+    if (!form.company_name.trim()) return "Company is required";
+    if (!form.billing_address.trim()) return "Billing address required";
+    if (!form.shipping_address.trim()) return "Shipping address required";
+    if (!form.city.trim()) return "City required";
+    if (!form.country.trim()) return "Country required";
+    if (!form.userId) return "Salesman required";
 
+    // 🔥 LOGO REQUIRED (if no previous + no new)
+    if (!preview && !form.business_logo) return "Logo is required";
+
+    return null;
+  };
+
+  const handleUpdate = async ()=>{
+    const error = validate();
+    if(error){
+      toast.error(error);
+      return;
+    }
+
+    try {
       const formData = new FormData();
 
-      formData.append("name", form.name);
-      formData.append("email", form.email);
-      formData.append("phone_number", form.phone_number);
-      formData.append("company_name", form.company_name);
-      formData.append("is_active", String(form.is_active));
+      Object.entries(form).forEach(([key,val]:any)=>{
+        if(key !== "business_logo"){
+          formData.append(key, val);
+        }
+      });
 
       if(form.business_logo){
         formData.append("business_logo", form.business_logo);
@@ -222,13 +266,12 @@ function DealerEditModal({ dealer, onClose, refresh }: any) {
   return (
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
 
-      <div className="bg-white p-6 rounded-2xl w-[380px] space-y-4">
+      <div className="bg-white p-6 rounded-2xl w-[420px] space-y-4 overflow-y-auto max-h-[90vh]">
 
         <h2 className="text-lg font-semibold">Edit Dealer</h2>
 
         {/* IMAGE */}
         <div className="flex flex-col items-center gap-2">
-
           {preview ? (
             <img src={preview} className="w-20 h-20 rounded-full object-cover border" />
           ) : (
@@ -236,15 +279,112 @@ function DealerEditModal({ dealer, onClose, refresh }: any) {
               No Image
             </div>
           )}
-
           <input type="file" accept="image/*" onChange={handleImageChange} />
-
+          <p className="text-xs text-gray-400">Business Logo *</p>
         </div>
 
-        <input name="name" value={form.name} onChange={handleChange} className="w-full border p-2 rounded" placeholder="Name" />
-        <input name="email" value={form.email} onChange={handleChange} className="w-full border p-2 rounded" placeholder="Email" />
-        <input name="phone_number" value={form.phone_number} onChange={handleChange} className="w-full border p-2 rounded" placeholder="Phone" />
-        <input name="company_name" value={form.company_name} onChange={handleChange} className="w-full border p-2 rounded" placeholder="Company" />
+        {/* INPUTS */}
+<div>
+  <label className="text-xs text-gray-500">
+    Dealer Name <span className="text-red-500">*</span>
+  </label>
+  <input
+    name="name"
+    value={form.name}
+    onChange={handleChange}
+    className="w-full mt-1 border p-2 rounded"
+  />
+</div>
+<div>
+  <label className="text-xs text-gray-500">
+    Email <span className="text-red-500">*</span>
+  </label>
+  <input name="email" value={form.email} onChange={handleChange}
+    className="w-full mt-1 border p-2 rounded"/>
+</div>
+
+<div>
+  <label className="text-xs text-gray-500">
+    Phone Number <span className="text-red-500">*</span>
+  </label>
+  <input name="phone_number" value={form.phone_number} onChange={handleChange}
+    className="w-full mt-1 border p-2 rounded"/>
+</div>
+<div>
+  <label className="text-xs text-gray-500">
+    Whatsapp Number <span className="text-red-500">*</span>
+  </label>
+  <input name="whatsapp_number" value={form.whatsapp_number} onChange={handleChange}
+    className="w-full mt-1 border p-2 rounded"/>
+</div>
+
+
+<div>
+  <label className="text-xs text-gray-500">
+    Company Name <span className="text-red-500">*</span>
+  </label>
+  <input name="company_name" value={form.company_name} onChange={handleChange}
+    className="w-full mt-1 border p-2 rounded"/>
+</div>
+
+<div>
+  <label className="text-xs text-gray-500">
+    Billing Address <span className="text-red-500">*</span>
+  </label>
+  <input name="billing_address" value={form.billing_address} onChange={handleChange}
+    className="w-full mt-1 border p-2 rounded"/>
+</div>
+
+<div>
+  <label className="text-xs text-gray-500">
+    Shipping Address <span className="text-red-500">*</span>
+  </label>
+  <input name="shipping_address" value={form.shipping_address} onChange={handleChange}
+    className="w-full mt-1 border p-2 rounded"/>
+</div>
+
+<div>
+  <label className="text-xs text-gray-500">
+    City <span className="text-red-500">*</span>
+  </label>
+  <input name="city" value={form.city} onChange={handleChange}
+    className="w-full mt-1 border p-2 rounded"/>
+</div>
+
+<div>
+  <label className="text-xs text-gray-500">
+    Country <span className="text-red-500">*</span>
+  </label>
+  <input name="country" value={form.country} onChange={handleChange}
+    className="w-full mt-1 border p-2 rounded"/>
+</div>
+
+        {/* SALESMAN */}
+{user?.user_type === "admin" && (
+  <div>
+    <label className="text-xs text-gray-500">
+      Assign Salesman <span className="text-red-500">*</span>
+    </label>
+
+    <select
+      name="userId"
+      value={String(form.userId)}
+      onChange={handleChange}
+      className="w-full mt-1 border p-2 rounded"
+    >
+      <option value="">Select Salesman</option>
+      {salesmen.map((s:any)=>(
+        <option key={s._id} value={String(s._id)}>
+          {s.name}
+        </option>
+      ))}
+    </select>
+  </div>
+)}
+<div>
+  <label className="text-xs text-gray-500">
+    Status <span className="text-red-500">*</span>
+  </label>
 
         <select
           value={form.is_active ? "true" : "false"}
@@ -254,14 +394,13 @@ function DealerEditModal({ dealer, onClose, refresh }: any) {
           <option value="true">Active</option>
           <option value="false">Inactive</option>
         </select>
-
+</div>
         <div className="flex justify-end gap-2">
           <button onClick={onClose} className="px-3 py-1 border rounded">Cancel</button>
           <button onClick={handleUpdate} className="px-3 py-1 bg-black text-white rounded">Update</button>
         </div>
 
       </div>
-
     </div>
   );
 }

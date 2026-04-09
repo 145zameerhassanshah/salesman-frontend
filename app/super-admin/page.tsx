@@ -1,5 +1,7 @@
-"use client";
 
+
+"use client";
+import Swal from "sweetalert2";
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { industry } from "../components/services/industryService";
@@ -8,19 +10,23 @@ import { clearUser } from "@/store/userSlice";
 import AuthService from "../components/services/authService";
 import { useRouter } from "next/navigation";
 import API_URL from "../components/lib/apiConfig";
-
+import { Pencil, Trash2 } from "lucide-react";
 type Industry = {
   _id: string;
   businessName: string;
   city: string;
   registrationNo: string;
   business_logo?: string;
+  addressLogo?: string;
 };
 
 export default function SuperAdminPage() {
   const user = useSelector((state: any) => state.user.user);
   const [business, setBusiness] = useState<Industry[]>([]);
   const [showForm, setShowForm] = useState(false);
+
+  const [editMode, setEditMode] = useState(false);
+  const [editId, setEditId] = useState<string | null>(null);
 
   const [formData, setFormData] = useState<any>({
     industry: "",
@@ -31,28 +37,25 @@ export default function SuperAdminPage() {
     taxId: "",
     bussinesEmail: "",
     business_logo: null,
+    addressLogo: null,
   });
 
   const dispatch = useDispatch();
   const router = useRouter();
 
-  /* ================= FETCH INDUSTRIES ================= */
-
+  /* ================= FETCH ================= */
   useEffect(() => {
     async function getIndustry() {
       const data = await industry.getAllIndustries();
       if (data?.message) return toast.error(data?.message);
       setBusiness(data);
     }
-
     getIndustry();
   }, [user?._id]);
 
-  /* ================= HANDLE INPUT ================= */
-
+  /* ================= INPUT ================= */
   const handleChange = (e: any) => {
     const { name, value } = e.target;
-
     setFormData((prev: any) => ({
       ...prev,
       [name]: value,
@@ -69,8 +72,17 @@ export default function SuperAdminPage() {
     }));
   };
 
-  /* ================= LOGOUT ================= */
+  const handleAddressLogoChange = (e: any) => {
+    const file = e.target.files[0];
+    if (!file) return;
 
+    setFormData((prev: any) => ({
+      ...prev,
+      addressLogo: file,
+    }));
+  };
+
+  /* ================= LOGOUT ================= */
   const logout = async () => {
     try {
       const signOut = await AuthService.logoutUser();
@@ -84,17 +96,18 @@ export default function SuperAdminPage() {
 
       dispatch(clearUser());
       router.push("/");
-
     } catch (error) {
       toast.error("Something went wrong");
     }
   };
 
   /* ================= SUBMIT ================= */
-
   const handleSubmit = async (e: any) => {
     e.preventDefault();
-    
+
+    if (!formData.businessName || !formData.registrationNo || !formData.city) {
+      return toast.error("Please fill required fields (*)");
+    }
 
     try {
       const fd = new FormData();
@@ -111,15 +124,33 @@ export default function SuperAdminPage() {
         fd.append("business_logo", formData.business_logo);
       }
 
-      const data = await industry.createIndustry(fd);
+      if (formData.addressLogo) {
+        fd.append("addressLogo", formData.addressLogo);
+      }
+
+      let data;
+
+      if (editMode && editId) {
+        data = await industry.updateIndustry(editId, fd);
+      } else {
+        data = await industry.createIndustry(fd);
+      }
 
       if (data?.success === false) return toast.error(data?.message);
 
       toast.success(data?.message);
 
-      setBusiness((prev) => [...prev, data?.industry]);
+      if (editMode) {
+        setBusiness((prev) =>
+          prev.map((b) => (b._id === editId ? data.industry : b))
+        );
+      } else {
+        setBusiness((prev) => [...prev, data.industry]);
+      }
 
       setShowForm(false);
+      setEditMode(false);
+      setEditId(null);
 
       setFormData({
         industry: "",
@@ -128,34 +159,88 @@ export default function SuperAdminPage() {
         address: "",
         city: "",
         taxId: "",
+        bussinesEmail: "",
         business_logo: null,
+        addressLogo: null,
       });
 
-    } catch (error) {
-      toast.error("Failed to add business");
+    } catch (error: any) {
+      toast.error(error?.response?.data?.message || "Something went wrong");
     }
   };
+const handleDelete = async (id) => {
+  const result = await Swal.fire({
+    title: " Are you sure to delete business?",
+    html: `
+      <div style="text-align:left; font-size:14px;">
+        This will permanently remove this business and all related data permanently:
+        <ul style="margin-top:8px; padding-left:18px;">
+          <li>All Users</li>
+          <li>All Dealers</li>
+          <li>All Orders & Quotations</li>
+        </ul>
+        <br/>
+        <b>This action cannot be undone.</b>
+      </div>
+    `,
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonColor: "#e11d48",
+    cancelButtonColor: "#6b7280",
+    confirmButtonText: "Yes, Delete",
+    cancelButtonText: "Cancel",
+  });
 
+  if (!result.isConfirmed) return;
+
+  try {
+    const res = await industry.deleteIndustry(id);
+
+    if (res?.success === false) {
+      return toast.error(res.message);
+    }
+
+    toast.success(res.message);
+
+    setBusiness((prev) => prev.filter((b) => b._id !== id));
+
+  } catch (err) {
+    toast.error("Delete failed");
+  }
+};
   return (
     <div className="min-h-screen bg-white text-black p-8">
 
       {/* HEADER */}
       <div className="flex justify-between items-center mb-8">
-
         <h1>Super Admin : {user?.name}</h1>
 
-        <h1 className="text-3xl font-bold">
-          Businesses
-        </h1>
+        <h1 className="text-3xl font-bold">Businesses</h1>
 
         <div className="flex gap-3">
-          <button
-            onClick={() => setShowForm(true)}
-            className="bg-black text-white px-6 py-2 rounded-lg"
-          >
-            Add Business
-          </button>
+<button
+  onClick={() => {
+    setShowForm(true);
+    setEditMode(false);
+    setEditId(null);
 
+    // 🔥 IMPORTANT FIX
+    setFormData({
+      industry: "",
+      businessName: "",
+      registrationNo: "",
+      address: "",
+      city: "",
+      taxId: "",
+      bussinesEmail: "",
+      business_logo: null,
+      addressLogo: null,
+    });
+  }}
+  className="bg-black text-white px-6 py-2 rounded-lg"
+>
+  Add Business
+</button>
           <button
             onClick={logout}
             className="bg-black text-white px-6 py-2 rounded-lg"
@@ -163,21 +248,16 @@ export default function SuperAdminPage() {
             Log out
           </button>
         </div>
-
       </div>
 
-      {/* BUSINESS GRID */}
+      {/* GRID */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-
         {business?.map((b) => (
-
           <a
             key={b._id}
             href={`/super-admin/industry/details/${b?._id}`}
             className="border border-black p-6 rounded-xl hover:bg-black hover:text-white transition flex items-center gap-4"
           >
-
-            {/* LOGO */}
             <img
               src={
                 b?.business_logo
@@ -187,7 +267,15 @@ export default function SuperAdminPage() {
               className="w-12 h-12 rounded-full object-cover border"
             />
 
-            {/* CONTENT */}
+            {/* <img
+              src={
+                b?.addressLogo
+                  ? `${API_URL}/uploads/${b.addressLogo}`
+                  : "/profile.png"
+              }
+              className="w-12 h-12 rounded-full object-cover border"
+            /> */}
+
             <div>
               <h2 className="text-xl font-semibold mb-1">
                 {b?.businessName}
@@ -196,107 +284,205 @@ export default function SuperAdminPage() {
               <p className="text-sm">City: {b?.city}</p>
               <p className="text-sm">Reg No: {b?.registrationNo}</p>
               <p className="text-sm">Email : {b?.bussinesEmail}</p>
-               <p className="text-sm">Address : {b?.address}</p>
-
-
+              <p className="text-sm">Address : {b?.address}</p>
             </div>
+<button
+  onClick={(e) => {
+    e.preventDefault();
+    handleDelete(b._id);
+  }}
+  className="p-2 rounded hover:bg-red-100 text-red-600"
+>
+  <Trash2 size={16} />
+</button>
+            {/* EDIT BUTTON */}
+<button
+  onClick={(e) => {
+    e.preventDefault();
 
+    setEditMode(true);
+    setEditId(b._id);
+    setShowForm(true);
+
+    setFormData({
+      ...b,
+      business_logo: null,
+      addressLogo: null,
+    });
+  }}
+  className="p-2 rounded hover:bg-gray-100 text-gray-700"
+>
+  <Pencil size={16} />
+</button>
           </a>
-
         ))}
-
       </div>
 
-      {/* ================= MODAL ================= */}
+      {/* MODAL */}
       {showForm && (
-
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-
-          <div className="bg-white p-8 rounded-xl w-[500px]">
+          <div className="bg-white p-6 rounded-xl w-[500px] max-h-[90vh] overflow-y-auto">
 
             <h2 className="text-xl font-bold mb-6">
-              Add Business
+              {editMode ? "Edit Business" : "Add Business"}
             </h2>
 
             <form className="space-y-4" onSubmit={handleSubmit}>
 
-              <input
-                name="industry"
-                placeholder="Industry"
-                value={formData.industry}
-                onChange={handleChange}
-                className="w-full border p-2"
-              />
+              {/* all your inputs SAME */}
+              {/* INDUSTRY */}
+<div>
+  <label className="block text-sm font-medium mb-1">
+    Industry <span className="text-red-500">*</span>
+  </label>
+  <input
+    name="industry"
+    value={formData.industry}
+    onChange={handleChange}
+    className="w-full border p-2 rounded"
+    required
+  />
+</div>
 
-              <input
-                name="businessName"
-                placeholder="Business Name"
-                value={formData.businessName}
-                onChange={handleChange}
-                className="w-full border p-2"
-              />
+{/* BUSINESS NAME */}
+<div>
+  <label className="block text-sm font-medium mb-1">
+    Business Name <span className="text-red-500">*</span>
+  </label>
+  <input
+    name="businessName"
+    value={formData.businessName}
+    onChange={handleChange}
+    className="w-full border p-2 rounded"
+    required
+  />
+</div>
 
-              <input
-                name="registrationNo"
-                placeholder="Business Registration Number"
-                value={formData.registrationNo}
-                onChange={handleChange}
-                className="w-full border p-2"
-              />
-              <input
-                name="bussinesEmail"
-                placeholder="Business Email Address"
-                value={formData.bussinesEmail}
-                onChange={handleChange}
-                className="w-full border p-2"
-              />
+{/* REGISTRATION */}
+<div>
+  <label className="block text-sm font-medium mb-1">
+    Registration No <span className="text-red-500">*</span>
+  </label>
+  <input
+    name="registrationNo"
+    value={formData.registrationNo}
+    onChange={handleChange}
+    className="w-full border p-2 rounded"
+    required
+  />
+</div>
 
-              <input
-                name="address"
-                placeholder="Address"
-                value={formData.address}
-                onChange={handleChange}
-                className="w-full border p-2"
-              />
+{/* EMAIL */}
+<div>
+  <label className="block text-sm font-medium mb-1">
+    Email <span className="text-red-500">*</span>
+  </label>
+  <input
+    name="bussinesEmail"
+    type="email"
+    value={formData.bussinesEmail}
+    onChange={handleChange}
+    className="w-full border p-2 rounded"
+    required
+  />
+</div>
 
-              <input
-                name="city"
-                placeholder="City"
-                value={formData.city}
-                onChange={handleChange}
-                className="w-full border p-2"
-              />
+{/* ADDRESS */}
+<div>
+  <label className="block text-sm font-medium mb-1">
+    Address
+  </label>
+  <input
+    name="address"
+    value={formData.address}
+    onChange={handleChange}
+    className="w-full border p-2 rounded"
+  />
+</div>
 
-              <input
-                name="taxId"
-                placeholder="Tax ID"
-                value={formData.taxId}
-                onChange={handleChange}
-                className="w-full border p-2"
-              />
+{/* CITY */}
+<div>
+  <label className="block text-sm font-medium mb-1">
+    City <span className="text-red-500">*</span>
+  </label>
+  <input
+    name="city"
+    value={formData.city}
+    onChange={handleChange}
+    className="w-full border p-2 rounded"
+    required
+  />
+</div>
 
-              {/* LOGO */}
-              <input
-                type="file"
-                onChange={handleImageChange}
-                className="w-full border p-2"
-              />
+{/* TAX */}
+<div>
+  <label className="block text-sm font-medium mb-1">
+    Tax ID <span className="text-red-500">*</span>
+  </label>
+  <input
+    name="taxId"
+    value={formData.taxId}
+    onChange={handleChange}
+    className="w-full border p-2 rounded"
+    required
+  />
+</div>
 
-              <button
-                type="submit"
-                className="bg-black text-white px-6 py-2 rounded-lg w-full"
-              >
-                Click to Add
-              </button>
+              {/* BUSINESS LOGO */}
+              <div>
+                <label className="block text-sm font-medium mb-2">
+                  Business Logo <span className="text-red-500">*</span>
+                </label>
+
+                <label className="flex items-center justify-center w-full border-2 border-dashed rounded-lg p-4 cursor-pointer hover:bg-gray-50">
+                  <span className="text-gray-600 text-sm">
+                    {formData.business_logo ? formData.business_logo.name : "Click to upload logo"}
+                  </span>
+
+                  <input type="file" onChange={handleImageChange} className="hidden" />
+                </label>
+              </div>
+
+              {/* ADDRESS LOGO */}
+              <div>
+                <label className="block text-sm font-medium mb-2">
+                  Address Logo <span className="text-red-500">*</span>
+                </label>
+
+                <label className="flex items-center justify-center w-full border-2 border-dashed rounded-lg p-4 cursor-pointer hover:bg-gray-50">
+                  <span className="text-gray-600 text-sm">
+                    {formData.addressLogo ? formData.addressLogo.name : "Click to upload address logo"}
+                  </span>
+
+                  <input type="file" onChange={handleAddressLogoChange} className="hidden" />
+                </label>
+              </div>
+
+              {/* BUTTONS */}
+              <div className="flex gap-3">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowForm(false);
+                    setEditMode(false);
+                  }}
+                  className="w-full border py-2 rounded-lg"
+                >
+                  Cancel
+                </button>
+
+                <button
+                  type="submit"
+                  className="w-full bg-black text-white py-2 rounded-lg"
+                >
+                  {editMode ? "Update Business" : "Click to Add"}
+                </button>
+              </div>
 
             </form>
-
           </div>
-
         </div>
-
       )}
-
     </div>
   );
 }

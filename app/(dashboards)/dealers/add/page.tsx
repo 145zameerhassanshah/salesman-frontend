@@ -5,14 +5,32 @@ import { useState,useEffect } from "react";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
 import DealerService from "@/app/components/services/dealerService";
+import UserService from "@/app/components/services/userService"; 
 
 export default function AddDealer() {
 
   const router = useRouter();
   const user = useSelector((state:any)=>state.user.user);
+
+  const [salesmen, setSalesmen] = useState([]); 
+
 useEffect(() => {
-  console.log("USER:", user);
-  console.log("INDUSTRY:", user?.industry);
+  // console.log("USER:", user);
+  // console.log("INDUSTRY:", user?.industry);
+}, [user]);
+useEffect(() => {
+  const fetchSalesmen = async () => {
+
+    if (user?.user_type  !== "admin") return; 
+
+    const res = await UserService.getSalesmen(user?.industry);
+
+    if (res.success) {
+      setSalesmen(res.salesmen);
+    }
+  };
+
+  if (user?.industry) fetchSalesmen();
 }, [user]);
   const [form, setForm] = useState({
     name: "",
@@ -25,14 +43,11 @@ useEffect(() => {
     shipping_address: "",
     city: "",
     country: "",
-    is_active: true
+    is_active: true,
+    userId: "" 
   });
 
   const [loading, setLoading] = useState(false);
-
-  /* =========================
-     HANDLE INPUT
-  ========================= */
 
   const handleChange = (e:any)=>{
     const {name,value,type,checked} = e.target;
@@ -42,10 +57,6 @@ useEffect(() => {
       [name]: type === "checkbox" ? checked : value
     });
   };
-
-  /* =========================
-     IMAGE
-  ========================= */
 
   const handleImageChange = (e:any)=>{
     const file = e.target.files[0];
@@ -64,10 +75,6 @@ useEffect(() => {
 
     setForm({...form, business_logo:file});
   };
-
-  /* =========================
-     VALIDATION
-  ========================= */
 
   const validate = () => {
   if (!form.name.trim()) return "Dealer name is required";
@@ -93,12 +100,11 @@ useEffect(() => {
   if (!form.city.trim()) return "City is required";
   if (!form.country.trim()) return "Country is required";
 
+if (user?.user_type  === "admin" && !form.userId) {
+  return "Salesman is required";
+}
   return null;
 };
-
-  /* =========================
-     SUBMIT
-  ========================= */
 
   const handleSubmit = async ()=>{
 
@@ -124,7 +130,9 @@ if (error) {
       formData.append("city",form.city);
       formData.append("country",form.country);
       formData.append("is_active",String(form.is_active));
-
+if (user?.user_type  === "admin") {
+  formData.append("userId", form.userId);
+}
       if(form.business_logo){
         formData.append("business_logo",form.business_logo);
       }
@@ -139,7 +147,6 @@ if (error) {
 
       router.push("/dealers");
 
-      /* RESET FORM */
       setForm({
         name:"",
         email:"",
@@ -151,7 +158,8 @@ if (error) {
         shipping_address:"",
         city:"",
         country:"",
-        is_active:true
+        is_active:true,
+        userId:"" 
       });
 
     }catch(err:any){
@@ -164,7 +172,6 @@ if (error) {
 return (
 <div className="p-4 md:p-8 bg-gray-100 min-h-screen">
 
-{/* HEADER */}
 <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6 mb-6">
 
 <div>
@@ -195,7 +202,6 @@ Cancel
 
 </div>
 
-{/* BASIC INFO CARD */}
 <div className="bg-gray-100 rounded-3xl p-4 md:p-6 shadow-sm mb-4 border border-gray-200 w-full">
 
 <h3 className="text-sm font-semibold text-gray-700 mb-5">
@@ -204,130 +210,114 @@ Basic Info
 
 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
-{/* LEFT */}
 <div className="flex flex-col gap-4">
 
 <div>
-<label className="text-xs text-gray-500">Dealer Name</label>
-<input
-name="name"
-value={form.name}
-onChange={handleChange}
-type="text"
-placeholder="Dealer Name"
-className="w-full mt-1 bg-gray-200 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-gray-400"
-/>
+<label className="text-xs text-gray-500">
+Dealer Name <span className="text-red-500">*</span>
+</label>
+<input name="name" value={form.name} onChange={handleChange} type="text"
+className="w-full mt-1 bg-gray-200 rounded-xl px-4 py-3 outline-none"/>
 </div>
 
 <div>
-<label className="text-xs text-gray-500">Email</label>
-<input
-name="email"
-value={form.email}
-onChange={handleChange}
-type="email"
-placeholder="Email"
-className="w-full mt-1 bg-gray-200 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-gray-400"
-/>
+<label className="text-xs text-gray-500">
+Email <span className="text-red-500">*</span>
+</label>
+<input name="email" value={form.email} onChange={handleChange} type="email"
+className="w-full mt-1 bg-gray-200 rounded-xl px-4 py-3 outline-none"/>
 </div>
 
 <div>
-<label className="text-xs text-gray-500">Phone Number</label>
-<input
-name="phone_number"
-value={form.phone_number}
-onChange={handleChange}
-type="text"
-placeholder="Phone Number"
-className="w-full mt-1 bg-gray-200 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-gray-400"
-/>
+<label className="text-xs text-gray-500">
+Phone Number <span className="text-red-500">*</span>
+</label>
+<input name="phone_number" value={form.phone_number} onChange={handleChange} type="text"
+className="w-full mt-1 bg-gray-200 rounded-xl px-4 py-3 outline-none"/>
 </div>
 
 <div>
-<label className="text-xs text-gray-500">WhatsApp Number</label>
-<input
-name="whatsapp_number"
-value={form.whatsapp_number}
-onChange={handleChange}
-type="text"
-placeholder="WhatsApp Number"
-className="w-full mt-1 bg-gray-200 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-gray-400"
-/>
+<label className="text-xs text-gray-500">
+WhatsApp Number <span className="text-red-500">*</span>
+</label>
+<input name="whatsapp_number" value={form.whatsapp_number} onChange={handleChange} type="text"
+className="w-full mt-1 bg-gray-200 rounded-xl px-4 py-3 outline-none"/>
 </div>
 
 <div>
-<label className="text-xs text-gray-500">Company Name</label>
-<input
-name="company_name"
-value={form.company_name}
-onChange={handleChange}
-type="text"
-placeholder="Company Name"
-className="w-full mt-1 bg-gray-200 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-gray-400"
-/>
+<label className="text-xs text-gray-500">
+Company Name <span className="text-red-500">*</span>
+</label>
+<input name="company_name" value={form.company_name} onChange={handleChange} type="text"
+className="w-full mt-1 bg-gray-200 rounded-xl px-4 py-3 outline-none"/>
 </div>
 
-</div>
+{/* 🔥 SALESMAN DROPDOWN */}
+{user?.user_type  === "admin" && (
+  <div>
+    <label className="text-xs text-gray-500">
+      Assign Salesman <span className="text-red-500">*</span>
+    </label>
 
-{/* RIGHT */}
+    <select
+      name="userId"
+      value={form.userId}
+      onChange={handleChange}
+      className="w-full mt-1 bg-gray-200 rounded-xl px-4 py-3 outline-none"
+    >
+      <option value="">Select Salesman</option>
+      {salesmen.map((s:any)=>(
+        <option key={s._id} value={s._id}>
+          {s.name}
+        </option>
+      ))}
+    </select>
+  </div>
+)}
+</div>
+{user?.user_type  === "salesman" && (
+  <p className="text-xs text-gray-500 mt-1">
+    Dealer will be assigned to you automatically
+  </p>
+)}
 <div className="flex flex-col gap-4">
 
 <div>
 <label className="text-xs text-gray-500">Business Logo</label>
-<input
-type="file"
-accept="image/*"
-onChange={handleImageChange}
-className="w-full mt-1 bg-gray-200 rounded-xl px-4 py-3 outline-none"
-/>
+<input type="file" accept="image/*" onChange={handleImageChange}
+className="w-full mt-1 bg-gray-200 rounded-xl px-4 py-3 outline-none"/>
 </div>
 
 <div>
-<label className="text-xs text-gray-500">Billing Address</label>
-<input
-name="billing_address"
-value={form.billing_address}
-onChange={handleChange}
-type="text"
-placeholder="Billing Address"
-className="w-full mt-1 bg-gray-200 rounded-xl px-4 py-3 outline-none"
-/>
+<label className="text-xs text-gray-500">
+Billing Address <span className="text-red-500">*</span>
+</label>
+<input name="billing_address" value={form.billing_address} onChange={handleChange} type="text"
+className="w-full mt-1 bg-gray-200 rounded-xl px-4 py-3 outline-none"/>
 </div>
 
 <div>
-<label className="text-xs text-gray-500">Shipping Address</label>
-<input
-name="shipping_address"
-value={form.shipping_address}
-onChange={handleChange}
-type="text"
-placeholder="Shipping Address"
-className="w-full mt-1 bg-gray-200 rounded-xl px-4 py-3 outline-none"
-/>
+<label className="text-xs text-gray-500">
+Shipping Address <span className="text-red-500">*</span>
+</label>
+<input name="shipping_address" value={form.shipping_address} onChange={handleChange} type="text"
+className="w-full mt-1 bg-gray-200 rounded-xl px-4 py-3 outline-none"/>
 </div>
 
 <div>
-<label className="text-xs text-gray-500">City</label>
-<input
-name="city"
-value={form.city}
-onChange={handleChange}
-type="text"
-placeholder="City"
-className="w-full mt-1 bg-gray-200 rounded-xl px-4 py-3 outline-none"
-/>
+<label className="text-xs text-gray-500">
+City <span className="text-red-500">*</span>
+</label>
+<input name="city" value={form.city} onChange={handleChange} type="text"
+className="w-full mt-1 bg-gray-200 rounded-xl px-4 py-3 outline-none"/>
 </div>
 
 <div>
-<label className="text-xs text-gray-500">Country</label>
-<input
-name="country"
-value={form.country}
-onChange={handleChange}
-type="text"
-placeholder="Country"
-className="w-full mt-1 bg-gray-200 rounded-xl px-4 py-3 outline-none"
-/>
+<label className="text-xs text-gray-500">
+Country <span className="text-red-500">*</span>
+</label>
+<input name="country" value={form.country} onChange={handleChange} type="text"
+className="w-full mt-1 bg-gray-200 rounded-xl px-4 py-3 outline-none"/>
 </div>
 
 </div>
@@ -336,7 +326,7 @@ className="w-full mt-1 bg-gray-200 rounded-xl px-4 py-3 outline-none"
 
 </div>
 
-{/* ACTIVE STATUS (SAME AS PRODUCT) */}
+{/* ACTIVE STATUS SAME */}
 <div className="bg-gray-100 rounded-3xl p-4 md:p-6 shadow-sm border border-gray-200 flex items-center justify-between w-full">
 
 <div>
@@ -349,23 +339,15 @@ Enable or disable this dealer.
 </div>
 
 <label className="relative inline-flex items-center cursor-pointer">
-
-<input
-type="checkbox"
-name="is_active"
-checked={form.is_active}
-onChange={handleChange}
-className="sr-only peer"
-/>
-
+<input type="checkbox" name="is_active" checked={form.is_active} onChange={handleChange} className="sr-only peer"/>
 <div className="w-11 h-6 bg-gray-300 rounded-full peer peer-checked:bg-gray-800
 after:content-[''] after:absolute after:top-[2px] after:left-[2px]
 after:bg-white after:h-5 after:w-5 after:rounded-full
 after:transition-all peer-checked:after:translate-x-full"></div>
-
 </label>
 
 </div>
 
 </div>
-);}
+);
+}
