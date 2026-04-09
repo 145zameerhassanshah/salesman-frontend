@@ -159,16 +159,16 @@ class DealerService {
     return await res.json();
   }
 
-  static async reassignDealer(id, newSalesmanId) {
-    const res = await fetch(`${API.dealers}/reassign/${id}`, {
-      method: "PATCH",
-      credentials: "include",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ newSalesmanId })
-    });
-    return await res.json();
-  }
+static async reassignDealer(id, newSalesmanId, reason) {
+  const res = await fetch(`${API.dealers}/reassign/${id}`, {
+    method: "PATCH",
+    credentials: "include",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ newSalesmanId, reason })
+  });
 
+  return await res.json();
+}
   static async deleteDealer(id) {
     const res = await fetch(`${API.dealers}/${id}`, {
       method: "DELETE",
