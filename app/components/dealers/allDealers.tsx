@@ -624,7 +624,7 @@ export default function DealersTable({ dealers, refresh, onEdit }: any) {
               <td className="py-3 flex items-center gap-2">
                 {d.business_logo && (
                   <img
-                    src={`${process.env.NEXT_PUBLIC_API_URL}/uploads/${d.business_logo}`}
+                    src={d.business_logo}
                     className="w-10 h-10 rounded-lg object-cover"
                   />
                 )}
