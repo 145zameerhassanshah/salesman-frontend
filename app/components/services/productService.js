@@ -25,7 +25,7 @@ class ProductService {
 
   static async getProductById(id) {
     try {
-      const res = await fetch(`${API.products}/${id}`, {
+      const res = await fetch(`${API.products}/single/${id}`, {
         method: "GET",
         credentials: "include"
       });
