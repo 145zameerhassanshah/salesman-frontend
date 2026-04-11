@@ -392,8 +392,8 @@ export default function OrdersPage() {
     editOrder?.status === "dispatched" ||
     editOrder?.status === "posted";
 
-    // Add these state variables
-const [menuPosition, setMenuPosition] = useState({ top: 0, right: 0 });
+  // Add these state variables
+  const [menuPosition, setMenuPosition] = useState({ top: 0, right: 0 });
   return (
     <div className="p-4 md:p-8 bg-gray-100 min-h-screen">
       {/* CONFIRMATION MODAL */}
@@ -1128,202 +1128,274 @@ const [menuPosition, setMenuPosition] = useState({ top: 0, right: 0 });
       </div>
 
       {/* TABLE */}
-     <div className="bg-white rounded-2xl shadow p-4">
-  <div className="overflow-x-auto">
-        <table className="w-full min-w-[900px] text-sm">
-          <thead className="text-gray-500 border-b">
-            <tr className="text-left">
-              <th className="py-3">Order #</th>
-              <th>Dealer</th>
-              <th>Salesman/Director</th>
-              <th>Total</th>
-              <th>Discount</th>
-              <th>
-                <select
-                  value={statusFilter}
-                  onChange={(e) => setStatusFilter(e.target.value)}
-                  className="text-gray-500 font-semibold bg-transparent focus:outline-none cursor-pointer"
-                >
-                  <option value="">All Status</option>
-                  <option value="unapproved">Unapproved</option>
-                  <option value="approved">Approved</option>
-                  <option value="rejected">Rejected</option>
-                  <option value="pending">Pending</option>
-                  <option value="dispatched">Dispatched</option>
-                  <option value="partial">Partial</option>
-                  <option value="posted">Posted</option>
-                </select>
-              </th>
-              <th>Due Date</th>
-              <th className="text-center">Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filtered?.map((o: any, i: number) => {
-              const formattedStatus = formatStatus(o?.status);
-              return (
-                <tr key={i} className="border-b last:border-none">
-                  <td className="py-4 font-medium">{o?.order_number}</td>
-                  <td>{o?.dealer_id?.name}</td>
-                  <td>
-                    {o?.createdBy?.name} (
-                    {o?.createdBy?.user_type === "admin"
-                      ? "Director"
-                      : "Salesman"}
-                    )
-                  </td>
-                  <td>{o?.total}</td>
-                  <td>{o?.discount}</td>
-                  <td>
-                    <span
-                      className={`px-3 py-1 text-xs rounded-md font-medium ${statusStyle[formattedStatus]}`}
-                    >
-                      {formattedStatus}
-                    </span>
-                  </td>
-                  <td>
-                    {o?.due_date
-                      ? new Date(o.due_date).toLocaleDateString("en-GB")
-                      : "-"}
-                  </td>
-                <td className="py-4 text-center">
-  <div className="relative inline-block">
-                     <button
-  onClick={(e) => {
-    e.stopPropagation();
-    if (openMenu === o._id) {
-      setOpenMenu(null);
-    } else {
-      const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
-      setMenuPosition({
-        top: rect.bottom + window.scrollY + 4,
-        right: window.innerWidth - rect.right,
-      });
-      setOpenMenu(o._id);
-    }
-  }}
-  className="p-2 bg-gray-100 rounded-md"
->
-  <MoreVertical size={16} />
-</button>
+      <div className="bg-white rounded-2xl shadow p-4">
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-[900px] text-sm">
+            <thead className="text-gray-500 border-b">
+              <tr className="text-left">
+                <th className="py-3">Order #</th>
+                <th>Dealer</th>
+                <th>Salesman/Director</th>
+                <th>Total</th>
+                <th>Discount</th>
+                <th>
+                  <select
+                    value={statusFilter}
+                    onChange={(e) => setStatusFilter(e.target.value)}
+                    className="text-gray-500 font-semibold bg-transparent focus:outline-none cursor-pointer"
+                  >
+                    <option value="">All Status</option>
+                    <option value="unapproved">Unapproved</option>
+                    <option value="approved">Approved</option>
+                    <option value="rejected">Rejected</option>
+                    <option value="pending">Pending</option>
+                    <option value="dispatched">Dispatched</option>
+                    <option value="partial">Partial</option>
+                    <option value="posted">Posted</option>
+                  </select>
+                </th>
+                <th>Due Date</th>
+                <th className="text-center">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filtered?.map((o: any, i: number) => {
+                const formattedStatus = formatStatus(o?.status);
+                return (
+                  <tr key={i} className="border-b last:border-none">
+                    <td className="py-4 font-medium">{o?.order_number}</td>
+                    <td>{o?.dealer_id?.name}</td>
+                    <td>
+                      {o?.createdBy?.name} (
+                      {o?.createdBy?.user_type === "admin"
+                        ? "Director"
+                        : "Salesman"}
+                      )
+                    </td>
+                    <td>{o?.total}</td>
+                    <td>{o?.discount}</td>
+                    <td>
+                      <span
+                        className={`px-3 py-1 text-xs rounded-md font-medium ${statusStyle[formattedStatus]}`}
+                      >
+                        {formattedStatus}
+                      </span>
+                    </td>
+                    <td>
+                      {o?.due_date
+                        ? new Date(o.due_date).toLocaleDateString("en-GB")
+                        : "-"}
+                    </td>
+                    <td className="py-4 text-center">
+                      <div className="relative inline-block">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (openMenu === o._id) {
+                              setOpenMenu(null);
+                            } else {
+                              const rect = (
+                                e.currentTarget as HTMLElement
+                              ).getBoundingClientRect();
+                              setMenuPosition({
+                                top: rect.bottom + window.scrollY + 4,
+                                right: window.innerWidth - rect.right,
+                              });
+                              setOpenMenu(o._id);
+                            }
+                          }}
+                          className="p-2 bg-gray-100 rounded-md"
+                        >
+                          <MoreVertical size={16} />
+                        </button>
 
-                      {/* DROPDOWN PORTAL — rendered outside table scroll container */}
-{openMenu && (
-  <div
-    style={{ position: "fixed", top: menuPosition.top, right: menuPosition.right, zIndex: 9999 }}
-    className="w-44 bg-white border border-gray-200 rounded-xl shadow-2xl overflow-hidden"
-    onClick={(e) => e.stopPropagation()}
-  >
-    {/* Find the current order for this menu */}
-    {(() => {
-      const o = filtered?.find((o: any) => o._id === openMenu);
-      if (!o) return null;
+                        {/* DROPDOWN PORTAL — rendered outside table scroll container */}
+                        {openMenu && (
+                          <div
+                            style={{
+                              position: "fixed",
+                              top: menuPosition.top,
+                              right: menuPosition.right,
+                              zIndex: 9999,
+                            }}
+                            className="w-44 bg-white border border-gray-200 rounded-xl shadow-2xl overflow-hidden"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            {/* Find the current order for this menu */}
+                            {(() => {
+                              const o = filtered?.find(
+                                (o: any) => o._id === openMenu,
+                              );
+                              if (!o) return null;
 
-      return (
-        <>
-          <button onClick={() => { handleView(o._id); setOpenMenu(null); }}
-            className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-sm">
-            View
-          </button>
-          {o?.status !== "unapproved" && o?.status !== "rejected" && (
-            <button
-              onClick={async () => {
-                const blob = await order.downloadPDF(o._id);
-                const url = window.URL.createObjectURL(blob);
-                const a = document.createElement("a");
-                a.href = url;
-                a.download = `order-${o.order_number}.pdf`;
-                a.click();
-                window.URL.revokeObjectURL(url);
-                setOpenMenu(null);
-              }}
-              className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-sm">
-              Download PDF
-            </button>
-          )}
+                              return (
+                                <>
+                                  <button
+                                    onClick={() => {
+                                      handleView(o._id);
+                                      setOpenMenu(null);
+                                    }}
+                                    className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-sm"
+                                  >
+                                    View
+                                  </button>
+                                  {o?.status !== "unapproved" &&
+                                    o?.status !== "rejected" && (
+                                      <button
+                                        onClick={async () => {
+                                          const blob = await order.downloadPDF(
+                                            o._id,
+                                          );
+                                          const url =
+                                            window.URL.createObjectURL(blob);
+                                          const a = document.createElement("a");
+                                          a.href = url;
+                                          a.download = `order-${o.order_number}.pdf`;
+                                          a.click();
+                                          window.URL.revokeObjectURL(url);
+                                          setOpenMenu(null);
+                                        }}
+                                        className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-sm"
+                                      >
+                                        Download PDF
+                                      </button>
+                                    )}
 
-          {user?.user_type === "admin" && o.status !== "dispatched" && o.status !== "posted" && (
-            <button onClick={() => { handleEdit(o._id); setOpenMenu(null); }}
-              className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-sm">
-              Edit
-            </button>
-          )}
+                                  {user?.user_type === "admin" &&
+                                    o.status !== "dispatched" &&
+                                    o.status !== "posted" && (
+                                      <button
+                                        onClick={() => {
+                                          handleEdit(o._id);
+                                          setOpenMenu(null);
+                                        }}
+                                        className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-sm"
+                                      >
+                                        Edit
+                                      </button>
+                                    )}
 
-          {user?.user_type === "salesman" &&
-            (o.status === "unapproved" || o.status === "approved" || o.status === "rejected") &&
-            o?.createdBy?._id === user?._id && (
-              <button onClick={() => { handleEdit(o._id); setOpenMenu(null); }}
-                className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-sm">
-                Edit
-              </button>
-            )}
+                                  {user?.user_type === "salesman" &&
+                                    (o.status === "unapproved" ||
+                                      o.status === "approved" ||
+                                      o.status === "rejected") &&
+                                    o?.createdBy?._id === user?._id && (
+                                      <button
+                                        onClick={() => {
+                                          handleEdit(o._id);
+                                          setOpenMenu(null);
+                                        }}
+                                        className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-sm"
+                                      >
+                                        Edit
+                                      </button>
+                                    )}
 
-          {user?.user_type === "dispatcher" &&
-            (o.status === "approved" || o.status === "partial" || o.status === "dispatched") && (
-              <button onClick={() => { handleEdit(o._id); setOpenMenu(null); }}
-                className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-sm">
-                Edit
-              </button>
-            )}
+                                  {user?.user_type === "dispatcher" &&
+                                    (o.status === "approved" ||
+                                      o.status === "partial" ||
+                                      o.status === "dispatched") && (
+                                      <button
+                                        onClick={() => {
+                                          handleEdit(o._id);
+                                          setOpenMenu(null);
+                                        }}
+                                        className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-sm"
+                                      >
+                                        Edit
+                                      </button>
+                                    )}
 
-          {user?.user_type === "accountant" && o.status === "dispatched" && (
-            <button onClick={() => { handleEdit(o._id); setOpenMenu(null); }}
-              className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-sm">
-              Edit
-            </button>
-          )}
+                                  {user?.user_type === "accountant" &&
+                                    o.status === "dispatched" && (
+                                      <button
+                                        onClick={() => {
+                                          handleEdit(o._id);
+                                          setOpenMenu(null);
+                                        }}
+                                        className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-sm"
+                                      >
+                                        Edit
+                                      </button>
+                                    )}
 
-          {user?.user_type === "admin" && (o.status === "unapproved" || o.status === "rejected") && (
-            <button onClick={() => { handleAction(o._id, "approve"); setOpenMenu(null); }}
-              className="block w-full text-left px-4 py-2 text-green-600 hover:bg-gray-100 text-sm">
-              Approve
-            </button>
-          )}
+                                  {user?.user_type === "admin" &&
+                                    (o.status === "unapproved" ||
+                                      o.status === "rejected") && (
+                                      <button
+                                        onClick={() => {
+                                          handleAction(o._id, "approve");
+                                          setOpenMenu(null);
+                                        }}
+                                        className="block w-full text-left px-4 py-2 text-green-600 hover:bg-gray-100 text-sm"
+                                      >
+                                        Approve
+                                      </button>
+                                    )}
 
-          {user?.user_type === "admin" && o.status === "approved" && (
-            <button onClick={() => { handleAction(o._id, "unapprove"); setOpenMenu(null); }}
-              className="block w-full text-left px-4 py-2 text-yellow-600 hover:bg-gray-100 text-sm">
-              Unapprove
-            </button>
-          )}
+                                  {user?.user_type === "admin" &&
+                                    o.status === "approved" && (
+                                      <button
+                                        onClick={() => {
+                                          handleAction(o._id, "unapprove");
+                                          setOpenMenu(null);
+                                        }}
+                                        className="block w-full text-left px-4 py-2 text-yellow-600 hover:bg-gray-100 text-sm"
+                                      >
+                                        Unapprove
+                                      </button>
+                                    )}
 
-          {user?.user_type === "admin" &&
-            o.status !== "rejected" && o.status !== "dispatched" && o.status !== "posted" && (
-              <button onClick={() => { handleAction(o._id, "reject"); setOpenMenu(null); }}
-                className="block w-full text-left px-4 py-2 text-red-600 hover:bg-gray-100 text-sm">
-                Reject
-              </button>
-            )}
+                                  {user?.user_type === "admin" &&
+                                    o.status !== "rejected" &&
+                                    o.status !== "dispatched" &&
+                                    o.status !== "posted" && (
+                                      <button
+                                        onClick={() => {
+                                          handleAction(o._id, "reject");
+                                          setOpenMenu(null);
+                                        }}
+                                        className="block w-full text-left px-4 py-2 text-red-600 hover:bg-gray-100 text-sm"
+                                      >
+                                        Reject
+                                      </button>
+                                    )}
 
-          {user?.user_type === "salesman" &&
-            o.status === "unapproved" && o?.createdBy?._id === user?._id && (
-              <button onClick={() => { handleAction(o._id, "reject"); setOpenMenu(null); }}
-                className="block w-full text-left px-4 py-2 text-red-600 hover:bg-gray-100 text-sm">
-                Delete
-              </button>
-            )}
-        </>
-      );
-    })()}
-  </div>
-)}
-                    </div>
+                                  {user?.user_type === "salesman" &&
+                                    o.status === "unapproved" &&
+                                    o?.createdBy?._id === user?._id && (
+                                      <button
+                                        onClick={() => {
+                                          handleAction(o._id, "reject");
+                                          setOpenMenu(null);
+                                        }}
+                                        className="block w-full text-left px-4 py-2 text-red-600 hover:bg-gray-100 text-sm"
+                                      >
+                                        Delete
+                                      </button>
+                                    )}
+                                </>
+                              );
+                            })()}
+                          </div>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
+              {filtered?.length === 0 && (
+                <tr>
+                  <td
+                    colSpan={8}
+                    className="text-center py-10 text-gray-400 text-sm"
+                  >
+                    No orders found for "{search}"
                   </td>
                 </tr>
-              );
-            })}
-            {filtered?.length === 0 && (
-              <tr>
-                <td
-                  colSpan={8}
-                  className="text-center py-10 text-gray-400 text-sm"
-                >
-                  No orders found for "{search}"
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
+              )}
+            </tbody>
+          </table>
         </div>
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mt-6 text-sm text-gray-500">
           <p>Total Orders: {filtered?.length || 0}</p>

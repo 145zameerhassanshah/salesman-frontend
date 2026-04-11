@@ -126,6 +126,7 @@ export default function DealersTable({ dealers, refresh, onEdit }: any) {
     setConfirmAction(null);
     setRejectReason("");
   };
+  console.log(viewDealer)
 
   return (
     <div className="overflow-x-auto">
@@ -373,7 +374,7 @@ export default function DealersTable({ dealers, refresh, onEdit }: any) {
   <p className="text-xs text-gray-400">Assigned To</p>
   <p>
     {viewDealer?.assigned_to?.name} 
-    ({user?.user_type})
+    ({viewDealer?.assigned_to?.user_type})
   </p>
 </div>
 
