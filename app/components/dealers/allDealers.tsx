@@ -166,25 +166,18 @@ export default function DealersTable({ dealers, refresh, onEdit }: any) {
               <td>{d?.assigned_to?.name}</td>
 
               {/* STATUS */}
-              <td>
-                <div className="flex flex-col gap-1">
-                  <span className={`text-xs ${
-                    d.status === "approved" ? "text-green-600"
-                    : d.status === "pending" ? "text-yellow-600"
-                    : d.status === "unapproved" ? "text-gray-600"
-                    : "text-red-600"
-                  }`}>
-                    {d.status}
-                  </span>
-
-                  {d.status === "rejected" && d.rejectReason && (
-                    <span className="text-[11px] text-red-500">
-                      Reason: {d.rejectReason}
-                    </span>
-                  )}
-                </div>
-              </td>
-
+<td>
+  <div className="flex flex-col gap-1">
+    <span className={`text-xs ${
+      d.status === "approved" ? "text-green-600"
+      : d.status === "pending" ? "text-yellow-600"
+      : d.status === "unapproved" ? "text-gray-600"
+      : "text-red-600"
+    }`}>
+      {d.status}
+    </span>
+  </div>
+</td>
               {/* <td>
                 <span className={`text-xs ${
                   d.is_active ? "text-green-600" : "text-gray-500"
@@ -193,64 +186,9 @@ export default function DealersTable({ dealers, refresh, onEdit }: any) {
                 </span>
               </td> */}
 
+
               {/* ACTIONS */}
-              {/* {(user?.user_type === "admin" || user?.user_type === "salesman") && (
-                <td className="text-right">
-
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <button className="p-2 hover:bg-gray-200 rounded">
-                        <MoreVertical size={18} />
-                      </button>
-                    </DropdownMenuTrigger>
-
-                    <DropdownMenuContent align="end">
-
-                      <DropdownMenuItem onClick={()=>handleViewDealer(d._id)}>
-                        View Details
-                      </DropdownMenuItem>
-
-                      {(user?.user_type === "admin" ||
-                        (user?.user_type === "salesman" &&
-                        String(d?.assigned_to?._id) === String(user?._id))) && (
-                        <DropdownMenuItem onClick={()=>onEdit(d)}>
-                          Edit
-                        </DropdownMenuItem>
-                      )}
-
-                      {user?.user_type === "admin" && (
-                        <>
-                          <DropdownMenuItem onClick={()=>handleAction(d,"approve")} className="text-green-500">
-                            Approve
-                          </DropdownMenuItem>
-
-                          <DropdownMenuItem onClick={()=>handleAction(d,"reject")} className="text-red-500">
-                            Reject
-                          </DropdownMenuItem>
-
-                          {d.status === "approved" && (
-                            <DropdownMenuItem onClick={()=>handleAction(d,"unapprove")} className="text-yellow-500">
-                              Unapprove
-                            </DropdownMenuItem>
-                          )}
-
-                          <DropdownMenuItem onClick={()=>handleAction(d,"reassign")}>
-                            Reassign
-                          </DropdownMenuItem>
-
-                          <DropdownMenuItem onClick={()=>handleAction(d,"delete")} className="text-red-600">
-                            Delete
-                          </DropdownMenuItem>
-                        </>
-                      )}
-
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-
-                </td>
-              )} */}
-              {/* ACTIONS */}
-{(user?.user_type === "admin" || user?.user_type === "salesman") && (
+              {(user?.user_type === "admin" || user?.user_type === "salesman") && (
   <td className="text-right">
 
     <DropdownMenu>
@@ -270,13 +208,15 @@ export default function DealersTable({ dealers, refresh, onEdit }: any) {
         {/* ================= SALESMAN ================= */}
         {user?.user_type === "salesman" && (
           <>
-            {/* ALWAYS EDIT */}
-            <DropdownMenuItem onClick={()=>onEdit(d)}>
-              Edit
-            </DropdownMenuItem>
+            {/* ✅ EDIT ONLY OWN */}
+            {String(d?.assigned_to?._id) === String(user?._id) && (
+              <DropdownMenuItem onClick={()=>onEdit(d)}>
+                Edit
+              </DropdownMenuItem>
+            )}
 
-            {/* DELETE ONLY BEFORE APPROVAL */}
-            {d.status !== "approved" && (
+            {/* ✅ DELETE ONLY BEFORE APPROVAL + OWN */}
+            {String(d?.assigned_to?._id) === String(user?._id) && d.status !== "approved" && (
               <DropdownMenuItem
                 onClick={()=>handleAction(d,"delete")}
                 className="text-red-600"
@@ -290,7 +230,6 @@ export default function DealersTable({ dealers, refresh, onEdit }: any) {
         {/* ================= ADMIN ================= */}
         {user?.user_type === "admin" && (
           <>
-            {/* APPROVE / REJECT ONLY BEFORE APPROVAL */}
             {(d.status === "pending" || d.status === "unapproved") && (
               <>
                 <DropdownMenuItem
@@ -309,7 +248,6 @@ export default function DealersTable({ dealers, refresh, onEdit }: any) {
               </>
             )}
 
-            {/* UNAPPROVE ONLY WHEN APPROVED */}
             {d.status === "approved" && (
               <DropdownMenuItem
                 onClick={()=>handleAction(d,"unapprove")}
@@ -319,19 +257,21 @@ export default function DealersTable({ dealers, refresh, onEdit }: any) {
               </DropdownMenuItem>
             )}
 
-            {/* DELETE ONLY BEFORE APPROVAL */}
-            {d.status !== "approved" && (
-              <DropdownMenuItem
-                onClick={()=>handleAction(d,"delete")}
-                className="text-red-600"
-              >
-                Delete
-              </DropdownMenuItem>
-            )}
+            {/* 🔥 ADMIN CAN DELETE ANYTIME */}
+            <DropdownMenuItem
+              onClick={()=>handleAction(d,"delete")}
+              className="text-red-600"
+            >
+              Delete
+            </DropdownMenuItem>
 
-            {/* ALWAYS AVAILABLE */}
             <DropdownMenuItem onClick={()=>handleAction(d,"reassign")}>
               Reassign
+            </DropdownMenuItem>
+
+            {/* ADMIN EDIT ALWAYS */}
+            <DropdownMenuItem onClick={()=>onEdit(d)}>
+              Edit
             </DropdownMenuItem>
           </>
         )}
@@ -385,35 +325,57 @@ export default function DealersTable({ dealers, refresh, onEdit }: any) {
     ({user?.user_type})
   </p>
 </div>
+{viewDealer?.status === "rejected" && viewDealer?.rejectReason && (
+  <div className="bg-red-50 border border-red-200 p-3 rounded-xl mb-4">
+    <p className="text-xs text-red-500 font-medium">Reject Reason</p>
+    <p className="text-sm text-red-700 mt-1">
+      {viewDealer.rejectReason}
+    </p>
+  </div>
+)}
 
                 {/* HISTORY */}
 <div>
   <p className="font-semibold mb-2">Assignment History</p>
 
-  {viewDealer?.assignment_history?.map((h:any,i:number)=>(
-    <div key={i} className="text-xs bg-gray-50 p-3 rounded mb-2 space-y-1">
+  {viewDealer?.assignment_history?.length ? (
+    viewDealer.assignment_history.map((h:any, i:number) => (
+      <div key={i} className="text-xs bg-gray-50 p-3 rounded mb-2 space-y-2">
+        <div>
+          <p className="text-gray-400">Changed By</p>
+          <p className="text-sm text-black">
+            {h.changed_by?.name || "-"}
+          </p>
+        </div>
 
-      <p>
-        <b>{h.changed_by?.name}</b> ({user?.user_type})
-      </p>
+        <div>
+          <p className="text-gray-400">Reassigned</p>
+          <p className="text-sm text-black">
+            {h.from?.name || "None"} → {h.to?.name || "-"}
+          </p>
+        </div>
 
-      <p>
-        {h.from?.name || "None"} → {h.to?.name}
-      </p>
+        {h.note && (
+          <div>
+            <p className="text-gray-400">Reason / Note</p>
+            <p className="text-sm text-black">
+              {h.note}
+            </p>
+          </div>
+        )}
 
-      <p className="text-gray-700">
-        {h.note}
-      </p>
-
-      <p className="text-gray-400">
-        {new Date(h.date).toLocaleString()}
-      </p>
-
-    </div>
-  ))}
-
-</div>
-              </>
+        <div>
+          <p className="text-gray-400">Date</p>
+          <p className="text-sm text-black">
+            {new Date(h.date).toLocaleString()}
+          </p>
+        </div>
+      </div>
+    ))
+  ) : (
+    <p className="text-sm text-gray-400">No assignment history found.</p>
+  )}
+</div>              </>
             )}
           </div>
         </div>
