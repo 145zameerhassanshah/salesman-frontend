@@ -392,6 +392,8 @@ export default function OrdersPage() {
     editOrder?.status === "dispatched" ||
     editOrder?.status === "posted";
 
+    // Add these state variables
+const [menuPosition, setMenuPosition] = useState({ top: 0, right: 0 });
   return (
     <div className="p-4 md:p-8 bg-gray-100 min-h-screen">
       {/* CONFIRMATION MODAL */}
@@ -1126,7 +1128,8 @@ export default function OrdersPage() {
       </div>
 
       {/* TABLE */}
-      <div className="bg-white rounded-2xl shadow p-4 overflow-x-auto">
+     <div className="bg-white rounded-2xl shadow p-4">
+  <div className="overflow-x-auto">
         <table className="w-full min-w-[900px] text-sm">
           <thead className="text-gray-500 border-b">
             <tr className="text-left">
@@ -1183,170 +1186,127 @@ export default function OrdersPage() {
                       ? new Date(o.due_date).toLocaleDateString("en-GB")
                       : "-"}
                   </td>
-                  <td>
-                    <div className="relative">
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation(); // ✅ VERY IMPORTANT
-                          setOpenMenu(openMenu === o._id ? null : o._id);
-                        }}
-                        className="p-2 bg-gray-100 rounded-md"
-                      >
-                        <MoreVertical size={16} />
-                      </button>
+                <td className="py-4 text-center">
+  <div className="relative inline-block">
+                     <button
+  onClick={(e) => {
+    e.stopPropagation();
+    if (openMenu === o._id) {
+      setOpenMenu(null);
+    } else {
+      const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+      setMenuPosition({
+        top: rect.bottom + window.scrollY + 4,
+        right: window.innerWidth - rect.right,
+      });
+      setOpenMenu(o._id);
+    }
+  }}
+  className="p-2 bg-gray-100 rounded-md"
+>
+  <MoreVertical size={16} />
+</button>
 
-                      {openMenu === o._id && (
-                        <div className="absolute right-0 mt-2 w-40 bg-white border rounded-lg shadow-lg z-50">
-                          {/* VIEW */}
-                          {/* VIEW - everyone */}
-                          <button
-                            onClick={() => {
-                              handleView(o._id);
-                              setOpenMenu(null);
-                            }}
-                            className="block w-full text-left px-4 py-2 hover:bg-gray-100"
-                          >
-                            View
-                          </button>
+                      {/* DROPDOWN PORTAL — rendered outside table scroll container */}
+{openMenu && (
+  <div
+    style={{ position: "fixed", top: menuPosition.top, right: menuPosition.right, zIndex: 9999 }}
+    className="w-44 bg-white border border-gray-200 rounded-xl shadow-2xl overflow-hidden"
+    onClick={(e) => e.stopPropagation()}
+  >
+    {/* Find the current order for this menu */}
+    {(() => {
+      const o = filtered?.find((o: any) => o._id === openMenu);
+      if (!o) return null;
 
-                          {/* EDIT */}
-                          {user?.user_type === "admin" &&
-                            o.status !== "dispatched" &&
-                            o.status !== "posted" && (
-                              <button
-                                onClick={() => {
-                                  handleEdit(o._id);
-                                  setOpenMenu(null);
-                                }}
-                                className="block w-full text-left px-4 py-2 hover:bg-gray-100"
-                              >
-                                Edit
-                              </button>
-                            )}
+      return (
+        <>
+          <button onClick={() => { handleView(o._id); setOpenMenu(null); }}
+            className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-sm">
+            View
+          </button>
+          {o?.status !== "unapproved" && o?.status !== "rejected" && (
+            <button
+              onClick={async () => {
+                const blob = await order.downloadPDF(o._id);
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.href = url;
+                a.download = `order-${o.order_number}.pdf`;
+                a.click();
+                window.URL.revokeObjectURL(url);
+                setOpenMenu(null);
+              }}
+              className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-sm">
+              Download PDF
+            </button>
+          )}
 
-                          {user?.user_type === "salesman" &&
-                            (o.status === "unapproved" || o.status==="approved" || o.status==="rejected") &&
-                            o?.createdBy?._id === user?._id && (
-                              <button
-                                onClick={() => {
-                                  handleEdit(o._id);
-                                  setOpenMenu(null);
-                                }}
-                                className="block w-full text-left px-4 py-2 hover:bg-gray-100"
-                              >
-                                Edit
-                              </button>
-                            )}
+          {user?.user_type === "admin" && o.status !== "dispatched" && o.status !== "posted" && (
+            <button onClick={() => { handleEdit(o._id); setOpenMenu(null); }}
+              className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-sm">
+              Edit
+            </button>
+          )}
 
-                          {/* Dispatcher: can edit approved and partial only (not posted) */}
-                          {user?.user_type === "dispatcher" &&
-                            (o.status === "approved" ||
-                              o.status === "partial" ||
-                              o.status === "dispatched") && (
-                              <button
-                                onClick={() => {
-                                  handleEdit(o._id);
-                                  setOpenMenu(null);
-                                }}
-                                className="block w-full text-left px-4 py-2 hover:bg-gray-100"
-                              >
-                                Edit
-                              </button>
-                            )}
+          {user?.user_type === "salesman" &&
+            (o.status === "unapproved" || o.status === "approved" || o.status === "rejected") &&
+            o?.createdBy?._id === user?._id && (
+              <button onClick={() => { handleEdit(o._id); setOpenMenu(null); }}
+                className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-sm">
+                Edit
+              </button>
+            )}
 
-                          {/* Accountant: can edit dispatched only */}
-                          {user?.user_type === "accountant" &&
-                            o.status === "dispatched" && (
-                              <button
-                                onClick={() => {
-                                  handleEdit(o._id);
-                                  setOpenMenu(null);
-                                }}
-                                className="block w-full text-left px-4 py-2 hover:bg-gray-100"
-                              >
-                                Edit
-                              </button>
-                            )}
-                            
+          {user?.user_type === "dispatcher" &&
+            (o.status === "approved" || o.status === "partial" || o.status === "dispatched") && (
+              <button onClick={() => { handleEdit(o._id); setOpenMenu(null); }}
+                className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-sm">
+                Edit
+              </button>
+            )}
 
-                          {/* APPROVE — admin only */}
-                          {user?.user_type === "admin" &&
-                            (o.status === "unapproved" ||
-                              o.status === "rejected") && (
-                              <button
-                                onClick={() => {
-                                  handleAction(o._id, "approve");
-                                  setOpenMenu(null);
-                                }}
-                                className="block w-full text-left px-4 py-2 text-green-600 hover:bg-gray-100"
-                              >
-                                Approve
-                              </button>
-                            )}
+          {user?.user_type === "accountant" && o.status === "dispatched" && (
+            <button onClick={() => { handleEdit(o._id); setOpenMenu(null); }}
+              className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-sm">
+              Edit
+            </button>
+          )}
 
-                          {/* UNAPPROVE — admin only */}
-                          {user?.user_type === "admin" &&
-                            o.status === "approved" && (
-                              <button
-                                onClick={() => {
-                                  handleAction(o._id, "unapprove");
-                                  setOpenMenu(null);
-                                }}
-                                className="block w-full text-left px-4 py-2 text-yellow-600 hover:bg-gray-100"
-                              >
-                                Unapprove
-                              </button>
-                            )}
+          {user?.user_type === "admin" && (o.status === "unapproved" || o.status === "rejected") && (
+            <button onClick={() => { handleAction(o._id, "approve"); setOpenMenu(null); }}
+              className="block w-full text-left px-4 py-2 text-green-600 hover:bg-gray-100 text-sm">
+              Approve
+            </button>
+          )}
 
-                          {/* REJECT — admin only, not already rejected/posted */}
-                          {user?.user_type === "admin" &&
-                            o.status !== "rejected" &&
-                            o.status!=="dispatched" &&
-                            o.status !== "posted" && (
-                              <button
-                                onClick={() => {
-                                  handleAction(o._id, "reject");
-                                  setOpenMenu(null);
-                                }}
-                                className="block w-full text-left px-4 py-2 text-red-600 hover:bg-gray-100"
-                              >
-                                Reject
-                              </button>
-                            )}
+          {user?.user_type === "admin" && o.status === "approved" && (
+            <button onClick={() => { handleAction(o._id, "unapprove"); setOpenMenu(null); }}
+              className="block w-full text-left px-4 py-2 text-yellow-600 hover:bg-gray-100 text-sm">
+              Unapprove
+            </button>
+          )}
 
-                          {/* DELETE — salesman only when unapproved and own order */}
-                          {user?.user_type === "salesman" &&
-                            o.status === "unapproved" &&
-                            o?.createdBy?._id === user?._id && (
-                              <button
-                                onClick={() => {
-                                  handleAction(o._id, "reject");
-                                  setOpenMenu(null);
-                                }}
-                                className="block w-full text-left px-4 py-2 text-red-600 hover:bg-gray-100"
-                              >
-                                Delete
-                              </button>
-                            )}
+          {user?.user_type === "admin" &&
+            o.status !== "rejected" && o.status !== "dispatched" && o.status !== "posted" && (
+              <button onClick={() => { handleAction(o._id, "reject"); setOpenMenu(null); }}
+                className="block w-full text-left px-4 py-2 text-red-600 hover:bg-gray-100 text-sm">
+                Reject
+              </button>
+            )}
 
-                          {/* PDF */}
-                          {o?.status!=="unapproved" && o?.status!=="rejected" && <button
-                            onClick={async () => {
-                              const blob = await order.downloadPDF(o._id);
-                              const url = window.URL.createObjectURL(blob);
-                              const a = document.createElement("a");
-                              a.href = url;
-                              a.download = `order-${o.order_number}.pdf`;
-                              a.click();
-                              window.URL.revokeObjectURL(url);
-                              setOpenMenu(null);
-                            }}
-                            className="block w-full text-left px-4 py-2 hover:bg-gray-100"
-                          >
-                            Download PDF
-                          </button>}
-                        </div>
-                      )}
+          {user?.user_type === "salesman" &&
+            o.status === "unapproved" && o?.createdBy?._id === user?._id && (
+              <button onClick={() => { handleAction(o._id, "reject"); setOpenMenu(null); }}
+                className="block w-full text-left px-4 py-2 text-red-600 hover:bg-gray-100 text-sm">
+                Delete
+              </button>
+            )}
+        </>
+      );
+    })()}
+  </div>
+)}
                     </div>
                   </td>
                 </tr>
@@ -1364,6 +1324,7 @@ export default function OrdersPage() {
             )}
           </tbody>
         </table>
+        </div>
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mt-6 text-sm text-gray-500">
           <p>Total Orders: {filtered?.length || 0}</p>
           <div className="flex items-center gap-2">

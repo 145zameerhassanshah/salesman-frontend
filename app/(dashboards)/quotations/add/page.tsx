@@ -337,7 +337,7 @@ export default function AddQuotation() {
                 </div>
               ) : (
                 <span className="text-sm px-1">
-                  {item.discount}{item.discount_type === "percent" ? "%" : " Rs"}
+                  {item.discount}
                 </span>
               )}
 

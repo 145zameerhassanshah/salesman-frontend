@@ -10,8 +10,6 @@ export default function HeaderQuotation({ quotation }) {
           style={{ aspectRatio: "auto" }}
         />
       </div>
-
-      {/* 🧾 QUOTATION HEADING */}
       <h1 className="text-center text-2xl font-bold tracking-wide">
         QUOTATION
       </h1>
