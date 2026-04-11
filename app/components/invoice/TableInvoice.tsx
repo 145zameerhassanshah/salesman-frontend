@@ -49,7 +49,7 @@ export default function TableInvoice({ items = [] }) {
                       <img
                         src={
                           item?.product_id?.image
-                            ? `${process.env.NEXT_PUBLIC_API_URL}/uploads/${item.product_id.image}`
+                            ? item.product_id.image
                             : "/images/default-product.png"
                         }
                         alt="product"

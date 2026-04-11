@@ -52,7 +52,7 @@ export default function OrdersPage() {
   const [viewOrder, setViewOrder] = useState<any>(null);
   const [viewItems, setViewItems] = useState<any[]>([]);
   const [viewLoading, setViewLoading] = useState(false);
-const [rejectReason, setRejectReason] = useState("");
+  const [rejectReason, setRejectReason] = useState("");
   const [editOrder, setEditOrder] = useState<any>(null);
   const [editItems, setEditItems] = useState<any[]>([]);
   const [productMap, setProductMap] = useState<any>({});
@@ -111,9 +111,9 @@ const [rejectReason, setRejectReason] = useState("");
     setConfirmOrderId(orderId);
     setConfirmAction(action);
 
-      if (action === "reject") {
-    setRejectReason(""); // reset every time
-  }
+    if (action === "reject") {
+      setRejectReason(""); // reset every time
+    }
   };
   const handleDownload = async (id: any) => {
     try {
@@ -141,7 +141,9 @@ const [rejectReason, setRejectReason] = useState("");
   };
   const handleConfirm = async () => {
     if (confirmAction === "approve") {
-      const res = await order.updateStatus(confirmOrderId, {status:"approved"});
+      const res = await order.updateStatus(confirmOrderId, {
+        status: "approved",
+      });
 
       if (!res.success)
         return toast.error(res?.message || "Problem approving order");
@@ -149,7 +151,9 @@ const [rejectReason, setRejectReason] = useState("");
       toast.success(res?.message);
       await refetch();
     } else if (confirmAction === "unapprove") {
-      const res = await order.updateStatus(confirmOrderId, {status:"unapproved"});
+      const res = await order.updateStatus(confirmOrderId, {
+        status: "unapproved",
+      });
 
       if (!res.success)
         return toast.error(res?.message || "Problem unapproving order");
@@ -165,7 +169,10 @@ const [rejectReason, setRejectReason] = useState("");
 
         toast.success(res?.message);
       } else {
-        const res = await order.updateStatus(confirmOrderId, {status:"rejected",rejectReason});
+        const res = await order.updateStatus(confirmOrderId, {
+          status: "rejected",
+          rejectReason,
+        });
 
         if (!res.success)
           return toast.error(res?.message || "Problem rejecting order");
@@ -379,9 +386,14 @@ const [rejectReason, setRejectReason] = useState("");
     setEditFields({});
   };
 
+  const isFinancialLocked =
+    isDispatcher ||
+    user?.user_type === "accountant" ||
+    editOrder?.status === "dispatched" ||
+    editOrder?.status === "posted";
+
   return (
     <div className="p-4 md:p-8 bg-gray-100 min-h-screen">
-      
       {/* CONFIRMATION MODAL */}
       {confirmOrderId && confirmAction && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
@@ -396,20 +408,20 @@ const [rejectReason, setRejectReason] = useState("");
                     : "Reject Order?"}
             </h2>
             {confirmAction === "reject" && user?.user_type !== "salesman" && (
-  <div className="mb-4">
-    <label className="text-xs text-gray-500 font-medium mb-1 block">
-      Reject Reason <span className="text-red-500">*</span>
-    </label>
+              <div className="mb-4">
+                <label className="text-xs text-gray-500 font-medium mb-1 block">
+                  Reject Reason <span className="text-red-500">*</span>
+                </label>
 
-    <textarea
-      value={rejectReason}
-      onChange={(e) => setRejectReason(e.target.value)}
-      placeholder="Write reason for rejection..."
-      className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-gray-300"
-      rows={3}
-    />
-  </div>
-)}
+                <textarea
+                  value={rejectReason}
+                  onChange={(e) => setRejectReason(e.target.value)}
+                  placeholder="Write reason for rejection..."
+                  className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-gray-300"
+                  rows={3}
+                />
+              </div>
+            )}
             <p className="text-sm text-gray-500 mb-6">
               {confirmAction === "approve"
                 ? "Are you sure you want to approve this order?"
@@ -425,26 +437,26 @@ const [rejectReason, setRejectReason] = useState("");
                 Cancel
               </button>
               <button
-  onClick={handleConfirm}
-  disabled={
-    confirmAction === "reject" &&
-    user?.user_type !== "salesman" &&
-    !rejectReason.trim()
-  }
-  className={`px-4 py-2 rounded-lg text-white ${
-    confirmAction === "approve"
-      ? "bg-green-500 hover:bg-green-600"
-      : confirmAction === "unapprove"
-      ? "bg-yellow-500 hover:bg-yellow-600"
-      : "bg-red-500 hover:bg-red-600"
-  } ${
-    confirmAction === "reject" &&
-    user?.user_type !== "salesman" &&
-    !rejectReason.trim()
-      ? "opacity-50 cursor-not-allowed"
-      : ""
-  }`}
->
+                onClick={handleConfirm}
+                disabled={
+                  confirmAction === "reject" &&
+                  user?.user_type !== "salesman" &&
+                  !rejectReason.trim()
+                }
+                className={`px-4 py-2 rounded-lg text-white ${
+                  confirmAction === "approve"
+                    ? "bg-green-500 hover:bg-green-600"
+                    : confirmAction === "unapprove"
+                      ? "bg-yellow-500 hover:bg-yellow-600"
+                      : "bg-red-500 hover:bg-red-600"
+                } ${
+                  confirmAction === "reject" &&
+                  user?.user_type !== "salesman" &&
+                  !rejectReason.trim()
+                    ? "opacity-50 cursor-not-allowed"
+                    : ""
+                }`}
+              >
                 {confirmAction === "approve"
                   ? "Approve"
                   : confirmAction === "unapprove"
@@ -573,15 +585,15 @@ const [rejectReason, setRejectReason] = useState("");
                     </table>
                   </div>
                   {viewOrder?.rejectReason && (
-  <div className="mt-5 bg-red-50 border border-red-200 rounded-xl p-4">
-    <p className="text-xs text-red-600 font-semibold mb-1">
-      Rejection Reason
-    </p>
-    <p className="text-sm text-gray-700 leading-relaxed">
-      {viewOrder?.rejectReason}
-    </p>
-  </div>
-)}
+                    <div className="mt-5 bg-red-50 border border-red-200 rounded-xl p-4">
+                      <p className="text-xs text-red-600 font-semibold mb-1">
+                        Rejection Reason
+                      </p>
+                      <p className="text-sm text-gray-700 leading-relaxed">
+                        {viewOrder?.rejectReason}
+                      </p>
+                    </div>
+                  )}
                 </div>
                 <div className="bg-gray-50 rounded-xl p-4 space-y-2 text-sm">
                   <div className="flex justify-between">
@@ -665,17 +677,20 @@ const [rejectReason, setRejectReason] = useState("");
                         : "-"}
                     </p>
                     <p className="text-xs text-gray-400 mt-2 mb-1">Due Date</p>
+                    {/* Due Date — admin/salesman only */}
                     <input
                       type="date"
                       value={editFields.due_date}
-                      disabled={isDispatcher}
+                      disabled={
+                        isDispatcher || user?.user_type === "accountant"
+                      }
                       onChange={(e) =>
                         setEditFields((prev: any) => ({
                           ...prev,
                           due_date: e.target.value,
                         }))
                       }
-                      className="w-full text-sm border rounded-lg px-2 py-1 focus:outline-none focus:ring-1 focus:ring-gray-300 bg-white"
+                      className="w-full text-sm border rounded-lg px-2 py-1 focus:outline-none focus:ring-1 focus:ring-gray-300 bg-white disabled:bg-gray-50 disabled:text-gray-400"
                     />
                   </div>
                 </div>
@@ -684,15 +699,17 @@ const [rejectReason, setRejectReason] = useState("");
                     Payment Term
                   </label>
 
+                  {/* Payment Term — accountant CAN edit, dispatcher cannot */}
                   <select
                     value={editFields.payment_term || "cash"}
                     onChange={(e) =>
-                      setEditFields((prev) => ({
+                      setEditFields((prev: any) => ({
                         ...prev,
                         payment_term: e.target.value,
                       }))
                     }
-                    className="w-full border rounded-lg px-3 py-2 mt-1"
+                    disabled={isDispatcher}
+                    className="w-full border rounded-lg px-3 py-2 mt-1 disabled:bg-gray-50 disabled:text-gray-400"
                   >
                     <option value="cash">Cash</option>
                     <option value="advance">Advance</option>
@@ -700,10 +717,12 @@ const [rejectReason, setRejectReason] = useState("");
                   </select>
                 </div>
                 {/* Delivery notes */}
+                {/* Delivery notes — dispatcher can edit, accountant cannot */}
                 <div className="mb-6">
                   <label className="text-xs text-gray-500 font-medium mb-1 block">
                     Delivery Notes
                   </label>
+                  {/* Delivery Notes — dispatcher CAN edit, accountant cannot */}
                   <textarea
                     rows={2}
                     value={editFields.deliveryNotes}
@@ -715,17 +734,15 @@ const [rejectReason, setRejectReason] = useState("");
                     }
                     disabled={user?.user_type === "accountant"}
                     placeholder="Add delivery notes..."
-                    className="w-full text-sm border rounded-xl px-3 py-2 focus:outline-none focus:ring-1 focus:ring-gray-300 resize-none"
+                    className="w-full text-sm border rounded-xl px-3 py-2 focus:outline-none focus:ring-1 focus:ring-gray-300 resize-none disabled:bg-gray-50 disabled:text-gray-400"
                   />
                 </div>
 
-                {/* Items table */}
                 {isDispatcher || user?.user_type === "accountant" ? (
                   <div className="mb-5">
                     <p className="text-sm font-semibold text-gray-700 mb-3">
                       Order Items
                     </p>
-
                     <div className="border rounded-xl overflow-hidden">
                       <table className="w-full text-sm">
                         <thead className="bg-gray-50 text-gray-500 text-xs">
@@ -733,11 +750,10 @@ const [rejectReason, setRejectReason] = useState("");
                             <th className="text-left px-4 py-3">Product</th>
                             <th className="px-4 py-3">Qty</th>
                             <th className="px-4 py-3">Unit Price</th>
-                            <th className="px-4 py-3">Discount %/Amt</th>
+                            <th className="px-4 py-3">Discount</th>
                             <th className="px-4 py-3 text-right">Total</th>
                           </tr>
                         </thead>
-
                         <tbody>
                           {editItems.map((item: any, i: number) => (
                             <tr key={i} className="border-t">
@@ -954,6 +970,7 @@ const [rejectReason, setRejectReason] = useState("");
                     </span>
                     <select
                       value={editFields.discount_type}
+                      disabled={isFinancialLocked}
                       onChange={(e) =>
                         setEditFields((prev: any) => ({
                           ...prev,
@@ -974,7 +991,8 @@ const [rejectReason, setRejectReason] = useState("");
                           discount: e.target.value,
                         }))
                       }
-                      className="flex-1 border rounded-lg px-2 py-1 text-xs focus:outline-none bg-white min-w-0"
+                      disabled={isFinancialLocked}
+                      className="flex-1 border rounded-lg px-2 py-1 text-xs focus:outline-none bg-white min-w-0 disabled:bg-gray-50 disabled:text-gray-400"
                     />
                     <span className="text-red-500 w-20 text-right shrink-0">
                       - {computedTotals.discountAmt.toFixed(2)}
@@ -985,7 +1003,8 @@ const [rejectReason, setRejectReason] = useState("");
                   <div className="flex items-center gap-2">
                     <span className="text-gray-500 w-20 shrink-0">Tax</span>
                     <select
-                      value={editFields.tax_type}
+                      value={editFields.discount_type}
+                      disabled={isFinancialLocked}
                       onChange={(e) =>
                         setEditFields((prev: any) => ({
                           ...prev,
@@ -999,7 +1018,8 @@ const [rejectReason, setRejectReason] = useState("");
                     </select>
                     <input
                       type="number"
-                      value={editFields.tax}
+                      value={editFields.tax_type}
+                      disabled={isFinancialLocked}
                       onChange={(e) =>
                         setEditFields((prev: any) => ({
                           ...prev,
@@ -1023,7 +1043,6 @@ const [rejectReason, setRejectReason] = useState("");
                     <label className="text-xs text-gray-500 font-medium">
                       Order Status <span className="text-red-500">*</span>
                     </label>
-
                     <select
                       value={editOrder?.status || ""}
                       onChange={(e) =>
@@ -1032,27 +1051,17 @@ const [rejectReason, setRejectReason] = useState("");
                           status: e.target.value,
                         }))
                       }
-                      required
                       className="w-full border rounded-lg px-3 py-2 mt-1"
                     >
                       <option value="">Select Status</option>
-
                       {isDispatcher && (
                         <>
                           <option value="partial">Partial</option>
                           <option value="dispatched">Dispatched</option>
                         </>
                       )}
-
                       {user?.user_type === "accountant" && (
                         <option value="posted">Posted</option>
-                      )}
-
-                      {user?.user_type === "admin" && (
-                        <>
-                          <option value="approved">Approved</option>
-                          <option value="rejected">Rejected</option>
-                        </>
                       )}
                     </select>
                   </div>
@@ -1189,6 +1198,7 @@ const [rejectReason, setRejectReason] = useState("");
                       {openMenu === o._id && (
                         <div className="absolute right-0 mt-2 w-40 bg-white border rounded-lg shadow-lg z-50">
                           {/* VIEW */}
+                          {/* VIEW - everyone */}
                           <button
                             onClick={() => {
                               handleView(o._id);
@@ -1200,20 +1210,66 @@ const [rejectReason, setRejectReason] = useState("");
                           </button>
 
                           {/* EDIT */}
-                          {(canEditFull ||
-                            user?.user_type === "dispatcher") && (
-                            <button
-                              onClick={() => {
-                                handleEdit(o._id);
-                                setOpenMenu(null);
-                              }}
-                              className="block w-full text-left px-4 py-2 hover:bg-gray-100"
-                            >
-                              Edit
-                            </button>
-                          )}
+                          {user?.user_type === "admin" &&
+                            o.status !== "dispatched" &&
+                            o.status !== "posted" && (
+                              <button
+                                onClick={() => {
+                                  handleEdit(o._id);
+                                  setOpenMenu(null);
+                                }}
+                                className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+                              >
+                                Edit
+                              </button>
+                            )}
 
-                          {/* APPROVE */}
+                          {user?.user_type === "salesman" &&
+                            (o.status === "unapproved" || o.status==="approved" || o.status==="rejected") &&
+                            o?.createdBy?._id === user?._id && (
+                              <button
+                                onClick={() => {
+                                  handleEdit(o._id);
+                                  setOpenMenu(null);
+                                }}
+                                className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+                              >
+                                Edit
+                              </button>
+                            )}
+
+                          {/* Dispatcher: can edit approved and partial only (not posted) */}
+                          {user?.user_type === "dispatcher" &&
+                            (o.status === "approved" ||
+                              o.status === "partial" ||
+                              o.status === "dispatched") && (
+                              <button
+                                onClick={() => {
+                                  handleEdit(o._id);
+                                  setOpenMenu(null);
+                                }}
+                                className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+                              >
+                                Edit
+                              </button>
+                            )}
+
+                          {/* Accountant: can edit dispatched only */}
+                          {user?.user_type === "accountant" &&
+                            o.status === "dispatched" && (
+                              <button
+                                onClick={() => {
+                                  handleEdit(o._id);
+                                  setOpenMenu(null);
+                                }}
+                                className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+                              >
+                                Edit
+                              </button>
+                            )}
+                            
+
+                          {/* APPROVE — admin only */}
                           {user?.user_type === "admin" &&
                             (o.status === "unapproved" ||
                               o.status === "rejected") && (
@@ -1228,7 +1284,7 @@ const [rejectReason, setRejectReason] = useState("");
                               </button>
                             )}
 
-                          {/* UNAPPROVE */}
+                          {/* UNAPPROVE — admin only */}
                           {user?.user_type === "admin" &&
                             o.status === "approved" && (
                               <button
@@ -1242,27 +1298,39 @@ const [rejectReason, setRejectReason] = useState("");
                               </button>
                             )}
 
-                          {/* REJECT / DELETE */}
-                          {!(
-                            (o?.status === "posted" ||
-                              o?.status === "rejected") &&
-                            user?.user_type !== "salesman"
-                          ) && (
-                            <button
-                              onClick={() => {
-                                handleAction(o._id, "reject");
-                                setOpenMenu(null);
-                              }}
-                              className="block w-full text-left px-4 py-2 text-red-600 hover:bg-gray-100"
-                            >
-                              {user?.user_type === "salesman"
-                                ? "Delete"
-                                : "Reject"}
-                            </button>
-                          )}
+                          {/* REJECT — admin only, not already rejected/posted */}
+                          {user?.user_type === "admin" &&
+                            o.status !== "rejected" &&
+                            o.status!=="dispatched" &&
+                            o.status !== "posted" && (
+                              <button
+                                onClick={() => {
+                                  handleAction(o._id, "reject");
+                                  setOpenMenu(null);
+                                }}
+                                className="block w-full text-left px-4 py-2 text-red-600 hover:bg-gray-100"
+                              >
+                                Reject
+                              </button>
+                            )}
+
+                          {/* DELETE — salesman only when unapproved and own order */}
+                          {user?.user_type === "salesman" &&
+                            o.status === "unapproved" &&
+                            o?.createdBy?._id === user?._id && (
+                              <button
+                                onClick={() => {
+                                  handleAction(o._id, "reject");
+                                  setOpenMenu(null);
+                                }}
+                                className="block w-full text-left px-4 py-2 text-red-600 hover:bg-gray-100"
+                              >
+                                Delete
+                              </button>
+                            )}
 
                           {/* PDF */}
-                          <button
+                          {o?.status!=="unapproved" && o?.status!=="rejected" && <button
                             onClick={async () => {
                               const blob = await order.downloadPDF(o._id);
                               const url = window.URL.createObjectURL(blob);
@@ -1276,7 +1344,7 @@ const [rejectReason, setRejectReason] = useState("");
                             className="block w-full text-left px-4 py-2 hover:bg-gray-100"
                           >
                             Download PDF
-                          </button>
+                          </button>}
                         </div>
                       )}
                     </div>
