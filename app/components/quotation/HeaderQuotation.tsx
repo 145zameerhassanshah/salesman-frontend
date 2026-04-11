@@ -15,7 +15,7 @@ export default function HeaderQuotation({ quotation }) {
       </h1>
 
       {/* 🔽 MAIN SECTION */}
-      <div className="flex justify-between items-start mt-4">
+      <div className="flex justify-between items-start mt-3">
         {/* LEFT → DEALER */}
         <div className="space-y-2 text-sm">
           {/* LOGO + NAME SAME ROW */}
@@ -24,7 +24,7 @@ export default function HeaderQuotation({ quotation }) {
               src={quotation?.dealer_id?.business_logo}
               alt="Dealer"
               className="w-6 h-6 object-contain bg-gray-100 rounded-md p-1"
-            />
+            /> 
             <p className="font-semibold text-base">
               {quotation?.dealer_id?.name || "-"}
             </p>
