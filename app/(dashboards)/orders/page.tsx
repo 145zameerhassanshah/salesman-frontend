@@ -1,8 +1,10 @@
 "use client";
 
 import API_URL from "@/app/components/lib/apiConfig";
+import DealerService from "@/app/components/services/dealerService";
 import { order } from "@/app/components/services/orderService";
 import { useCategory } from "@/hooks/useCategory";
+import { useDealers } from "@/hooks/useDealers";
 import { useOrders } from "@/hooks/useOrders";
 import {
   Check,
@@ -59,6 +61,8 @@ export default function OrdersPage() {
   const [editLoading, setEditLoading] = useState(false);
   const [editSaving, setEditSaving] = useState(false);
   const [editFields, setEditFields] = useState<any>({});
+const {data:dealer}=useDealers(user?.industry);
+const dealers=dealer?.dealers;
 
   useEffect(() => {
     const handleClickOutside = () => setOpenMenu(null);
@@ -101,6 +105,9 @@ export default function OrdersPage() {
     return result;
   }, [search, statusFilter, data]);
 
+
+
+  
   const formatStatus = (status: string) =>
     status ? status.charAt(0).toUpperCase() + status.slice(1) : "-";
 
@@ -234,6 +241,7 @@ export default function OrdersPage() {
         payment_term: res.order?.payment_term || "cash",
         discount_type: res.order?.discount_type || "amount",
         tax_type: res.order?.tax_type || "amount",
+        dealer_id: res.order?.dealer_id || "",
         // ✅ store raw input — for percent orders, back-calculate the rate
         discount:
           res.order?.discount_type === "percent"
@@ -350,7 +358,8 @@ export default function OrdersPage() {
         payment_term: editFields.payment_term,
         discount: editFields.discount, // ✅ raw input (e.g. "10" for 10%)
         discount_type: editFields.discount_type,
-        tax: editFields.tax, // ✅ raw input
+        tax: editFields.tax,
+        dealer_id: editFields.dealer_id, // ✅ raw input
         tax_type: editFields.tax_type,
         items: editItems.map((item) => ({
           _id: item._id,
@@ -654,21 +663,25 @@ export default function OrdersPage() {
                 {/* Info row */}
                 <div className="grid grid-cols-2 gap-4 mb-6">
                   <div className="bg-gray-50 rounded-xl p-4">
-                    <p className="text-xs text-gray-400 mb-1">Dealer</p>
-                    <p className="text-sm font-medium">
-                      {editOrder?.dealer_id?.name}
-                    </p>
-                    <p className="text-xs text-gray-400 mt-2 mb-1">
-                      Created By
-                    </p>
-                    <p className="text-sm">
-                      {editOrder?.createdBy?.name} (
-                      {editOrder?.createdBy?.user_type === "admin"
-                        ? "Director"
-                        : "Salesman"}
-                      )
-                    </p>
-                  </div>
+  <p className="text-xs text-gray-400 mb-1">Dealer</p>
+  {/* ✅ Editable for admin/salesman, static for dispatcher/accountant */}
+  {isDispatcher || user?.user_type === "accountant" ? (
+    <p className="text-sm font-medium">{editOrder?.dealer_id?.name}</p>
+  ) : (
+    <select
+      value={editFields.dealer_id || ""}
+      onChange={(e) => setEditFields((prev: any) => ({ ...prev, dealer_id: e.target.value }))}
+      className="w-full text-sm border rounded-lg px-2 py-1 focus:outline-none focus:ring-1 focus:ring-gray-300 bg-white"
+    >
+      <option value="">Select Dealer</option>
+      {dealers.map((d: any) => (
+        <option key={d._id} value={d._id}>{d.name}</option>
+      ))}
+    </select>
+  )}
+  <p className="text-xs text-gray-400 mt-2 mb-1">Created By</p>
+  <p className="text-sm">{editOrder?.createdBy?.name} ({editOrder?.createdBy?.user_type==="admin"?"Director":"Salesman"})</p>
+</div>
                   <div className="bg-gray-50 rounded-xl p-4">
                     <p className="text-xs text-gray-400 mb-1">Order Date</p>
                     <p className="text-sm font-medium">
@@ -1005,7 +1018,7 @@ export default function OrdersPage() {
                   <div className="flex items-center gap-2">
                     <span className="text-gray-500 w-20 shrink-0">Tax</span>
                     <select
-                      value={editFields.discount_type}
+                      value={editFields.tax_type}
                       disabled={isFinancialLocked}
                       onChange={(e) =>
                         setEditFields((prev: any) => ({
@@ -1020,7 +1033,7 @@ export default function OrdersPage() {
                     </select>
                     <input
                       type="number"
-                      value={editFields.tax_type}
+                      value={editFields.tax}
                       disabled={isFinancialLocked}
                       onChange={(e) =>
                         setEditFields((prev: any) => ({
