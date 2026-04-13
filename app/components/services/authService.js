@@ -158,6 +158,20 @@ class AuthService {
     }
   }
 
+static async deleteUser(id) {
+  const res = await fetch(`${API.users}/${id}`, {
+    method: "DELETE",
+    credentials: "include",
+  });
+
+  const result = await res.json();
+
+  if (!res.ok) {
+    throw new Error(result.message || "Delete failed");
+  }
+
+  return result;
+}
 }
 
 export default AuthService;

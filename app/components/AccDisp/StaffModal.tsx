@@ -24,6 +24,7 @@ export default function StaffModal({
   const [form, setForm] = useState({
     name: "",
     email: "",
+
     phone_number: "",
     whatsapp_number: "",
     city: "",

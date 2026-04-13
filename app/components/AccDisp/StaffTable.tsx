@@ -1,12 +1,39 @@
-import { Pencil } from "lucide-react";
+import { Pencil, Trash2 } from "lucide-react";
+import UserService from "@/app/components/services/userService";
+import toast from "react-hot-toast";
 
 export default function StaffTable({
   data,
   onEdit,
+  refetch, // ✅ add this if needed
 }: {
   data: any[];
   onEdit: (item: any) => void;
+  refetch?: () => void;
 }) {
+
+  // ✅ FUNCTION YAHAN LIKHNA HAI
+  const handleDelete = async (id: string) => {
+    try {
+      if (!confirm("Are you sure?")) return;
+
+      const res = await UserService.deleteUser(id);
+
+      if (!res?.success) {
+        toast.error(res?.message);
+        return;
+      }
+
+      toast.success(res?.message);
+
+      refetch && refetch(); // safe call
+
+    } catch (err: any) {
+      console.log(err);
+      toast.error(err.message);
+    }
+  };
+
   return (
     <div className="overflow-x-auto border rounded-lg">
       <table className="w-full text-left">
@@ -26,8 +53,8 @@ export default function StaffTable({
             <tr key={item._id} className="border-t">
               <td className="p-3">
                 <img
-                  src={item.image}
-                  className="w-10 h-10 rounded-full"
+                  src={item.profile_image || "/profile.png"} // ✅ fix
+                  className="w-10 h-10 rounded-full object-cover"
                 />
               </td>
 
@@ -46,12 +73,28 @@ export default function StaffTable({
                 </span>
               </td>
 
-              <td className="p-3">{item.joined}</td>
-
               <td className="p-3">
-                <button onClick={() => onEdit(item)}>
+                {new Date(item.createdAt).toLocaleDateString("en-GB")}
+              </td>
+
+              <td className="p-3 flex items-center gap-2">
+
+                {/* EDIT */}
+                <button
+                  onClick={() => onEdit(item)}
+                  className="p-2 bg-gray-100 rounded-md hover:bg-gray-200"
+                >
                   <Pencil size={16} />
                 </button>
+
+                {/* DELETE ICON */}
+                <button
+                  onClick={() => handleDelete(item._id)}
+                  className="p-2 bg-red-100 text-red-600 rounded-md hover:bg-red-200"
+                >
+                  <Trash2 size={16} /> {/* ✅ ICON */}
+                </button>
+
               </td>
             </tr>
           ))}
