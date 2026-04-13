@@ -4,29 +4,27 @@ export default function HeaderQuotation({ quotation }) {
       {/* 🔝 COMPANY LOGO CENTER (BIG) */}
       <div className="flex justify-center">
         <img
-          src={`${process.env.NEXT_PUBLIC_API_URL}/uploads/${quotation?.businessId?.business_logo}`}
+          src={quotation?.businessId?.business_logo}
           alt="Company Logo"
           className="h-20 object-cover"
           style={{ aspectRatio: "auto" }}
         />
       </div>
-
-      {/* 🧾 QUOTATION HEADING */}
       <h1 className="text-center text-2xl font-bold tracking-wide">
         QUOTATION
       </h1>
 
       {/* 🔽 MAIN SECTION */}
-      <div className="flex justify-between items-start mt-4">
+      <div className="flex justify-between items-start mt-3">
         {/* LEFT → DEALER */}
         <div className="space-y-2 text-sm">
           {/* LOGO + NAME SAME ROW */}
           <div className="flex items-center gap-2">
             <img
-              src={`${process.env.NEXT_PUBLIC_API_URL}/uploads/${quotation?.dealer_id?.business_logo}`}
+              src={quotation?.dealer_id?.business_logo}
               alt="Dealer"
               className="w-6 h-6 object-contain bg-gray-100 rounded-md p-1"
-            />
+            /> 
             <p className="font-semibold text-base">
               {quotation?.dealer_id?.name || "-"}
             </p>

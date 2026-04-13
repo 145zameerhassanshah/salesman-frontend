@@ -143,7 +143,7 @@ export default function ProductsTable({ products, refetch }: any) {
                 />
                 {editProduct.image && !imageFile && (
                   <img
-                    src={`${process.env.NEXT_PUBLIC_API_URL}/uploads/${editProduct.image}`}
+                    src={editProduct.image}
                     className="w-16 h-16 rounded-lg object-cover mt-2"
                   />
                 )}
@@ -235,8 +235,6 @@ export default function ProductsTable({ products, refetch }: any) {
               <img
                 src={
                   p.image
-                    // ? `${process.env.NEXT_PUBLIC_API_URL}/uploads/${p.image}`
-                    // : "/placeholder.png"
                 }
                 alt={p.name}
                 className="w-11 h-11 rounded-xl object-cover border border-gray-200 shrink-0"
