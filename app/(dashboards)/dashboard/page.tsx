@@ -21,12 +21,10 @@ export default function DashboardPage() {
 
   const [loading, setLoading] = useState(true);
 
-  
   useEffect(() => {
     if (!user) router.push("/");
   }, [user]);
 
-  // fetch stats
   useEffect(() => {
     if (!user) return;
 
@@ -39,7 +37,7 @@ export default function DashboardPage() {
       } catch (err) {
         console.log(err);
       } finally {
-        setLoading(false); 
+        setLoading(false);
       }
     };
 
@@ -49,10 +47,12 @@ export default function DashboardPage() {
   if (!user) return null;
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 font-sans">
+
       <DashboardHeader />
 
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+      {/* ✅ RESPONSIVE GRID */}
+      <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
 
         <StatsCard
           title="Total Orders"
@@ -73,6 +73,7 @@ export default function DashboardPage() {
         />
 
       </div>
+
     </div>
   );
 }

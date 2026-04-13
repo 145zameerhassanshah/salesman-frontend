@@ -11,21 +11,21 @@ import {
   Package,
   Users,
   ClipboardList,
-  BarChart3,
   LogOut,
-  ChevronRight,
   Box,
-    FileText,      // ✅ for Quotations
-  Truck,         // ✅ for Dispatcher
-  Calculator 
+  FileText,
+  Truck,
+  Calculator,
+  X,
 } from "lucide-react";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import toast from "react-hot-toast";
 import { useDispatch, useSelector } from "react-redux";
 import { useOrders } from "@/hooks/useOrders";
 import { useQuotations } from "@/hooks/useQuotations";
+import { useEffect } from "react";
 
 export default function Sidebar({
   expanded,
@@ -35,36 +35,38 @@ export default function Sidebar({
   setExpanded: (v: boolean) => void;
 }) {
   const router = useRouter();
+  const pathname = usePathname();
   const dispatch = useDispatch();
+
   const user = useSelector((state: any) => state.user.user);
-  const {data:ordersList}=useOrders(user?.industry);
-  const {data:quotationsList}=useQuotations(user?.industry);
+  const { data: ordersList } = useOrders(user?.industry);
+  const { data: quotationsList } = useQuotations(user?.industry);
 
-// ✅ ORDER COUNT BASED ON ROLE
-let orderCount = 0;
+  let orderCount = 0;
 
-if (user?.user_type === "admin" || user?.user_type === "salesman") {
-  orderCount = ordersList?.filter((o: any) => o.status === "unapproved").length;
-}
+  if (user?.user_type === "admin" || user?.user_type === "salesman") {
+    orderCount =
+      ordersList?.filter((o: any) => o.status === "unapproved").length || 0;
+  }
 
-if (user?.user_type === "dispatcher") {
-  orderCount = ordersList?.filter((o: any) => o.status === "approved").length;
-}
+  if (user?.user_type === "dispatcher") {
+    orderCount =
+      ordersList?.filter((o: any) => o.status === "approved").length || 0;
+  }
 
-if (user?.user_type === "accountant") {
-  orderCount = ordersList?.filter(
-    (o: any) => o.status === "dispatched" || o.status === "partial"
-  ).length;
-}
+  if (user?.user_type === "accountant") {
+    orderCount =
+      ordersList?.filter(
+        (o: any) => o.status === "dispatched" || o.status === "partial"
+      ).length || 0;
+  }
 
-// ✅ QUOTATION COUNT
-let quotationCount = 0;
+  let quotationCount = 0;
 
-if (user?.user_type === "admin" || user?.user_type === "salesman") {
-  quotationCount = quotationsList?.filter(
-    (q: any) => q.status === "pending"
-  ).length;
-}
+  if (user?.user_type === "admin" || user?.user_type === "salesman") {
+    quotationCount =
+      quotationsList?.filter((q: any) => q.status === "pending").length || 0;
+  }
 
   const logout = async () => {
     try {
@@ -84,49 +86,35 @@ if (user?.user_type === "admin" || user?.user_type === "salesman") {
     }
   };
 
-  // ✅ ADMIN MENU
-  const adminMenu = [
-  { icon: LayoutGrid, label: "Dashboard", href: "/dashboard" },
+  const adminMenu = [ 
+    { icon: LayoutGrid, label: "Dashboard", href: "/dashboard" },
+    { icon: FileText, label: "Quotations", href: "/quotations" },
+    { icon: ShoppingCart, label: "Orders", href: "/orders" },
+    { icon: Wallet, label: "Payments", href: "/payments" },
+    { icon: Shapes, label: "Categories", href: "/categories" },
+    { icon: Box, label: "Products", href: "/products" },
+    { icon: Package, label: "Dealers", href: "/dealers" },
+    { icon: Users, label: "Salesman", href: "/saleman" },
+    { icon: Truck, label: "Dispatcher", href: "/dispatcher" },
+    { icon: Calculator, label: "Accountant", href: "/accountant" },
+    { icon: ClipboardList, label: "Reports", href: "/reports" },
+  ];
 
-  { icon: FileText, label: "Quotations", href: "/quotations" }, // ✅ changed
-  { icon: ShoppingCart, label: "Orders", href: "/orders" },     // ✅ kept
-
-  { icon: Wallet, label: "Payments", href: "/payments" },
-  { icon: Shapes, label: "Categories", href: "/categories" },
-  { icon: Box, label: "Products", href: "/products" },
-  { icon: Package, label: "Dealers", href: "/dealers" },
-
-  { icon: Users, label: "Salesman", href: "/saleman" },
-  { icon: Truck, label: "Dispatcher", href: "/dispatcher" },     // ✅ NEW
-  { icon: Calculator, label: "Accountant", href: "/accountant" }, // ✅ NEW
-
-  { icon: ClipboardList, label: "Reports", href: "/reports" },
-];
-
-  // ✅ SALESMAN MENU
-const salesmanMenu = [
+  const salesmanMenu = [
     { icon: ShoppingCart, label: "Orders", href: "/orders" },
     { icon: ClipboardList, label: "Quotations", href: "/quotations" },
-      { icon: Package, label: "My Dealers", href: "/dealers" },
-
+    { icon: Package, label: "My Dealers", href: "/dealers" },
   ];
 
-  const staffMenu = [
-    { icon: ShoppingCart, label: "Orders", href: "/orders" },
-  ];
+  const staffMenu = [{ icon: ShoppingCart, label: "Orders", href: "/orders" }];
 
-  // ✅ SYSTEM MENU
-  const system = [
-    // { icon: BarChart3, label: "Audit Trail", href: "/audit-trail" },
-    { icon: LogOut, label: "Logout", action: logout },
-  ];
+  const system = [{ icon: LogOut, label: "Logout", action: logout }];
 
-  // ✅ ROLE BASED MENU
   const roleMenus: any = {
     admin: adminMenu,
     salesman: salesmanMenu,
-    dispatcher:staffMenu,
-    accountant:staffMenu,
+    dispatcher: staffMenu,
+    accountant: staffMenu,
   };
 
   const filteredMenu = roleMenus[user?.user_type] || [];
@@ -136,128 +124,120 @@ const salesmanMenu = [
       ? system.filter((item) => item.label === "Logout")
       : system;
 
+  // ✅ Mobile route change → close
+  useEffect(() => {
+    if (typeof window !== "undefined" && window.innerWidth < 768) {
+      setExpanded(false);
+    }
+  }, [pathname, setExpanded]);
+
+  // ✅ FIX: Desktop pe auto expand
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 768) {
+        setExpanded(true);
+      }
+    };
+
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, [setExpanded]);
+
+  const sidebarDesktopWidth = expanded ? "md:w-56" : "md:w-16";
+
   return (
-    <div
-  className={`
-    fixed top-0 left-0 h-screen
-    ${expanded ? "w-56" : "w-16"}
-    bg-black text-white
-    transition-all duration-300
-    z-50
-    overflow-y-auto
-  `}
->
-      <div className="flex flex-col items-center">
-        {/* Logo */}
-        <div className="flex items-center justify-between w-full px-3 mb-4">
+    <>
+      {expanded && (
+        <div
+          className="fixed inset-0 bg-black/50 z-40 md:hidden"
+          onClick={() => setExpanded(false)}
+        />
+      )}
 
-  <div
-    className={`
-      flex items-center justify-center overflow-hidden transition-all duration-300
-      ${expanded ? "w-12 h-12" : "w-10 h-10"}
-    `}
-  >
-    <Image
-      src="/images/logo.webp"
-      alt="logo"
-      width={48}
-      height={48}
-      className="object-contain"
-    />
-  </div>
+      <aside
+        className={`fixed top-0 left-0 h-screen bg-black text-white z-50 overflow-y-auto md:overflow-hidden transition-all duration-300
+        w-64
+        ${expanded ? "translate-x-0" : "-translate-x-full md:translate-x-0"}
+        ${sidebarDesktopWidth}
+        font-sans`}
+      >
+        <div className="flex flex-col h-full">
 
-          {/* <ChevronRight
-            size={18}
-            className={`cursor-pointer transition ${
-              expanded ? "rotate-180" : ""
-            }`}
-            onClick={() => setExpanded(!expanded)}
-          /> */}
+          {/* Logo */}
+          <div className="flex items-center justify-between px-4 py-3 border-b border-white/10">
+            <div className="w-12 h-12 flex items-center justify-center">
+              <Image src="/images/logo.webp" alt="logo" width={48} height={48} />
+            </div>
+
+            <button
+              onClick={() => setExpanded(false)}
+              className="md:hidden p-2"
+            >
+              <X size={20} />
+            </button>
+          </div>
+
+          {/* MENU */}
+          <div className="flex-1 px-2 py-3 space-y-1">
+            {filteredMenu.map((item: any, i: number) => {
+              const Icon = item.icon;
+              const isActive = pathname === item.href;
+
+              return (
+                <Link
+                  key={i}
+                  href={item.href}
+                  onClick={() => {
+                    if (window.innerWidth < 768) setExpanded(false);
+                  }}
+                  className={`flex items-center gap-3 px-3 py-2 rounded-xl ${
+                    isActive ? "bg-white text-black" : "hover:bg-white/10"
+                  }`}
+                >
+                  <div className="relative">
+                    <Icon size={18} />
+
+                    {/*  ORDER NOTIFICATION */}
+                    {item.label === "Orders" && orderCount > 0 && (
+                      <span className="absolute -top-2 -right-2 bg-red-500 text-white text-[10px] min-w-[18px] h-[18px] flex items-center justify-center rounded-full">
+                        {orderCount}
+                      </span>
+                    )}
+
+                    {/*  QUOTATION NOTIFICATION */}
+                    {item.label === "Quotations" && quotationCount > 0 && (
+                      <span className="absolute -top-2 -right-2 bg-red-500 text-white text-[10px] min-w-[18px] h-[18px] flex items-center justify-center rounded-full">
+                        {quotationCount}
+                      </span>
+                    )}
+                  </div>
+
+                  <span className="text-sm">{item.label}</span>
+                </Link>
+              );
+            })}
+          </div>
+
+          {/* SYSTEM */}
+          <div className="px-2 py-3 border-t border-white/10">
+            {filteredSystem.map((item: any, i: number) => {
+              const Icon = item.icon;
+
+              return (
+                <button
+                  key={i}
+                  onClick={item.action}
+                  className="flex items-center gap-3 px-3 py-2 rounded-xl w-full hover:bg-red-500/20"
+                >
+                  <Icon size={18} />
+                  <span className="text-sm">{item.label}</span>
+                </button>
+              );
+            })}
+          </div>
         </div>
-
-        {/* MENU */}
-        {filteredMenu.map((item: any, i: number) => {
-          const Icon = item.icon;
-
-          return (
-            <Link
-              key={i}
-              href={item.href}
-              className="group relative flex items-center gap-3 p-2 rounded-lg hover:bg-gray-300 w-full"
-            >
-              <div className="relative">
-  <Icon size={18} />
-
-  {/* ORDER NOTIFICATION */}
-  {item.label === "Orders" && orderCount > 0 && (
-    <span className="absolute -top-2 -right-2 bg-red-500 text-white text-[10px] px-1.5 py-0.5 rounded-full">
-      {orderCount}
-    </span>
-  )}
-
-  {/* QUOTATION NOTIFICATION */}
-  {item.label === "Quotations" && quotationCount > 0 && (
-    <span className="absolute -top-2 -right-2 bg-red-500 text-white text-[10px] px-1.5 py-0.5 rounded-full">
-      {quotationCount}
-    </span>
-  )}
-</div>
-
-              {expanded && <span className="text-sm">{item.label}</span>}
-
-              {!expanded && (
-                <span className="absolute left-12 bg-black text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100">
-                  {item.label}
-                </span>
-              )}
-            </Link>
-          );
-        })}
-
-        {/* SYSTEM MENU */}
-        {filteredSystem.map((item: any, i: number) => {
-          const Icon = item.icon;
-
-          if (item.action) {
-            return (
-              <button
-                key={i}
-                onClick={item.action}
-                className="group relative flex items-center gap-3 p-2 rounded-lg hover:bg-gray-300 w-full text-left"
-              >
-                <Icon size={18} />
-
-                {expanded && <span className="text-sm">{item.label}</span>}
-
-                {!expanded && (
-                  <span className="absolute left-12 bg-black text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100">
-                    {item.label}
-                  </span>
-                )}
-              </button>
-            );
-          }
-
-          return (
-            <Link
-              key={i}
-              href={item.href}
-              className="group relative flex items-center gap-3 p-2 rounded-lg hover:bg-gray-300 w-full"
-            >
-              <Icon size={18} />
-
-              {expanded && <span className="text-sm">{item.label}</span>}
-
-              {!expanded && (
-                <span className="absolute left-12 bg-black text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100">
-                  {item.label}
-                </span>
-              )}
-            </Link>
-          );
-        })}
-      </div>
-
-    </div>
+      </aside>
+    </>
   );
 }
