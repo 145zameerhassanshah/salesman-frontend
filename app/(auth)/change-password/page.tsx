@@ -4,9 +4,12 @@ import Image from "next/image";
 import { Eye, EyeOff } from "lucide-react";
 import { useState } from "react";
 import toast from "react-hot-toast";
+import { useRouter } from "next/navigation";
+
 import AuthService from "@/app/components/services/authService";
 
 export default function ChangePasswordPage() {
+const router = useRouter();
 
   const [showOldPassword,setShowOldPassword] = useState(false);
   const [showNewPassword,setShowNewPassword] = useState(false);
@@ -31,18 +34,21 @@ export default function ChangePasswordPage() {
 
     try{
 
-      const res = await AuthService.changePassword({
-        oldPassword,
-        newPassword
-      });
-
+const res = await AuthService.changePassword({
+  currentPassword: oldPassword,
+  newPassword
+});
       if(!res.success){
         toast.error(res.message || "Password change failed");
         setLoading(false);
         return;
       }
 
-      toast.success("Password updated successfully");
+toast.success("Password updated successfully");
+
+setTimeout(() => {
+  router.push("/");
+}, 1000);
 
       setOldPassword("");
       setNewPassword("");

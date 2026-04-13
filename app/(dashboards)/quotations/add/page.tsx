@@ -276,9 +276,11 @@ export default function AddQuotation() {
                   className={field}
                 >
                   <option value="">Select</option>
-                  {categories.map((c: any) => (
-                    <option key={c._id} value={c._id}>{c.name}</option>
-                  ))}
+{categories
+  .filter((c: any) => c.is_active === true)
+  .map((c: any) => (
+    <option key={c._id} value={c._id}>{c.name}</option>
+))}
                 </select>
               ) : (
                 <span className="text-sm truncate px-1">

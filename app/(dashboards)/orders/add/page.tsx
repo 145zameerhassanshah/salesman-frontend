@@ -13,10 +13,10 @@ import { Plus, Pencil, Trash2, Check, X } from "lucide-react";
 export default function AddOrder() {
   const user = useSelector((state: any) => state.user.user);
   const router = useRouter();
-  const { data: categories = [] } = useCategory(user?.industry);
   const { data } = useDealers(user?.industry);
   const dealers = data?.dealers || [];
-
+const { data: categories = [] } = useCategory(user?.industry);
+const activeCategories = categories.filter((c: any) => c.is_active);
   const [activeCategory, setActiveCategory] = useState("");
   const { data: products = [] } = useProductsByCategory(activeCategory);
 
@@ -89,12 +89,11 @@ useEffect(() => {
   setItems(updated);
 };
 
-  const handleCategoryChange = (index: number, value: string) => {
-    updateItem(index, "category_id", value);
-    updateItem(index, "product_id", "");
-    setActiveCategory(value);
-  };
-
+const handleCategoryChange = (index: number, value: string) => {
+  updateItem(index, "category_id", value);
+  updateItem(index, "product_id", "");
+  setActiveCategory(value); 
+};
   const subtotal = items.reduce((sum, item) => sum + item.total, 0);
 
   const getFinalTotal = () => {
@@ -249,6 +248,7 @@ useEffect(() => {
 {/* ROWS */}
 {items.map((item, index) => {
   const rowProducts = products;
+  // const rowProducts = item.category_id === activeCategory ? products : [];
   const isEditing = editingIndex === index;
 
   return (
@@ -262,9 +262,14 @@ useEffect(() => {
           className={field}
         >
           <option value="">Select</option>
-          {categories.map((c: any) => (
-            <option key={c._id} value={c._id}>{c.name}</option>
-          ))}
+{/* {categories
+  .filter((c: any) => c.is_active === true)
+  .map((c: any) => (
+    <option key={c._id} value={c._id}>{c.name}</option>
+))} */}
+{activeCategories.map((c: any) => (
+  <option key={c._id} value={c._id}>{c.name}</option>
+))}
         </select>
       ) : (
         <span className="text-sm truncate px-1">

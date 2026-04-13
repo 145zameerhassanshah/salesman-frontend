@@ -20,7 +20,7 @@ import {
   Loader2,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, use } from "react";
 import toast from "react-hot-toast";
 import { useSelector } from "react-redux";
 
@@ -39,6 +39,7 @@ export default function OrdersPage() {
   const user = useSelector((state: any) => state.user.user);
   // const [downloadOrderId, setDownloadOrderId] = useState(null);
   const isDispatcher = user?.user_type === "dispatcher";
+  const isManager = user?.user_type === "manager";
   const canEditFull =
     user?.user_type === "admin" || user?.user_type === "salesman";
   const { data: categories = [] } = useCategory(user?.industry);
@@ -230,6 +231,8 @@ const dealers=dealer?.dealers;
           ...item,
           product_id: item.product_id || "",
           category_id: item.category_id || "",
+              discount_type: item.discount_type || "percent", 
+
         })),
       );
       // Add these to editFields state when opening edit modal
@@ -240,9 +243,9 @@ const dealers=dealer?.dealers;
         deliveryNotes: res.order?.deliveryNotes || "",
         payment_term: res.order?.payment_term || "cash",
         discount_type: res.order?.discount_type || "amount",
+        
         tax_type: res.order?.tax_type || "amount",
-        dealer_id: res.order?.dealer_id || "",
-        // ✅ store raw input — for percent orders, back-calculate the rate
+dealer_id: res.order?.dealer_id?._id || "",      
         discount:
           res.order?.discount_type === "percent"
             ? res.order?.subtotal > 0
@@ -267,18 +270,28 @@ const dealers=dealer?.dealers;
     }
   };
 
-  const handleEditItemChange = (index: number, field: string, value: any) => {
-    setEditItems((prev) => {
-      const updated = [...prev];
-      updated[index] = { ...updated[index], [field]: value };
-      const qty = parseFloat(updated[index].quantity) || 0;
-      const price = parseFloat(updated[index].unit_price) || 0;
-      const discount = parseFloat(updated[index].discount_percent) || 0;
-      updated[index].total = qty * price * (1 - discount / 100);
-      return updated;
-    });
-  };
+const handleEditItemChange = (index: number, field: string, value: any) => {
+  setEditItems((prev) => {
+    const updated = [...prev];
+    updated[index] = { ...updated[index], [field]: value };
 
+    const qty = parseFloat(updated[index].quantity) || 0;
+    const price = parseFloat(updated[index].unit_price) || 0;
+    const discount = parseFloat(updated[index].discount_percent) || 0;
+
+    let total = 0;
+
+    if (updated[index].discount_type === "amount") {
+      total = qty * price - discount;
+    } else {
+      total = qty * price * (1 - discount / 100);
+    }
+
+    updated[index].total = total;
+
+    return updated;
+  });
+};
   const handleAddItem = () => {
     setEditItems((prev) => [
       ...prev,
@@ -289,6 +302,7 @@ const dealers=dealer?.dealers;
         quantity: 1,
         unit_price: 0,
         discount_percent: 0,
+        discount_type: "percent",
         total: 0,
       },
     ]);
@@ -327,7 +341,7 @@ const dealers=dealer?.dealers;
     let payload;
 
     // ✅ DISPATCHER → ONLY STATUS + DELIVERY NOTES
-    if (user?.user_type === "dispatcher") {
+    if (user?.user_type === "dispatcher"||user?.user_type === "manager") {
       if (!editOrder?.status) {
         setEditSaving(false);
         return toast.error("Status is required");
@@ -396,7 +410,7 @@ const dealers=dealer?.dealers;
   };
 
   const isFinancialLocked =
-    isDispatcher ||
+    isDispatcher ||isManager ||
     user?.user_type === "accountant" ||
     editOrder?.status === "dispatched" ||
     editOrder?.status === "posted";
@@ -665,7 +679,7 @@ const dealers=dealer?.dealers;
                   <div className="bg-gray-50 rounded-xl p-4">
   <p className="text-xs text-gray-400 mb-1">Dealer</p>
   {/* ✅ Editable for admin/salesman, static for dispatcher/accountant */}
-  {isDispatcher || user?.user_type === "accountant" ? (
+  {isDispatcher || isManager || user?.user_type === "accountant" ? (
     <p className="text-sm font-medium">{editOrder?.dealer_id?.name}</p>
   ) : (
     <select
@@ -697,7 +711,7 @@ const dealers=dealer?.dealers;
                       type="date"
                       value={editFields.due_date}
                       disabled={
-                        isDispatcher || user?.user_type === "accountant"
+                        isDispatcher ||isManager || user?.user_type === "accountant"
                       }
                       onChange={(e) =>
                         setEditFields((prev: any) => ({
@@ -753,7 +767,7 @@ const dealers=dealer?.dealers;
                   />
                 </div>
 
-                {isDispatcher || user?.user_type === "accountant" ? (
+                {isDispatcher || isManager|| user?.user_type === "accountant" ? (
                   <div className="mb-5">
                     <p className="text-sm font-semibold text-gray-700 mb-3">
                       Order Items
@@ -935,21 +949,27 @@ const dealers=dealer?.dealers;
                                 </td>
 
                                 {/* DISCOUNT */}
-                                <td className="px-2 py-2">
-                                  <input
-                                    type="number"
-                                    value={item.discount_percent}
-                                    onChange={(e) =>
-                                      handleEditItemChange(
-                                        i,
-                                        "discount_percent",
-                                        e.target.value,
-                                      )
-                                    }
-                                    className="w-full text-center border rounded-lg px-2 py-1 text-sm"
-                                  />
-                                </td>
+<td className="px-2 py-2 flex gap-1">
+  <select
+    value={item.discount_type}
+    onChange={(e) =>
+      handleEditItemChange(i, "discount_type", e.target.value)
+    }
+    className="border rounded px-1 text-xs"
+  >
+    <option value="percent">%</option>
+    <option value="amount">Amt</option>
+  </select>
 
+  <input
+    type="number"
+    value={item.discount_percent}
+    onChange={(e) =>
+      handleEditItemChange(i, "discount_percent", e.target.value)
+    }
+    className="w-full text-center border rounded-lg px-2 py-1 text-sm"
+  />
+</td>
                                 {/* TOTAL */}
                                 <td className="px-2 py-2 text-right font-medium">
                                   {(item.total ?? 0).toFixed(2)}
@@ -1053,7 +1073,7 @@ const dealers=dealer?.dealers;
                     <span>{computedTotals.total.toFixed(2)}</span>
                   </div>
                 </div>
-                {(isDispatcher || user?.user_type === "accountant") && (
+                {(isDispatcher || isManager || user?.user_type === "accountant") && (
                   <div className="mb-6">
                     <label className="text-xs text-gray-500 font-medium">
                       Order Status <span className="text-red-500">*</span>
@@ -1069,7 +1089,7 @@ const dealers=dealer?.dealers;
                       className="w-full border rounded-lg px-3 py-2 mt-1"
                     >
                       <option value="">Select Status</option>
-                      {isDispatcher && (
+                      {isDispatcher || isManager&& (
                         <>
                           <option value="partial">Partial</option>
                           <option value="dispatched">Dispatched</option>
@@ -1129,7 +1149,7 @@ const dealers=dealer?.dealers;
           <button className="p-2 bg-white border rounded-lg">
             <SlidersHorizontal size={18} />
           </button>
-          {!(isDispatcher || user?.user_type === "accountant") && (
+          {!(isDispatcher ||isManager|| user?.user_type === "accountant") && (
             <button
               onClick={() => router.push("/orders/add")}
               className="cursor-pointer flex items-center gap-2 bg-black text-white px-4 py-2 rounded-lg"
@@ -1304,7 +1324,7 @@ const dealers=dealer?.dealers;
                                       </button>
                                     )}
 
-                                  {user?.user_type === "dispatcher" &&
+                                  {user?.user_type === "dispatcher"|| user?.user_type === "manager" &&
                                     (o.status === "approved" ||
                                       o.status === "partial" ||
                                       o.status === "dispatched") && (
