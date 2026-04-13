@@ -4,6 +4,7 @@ import {
   Search,
   Bell,
   User,
+  Menu,
   LogOut,
   KeyRound,
   Pencil
@@ -56,7 +57,17 @@ export default function Topbar() {
 
 
   return (
-    <div className="w-full h-20 bg-gray-200/70 backdrop-blur-md flex items-center justify-between px-6">
+    <div className="w-full h-20 bg-gray-200/70 backdrop-blur-md flex items-center justify-between px-6 font-sans">
+
+      {/* Mobile Hamburger */}
+      <div className="lg:hidden flex items-center">
+        <button
+          onClick={() => setExpanded(!expanded)}
+          className="p-2 bg-white/60 rounded-xl mr-3"
+        >
+          <Menu size={20} />
+        </button>
+      </div>
 
       {/* Desktop Search */}
       <div className="hidden lg:flex items-center bg-white/60 rounded-2xl px-4 py-3 w-[320px]">
@@ -75,14 +86,18 @@ export default function Topbar() {
 
       {/* RIGHT SIDE */}
       <div className="flex items-center gap-3">
+        {/* Mobile Search */}
+        <div className="lg:hidden bg-white/60 p-3 rounded-xl cursor-pointer">
+          <Search size={20} />
+        </div>
 
         {/* Notification */}
-        <div className="relative bg-white/60 p-3 rounded-xl cursor-pointer">
+        {/* <div className="relative bg-white/60 p-3 rounded-xl cursor-pointer">
           <Bell size={20} />
           <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] w-4 h-4 flex items-center justify-center rounded-full">
             14
           </span>
-        </div>
+        </div> */}
 
         {/* PROFILE */}
         <div className="relative" ref={dropdownRef}>

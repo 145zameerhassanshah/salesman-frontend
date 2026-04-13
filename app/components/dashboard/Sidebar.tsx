@@ -12,6 +12,7 @@ import {
   Box,
   FileText,
   Truck,
+  
   Calculator,
 } from "lucide-react";
 
@@ -19,6 +20,7 @@ import Link from "next/link";
 import { useSelector } from "react-redux";
 import { useOrders } from "@/hooks/useOrders";
 import { useQuotations } from "@/hooks/useQuotations";
+import { useEffect } from "react";
 
 export default function Sidebar({
   
@@ -90,9 +92,7 @@ export default function Sidebar({
     { icon: Package, label: "My Dealers", href: "/dealers" },
   ];
 
-  const staffMenu = [
-    { icon: ShoppingCart, label: "Orders", href: "/orders" },
-  ];
+  const staffMenu = [{ icon: ShoppingCart, label: "Orders", href: "/orders" }];
 
   const roleMenus: any = {
     admin: adminMenu,
