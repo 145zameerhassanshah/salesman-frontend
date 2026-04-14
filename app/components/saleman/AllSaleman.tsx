@@ -5,11 +5,11 @@ import {
   Plus,
   SlidersHorizontal,
   Pencil,
+  Trash2,
 } from "lucide-react";
 import { useUsers } from "@/hooks/useUsers";
 import { useSelector } from "react-redux";
 import { useMemo, useState } from "react";
-import API_URL from "@/app/components/lib/apiConfig";
 import UserService from "@/app/components/services/userService";
 import toast from "react-hot-toast";
 
@@ -169,7 +169,7 @@ Object.keys(form).forEach((key) => {
     <th className="py-3">Saleman Name</th>
     <th>Phone No.</th>
     <th>Email</th>
-    <th>Designation</th> {/* ✅ NEW */}
+    <th>Designation</th> 
     <th>Status</th>
     <th>Joined</th>
     <th className="text-center">Action</th>
@@ -225,12 +225,12 @@ Object.keys(form).forEach((key) => {
         <Pencil size={16} />
       </button>
     </div>
-    <button
-  onClick={() => handleDelete(salesman._id)}
-  className="p-2 bg-red-100 rounded-md"
->
-  Delete
-</button>
+                <button
+                  onClick={() => handleDelete(item._id)}
+                  className="p-2 bg-red-100 text-red-600 rounded-md hover:bg-red-200"
+                >
+                  <Trash2 size={16} /> {/* ✅ ICON */}
+                </button>
   </td>
 
 </tr>

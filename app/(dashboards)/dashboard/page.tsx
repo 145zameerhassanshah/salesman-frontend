@@ -3,11 +3,18 @@
 import DashboardHeader from "@/app/components/dashboard/DashboardHeader";
 import StatsCard from "@/app/components/dashboard/StatsCard";
 
-import { ShoppingCart, Clock, FileWarning } from "lucide-react";
+import {
+  ShoppingCart,
+  Clock,
+  FileWarning,
+  FileText,
+  Users,
+} from "lucide-react";
+
 import { useSelector } from "react-redux";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { order } from "@/app/components/services/orderService";
+import { dashboard } from "@/app/components/services/dashboardService";
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -15,8 +22,11 @@ export default function DashboardPage() {
 
   const [stats, setStats] = useState({
     totalOrders: 0,
-    activeOrders: 0,
     pendingOrders: 0,
+    approvedOrders: 0,
+    dispatchedOrders: 0,
+    totalQuotations: 0,
+    totalDealers: 0,
   });
 
   const [loading, setLoading] = useState(true);
@@ -26,14 +36,19 @@ export default function DashboardPage() {
   }, [user]);
 
   useEffect(() => {
-    if (!user) return;
+  if (!user?.industry) return; 
 
-    const id = user?.businessId || user?.industry;
-
+const id = user?.industry; 
     const fetchStats = async () => {
       try {
-        const res = await order.getDashboardStats(id);
-        if (res) setStats(res);
+        const res = await dashboard.getStats(id);
+
+        console.log("DASHBOARD RESPONSE:", res); // ✅ DEBUG
+
+        if (res?.stats) {
+          setStats(res.stats);
+        }
+
       } catch (err) {
         console.log(err);
       } finally {
@@ -47,33 +62,45 @@ export default function DashboardPage() {
   if (!user) return null;
 
   return (
-    <div className="space-y-8 font-sans">
+    <div className="space-y-6">
 
       <DashboardHeader />
 
-      {/* ✅ RESPONSIVE GRID */}
-      <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
+<div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-3">
 
-        <StatsCard
-          title="Total Orders"
-          value={loading ? "..." : stats.totalOrders}
-          Icon={ShoppingCart}
-        />
+  {/* ✅ TOTAL ORDERS */}
+  <StatsCard
+    title="Orders"
+    value={loading ? "..." : stats.totalOrders || 0}
+    Icon={ShoppingCart}
+  />
 
-        <StatsCard
-          title="Active Orders"
-          value={loading ? "..." : stats.activeOrders}
-          Icon={Clock}
-        />
+  {/* ✅ PENDING → ONLY ADMIN + SALESMAN */}
+  {(user?.user_type === "admin" || user?.user_type === "super_admin" || user?.user_type === "salesman") && (
+    <StatsCard
+      title="Pending"
+      value={stats.pendingOrders || 0}
+      Icon={FileWarning}
+    />
+  )}
 
-        <StatsCard
-          title="Pending Approvals"
-          value={loading ? "..." : stats.pendingOrders}
-          Icon={FileWarning}
-        />
+  {/* ✅ APPROVED */}
+  <StatsCard
+    title="Approved"
+    value={stats.approvedOrders || 0}
+    Icon={Clock}
+  />
 
-      </div>
+  {/* ✅ DISPATCHED → ONLY DISPATCHER / ACCOUNTANT */}
+  {(user?.user_type === "dispatcher" || user?.user_type === "manager" || user?.user_type === "accountant") && (
+    <StatsCard
+      title="Dispatched"
+      value={stats.dispatchedOrders || 0}
+      Icon={ShoppingCart}
+    />
+  )}
 
+</div>
     </div>
   );
 }

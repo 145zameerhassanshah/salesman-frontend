@@ -92,7 +92,10 @@ export default function Sidebar({
     { icon: Package, label: "My Dealers", href: "/dealers" },
   ];
 
-  const staffMenu = [{ icon: ShoppingCart, label: "Orders", href: "/orders" }];
+  const staffMenu = [
+        { icon: LayoutGrid, label: "Dashboard", href: "/dashboard" },
+
+    { icon: ShoppingCart, label: "Orders", href: "/orders" }];
 
   const roleMenus: any = {
     admin: adminMenu,

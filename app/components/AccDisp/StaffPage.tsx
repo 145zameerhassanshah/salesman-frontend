@@ -57,6 +57,7 @@ export default function StaffPage({ role }: { role: string }) {
   _id: u._id, // ✅ ADD THIS (VERY IMPORTANT)
   name: u.name,
   email: u.email,
+  password: u.password, // ✅ ADD THIS (VERY IMPORTANT)
    phone_number: u.phone_number,        // ✅ ADD
   whatsapp_number: u.whatsapp_number,  // ✅ ADD
   city: u.city,                        // ✅ ADD

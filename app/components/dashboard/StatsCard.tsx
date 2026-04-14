@@ -8,16 +8,16 @@ interface Props {
 
 export default function StatsCard({ title, value, Icon }: Props) {
   return (
-    <div className="bg-white/60 rounded-2xl p-4 sm:p-5 md:p-6 flex flex-col gap-3 shadow-sm font-sans">
+    <div className="bg-white rounded-xl px-3 py-3 flex items-center justify-between shadow-sm">
 
-      <div className="flex items-center gap-2 text-gray-600">
-        <Icon size={18} />
-        <span className="text-xs sm:text-sm">{title}</span>
+      <div>
+        <p className="text-[11px] text-gray-500">{title}</p>
+        <h2 className="text-lg font-semibold text-gray-800">{value}</h2>
       </div>
 
-      <h2 className="text-xl sm:text-2xl md:text-3xl font-semibold text-gray-800">
-        {value}
-      </h2>
+      <div className="bg-gray-100 p-2 rounded-lg">
+        <Icon size={16} className="text-gray-600" />
+      </div>
 
     </div>
   );
