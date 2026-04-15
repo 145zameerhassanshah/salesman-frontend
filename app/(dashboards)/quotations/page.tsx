@@ -231,6 +231,12 @@ export default function QuotationsPage() {
   const canDownloadPDF = (q: any) =>
     user?.user_type === "admin" || (user?.user_type === "salesman" && q?.status === "approved");
 
+  const isGeneralCategory = (categoryId) => {
+    const cat = categories.find((c) => c._id === categoryId);
+    return cat?.name === "General Appliances";
+  };
+
+
   return (
     <div className="p-4 md:p-8 bg-gray-100 min-h-screen">
 
