@@ -20,7 +20,7 @@ import {
   Loader2,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, use } from "react";
 import toast from "react-hot-toast";
 import { useSelector } from "react-redux";
 
@@ -39,6 +39,7 @@ export default function OrdersPage() {
   const user = useSelector((state: any) => state.user.user);
   // const [downloadOrderId, setDownloadOrderId] = useState(null);
   const isDispatcher = user?.user_type === "dispatcher";
+  const isManager = user?.user_type === "manager";
   const canEditFull =
     user?.user_type === "admin" || user?.user_type === "salesman";
   const { data: categories = [] } = useCategory(user?.industry);
@@ -238,6 +239,8 @@ export default function OrdersPage() {
           ...item,
           product_id: item.product_id || "",
           category_id: item.category_id || "",
+              discount_type: item.discount_type || "percent", 
+
         })),
       );
       // Add these to editFields state when opening edit modal
@@ -248,9 +251,9 @@ export default function OrdersPage() {
         deliveryNotes: res.order?.deliveryNotes || "",
         payment_term: res.order?.payment_term || "cash",
         discount_type: res.order?.discount_type || "amount",
+        
         tax_type: res.order?.tax_type || "amount",
-        dealer_id: res.order?.dealer_id || "",
-        // ✅ store raw input — for percent orders, back-calculate the rate
+dealer_id: res.order?.dealer_id?._id || "",      
         discount:
           res.order?.discount_type === "percent"
             ? res.order?.subtotal > 0
@@ -275,18 +278,28 @@ export default function OrdersPage() {
     }
   };
 
-  const handleEditItemChange = (index: number, field: string, value: any) => {
-    setEditItems((prev) => {
-      const updated = [...prev];
-      updated[index] = { ...updated[index], [field]: value };
-      const qty = parseFloat(updated[index].quantity) || 0;
-      const price = parseFloat(updated[index].unit_price) || 0;
-      const discount = parseFloat(updated[index].discount_percent) || 0;
-      updated[index].total = qty * price * (1 - discount / 100);
-      return updated;
-    });
-  };
+const handleEditItemChange = (index: number, field: string, value: any) => {
+  setEditItems((prev) => {
+    const updated = [...prev];
+    updated[index] = { ...updated[index], [field]: value };
 
+    const qty = parseFloat(updated[index].quantity) || 0;
+    const price = parseFloat(updated[index].unit_price) || 0;
+    const discount = parseFloat(updated[index].discount_percent) || 0;
+
+    let total = 0;
+
+    if (updated[index].discount_type === "amount") {
+      total = qty * price - discount;
+    } else {
+      total = qty * price * (1 - discount / 100);
+    }
+
+    updated[index].total = total;
+
+    return updated;
+  });
+};
   const handleAddItem = () => {
     setEditItems((prev) => [
       ...prev,
@@ -297,6 +310,7 @@ export default function OrdersPage() {
         quantity: 1,
         unit_price: 0,
         discount_percent: 0,
+        discount_type: "percent",
         total: 0,
       },
     ]);
@@ -335,7 +349,7 @@ export default function OrdersPage() {
     let payload;
 
     // ✅ DISPATCHER → ONLY STATUS + DELIVERY NOTES
-    if (user?.user_type === "dispatcher") {
+    if (user?.user_type === "dispatcher"||user?.user_type === "manager") {
       if (!editOrder?.status) {
         setEditSaving(false);
         return toast.error("Status is required");
@@ -409,7 +423,7 @@ export default function OrdersPage() {
   };
 
   const isFinancialLocked =
-    isDispatcher ||
+    isDispatcher ||isManager ||
     user?.user_type === "accountant" ||
     editOrder?.status === "dispatched" ||
     editOrder?.status === "posted";
@@ -688,42 +702,25 @@ export default function OrdersPage() {
                 {/* Info row */}
                 <div className="grid grid-cols-2 gap-4 mb-6">
                   <div className="bg-gray-50 rounded-xl p-4">
-                    <p className="text-xs text-gray-400 mb-1">Dealer</p>
-                    {/* ✅ Editable for admin/salesman, static for dispatcher/accountant */}
-                    {isDispatcher || user?.user_type === "accountant" ? (
-                      <p className="text-sm font-medium">
-                        {editOrder?.dealer_id?.name}
-                      </p>
-                    ) : (
-                      <select
-                        value={editFields.dealer_id || ""}
-                        onChange={(e) =>
-                          setEditFields((prev: any) => ({
-                            ...prev,
-                            dealer_id: e.target.value,
-                          }))
-                        }
-                        className="w-full text-sm border rounded-lg px-2 py-1 focus:outline-none focus:ring-1 focus:ring-gray-300 bg-white"
-                      >
-                        <option value="">Select Dealer</option>
-                        {dealers.map((d: any) => (
-                          <option key={d._id} value={d._id}>
-                            {d.name}
-                          </option>
-                        ))}
-                      </select>
-                    )}
-                    <p className="text-xs text-gray-400 mt-2 mb-1">
-                      Created By
-                    </p>
-                    <p className="text-sm">
-                      {editOrder?.createdBy?.name} (
-                      {editOrder?.createdBy?.user_type === "admin"
-                        ? "Director"
-                        : "Salesman"}
-                      )
-                    </p>
-                  </div>
+  <p className="text-xs text-gray-400 mb-1">Dealer</p>
+  {/* ✅ Editable for admin/salesman, static for dispatcher/accountant */}
+  {isDispatcher || isManager || user?.user_type === "accountant" ? (
+    <p className="text-sm font-medium">{editOrder?.dealer_id?.name}</p>
+  ) : (
+    <select
+      value={editFields.dealer_id || ""}
+      onChange={(e) => setEditFields((prev: any) => ({ ...prev, dealer_id: e.target.value }))}
+      className="w-full text-sm border rounded-lg px-2 py-1 focus:outline-none focus:ring-1 focus:ring-gray-300 bg-white"
+    >
+      <option value="">Select Dealer</option>
+      {dealers.map((d: any) => (
+        <option key={d._id} value={d._id}>{d.name}</option>
+      ))}
+    </select>
+  )}
+  <p className="text-xs text-gray-400 mt-2 mb-1">Created By</p>
+  <p className="text-sm">{editOrder?.createdBy?.name} ({editOrder?.createdBy?.user_type==="admin"?"Director":"Salesman"})</p>
+</div>
                   <div className="bg-gray-50 rounded-xl p-4">
                     <p className="text-xs text-gray-400 mb-1">Order Date</p>
                     <p className="text-sm font-medium">
@@ -739,7 +736,7 @@ export default function OrdersPage() {
                       type="date"
                       value={editFields.due_date}
                       disabled={
-                        isDispatcher || user?.user_type === "accountant"
+                        isDispatcher ||isManager || user?.user_type === "accountant"
                       }
                       onChange={(e) =>
                         setEditFields((prev: any) => ({
@@ -795,7 +792,7 @@ export default function OrdersPage() {
                   />
                 </div>
 
-                {isDispatcher || user?.user_type === "accountant" ? (
+                {isDispatcher || isManager|| user?.user_type === "accountant" ? (
                   <div className="mb-5">
                     <p className="text-sm font-semibold text-gray-700 mb-3">
                       Order Items
@@ -977,21 +974,27 @@ export default function OrdersPage() {
                                 </td>
 
                                 {/* DISCOUNT */}
-                                <td className="px-2 py-2">
-                                  <input
-                                    type="number"
-                                    value={item.discount_percent}
-                                    onChange={(e) =>
-                                      handleEditItemChange(
-                                        i,
-                                        "discount_percent",
-                                        e.target.value,
-                                      )
-                                    }
-                                    className="w-full text-center border rounded-lg px-2 py-1 text-sm"
-                                  />
-                                </td>
+<td className="px-2 py-2 flex gap-1">
+  <select
+    value={item.discount_type}
+    onChange={(e) =>
+      handleEditItemChange(i, "discount_type", e.target.value)
+    }
+    className="border rounded px-1 text-xs"
+  >
+    <option value="percent">%</option>
+    <option value="amount">Amt</option>
+  </select>
 
+  <input
+    type="number"
+    value={item.discount_percent}
+    onChange={(e) =>
+      handleEditItemChange(i, "discount_percent", e.target.value)
+    }
+    className="w-full text-center border rounded-lg px-2 py-1 text-sm"
+  />
+</td>
                                 {/* TOTAL */}
                                 <td className="px-2 py-2 text-right font-medium">
                                   {(item.total ?? 0).toFixed(2)}
@@ -1096,7 +1099,7 @@ export default function OrdersPage() {
                   </div>
                 </div>
                 {/* Status — dispatcher, accountant, AND admin when order needs status change */}
-                {(isDispatcher ||
+                {(isDispatcher || isManager ||
                   user?.user_type === "accountant" ||
                   user?.user_type === "admin") && (
                   <div className="mb-6">
@@ -1117,7 +1120,7 @@ export default function OrdersPage() {
                         {formatStatus(editOrder?.status)}
                       </option>
 
-                      {isDispatcher && editOrder?.status !== "dispatched" && (
+                      {isDispatcher && editOrder?.status !== "dispatched" || isManager&& (
                         <>
                           <option value="partial">Partial</option>
                           <option value="dispatched">Dispatched</option>
@@ -1191,7 +1194,7 @@ export default function OrdersPage() {
           <button className="p-2 bg-white border rounded-lg">
             <SlidersHorizontal size={18} />
           </button>
-          {!(isDispatcher || user?.user_type === "accountant") && (
+          {!(isDispatcher ||isManager|| user?.user_type === "accountant") && (
             <button
               onClick={() => router.push("/orders/add")}
               className="cursor-pointer flex items-center gap-2 bg-black text-white px-4 py-2 rounded-lg"
@@ -1358,21 +1361,20 @@ export default function OrdersPage() {
                                     </button>
                                   )}
 
-                                {/* EDIT — Dispatcher: approved/partial/dispatched (not posted) */}
-                                {user?.user_type === "dispatcher" &&
-                                  (o.status === "approved" ||
-                                    o.status === "partial" ||
-                                    o.status === "dispatched") && (
-                                    <button
-                                      onClick={() => {
-                                        handleEdit(o._id);
-                                        setOpenMenu(null);
-                                      }}
-                                      className="block w-full text-left px-4 py-2.5 hover:bg-gray-50 text-sm"
-                                    >
-                                      Edit
-                                    </button>
-                                  )}
+                                  {user?.user_type === "dispatcher"|| user?.user_type === "manager" &&
+                                    (o.status === "approved" ||
+                                      o.status === "partial" ||
+                                      o.status === "dispatched") && (
+                                      <button
+                                        onClick={() => {
+                                          handleEdit(o._id);
+                                          setOpenMenu(null);
+                                        }}
+                                        className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-sm"
+                                      >
+                                        Edit
+                                      </button>
+                                    )}
 
                                 {/* EDIT — Accountant: dispatched only */}
                                 {user?.user_type === "accountant" &&

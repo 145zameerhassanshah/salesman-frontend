@@ -46,6 +46,9 @@ const [verifyLoading, setVerifyLoading] = useState(false);
       else if (role === USER_ROLES.ACCOUNTANT) {
         router.push("/dashboard/accounts");
       } 
+      else if (role === USER_ROLES.MANAGER) {
+        router.push("/dashboard/manager");
+      } 
       else {
         router.push("/dashboard");
       }

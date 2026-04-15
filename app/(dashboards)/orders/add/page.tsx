@@ -13,10 +13,10 @@ import { Plus, Pencil, Trash2, Check, X } from "lucide-react";
 export default function AddOrder() {
   const user = useSelector((state: any) => state.user.user);
   const router = useRouter();
-  const { data: categories = [] } = useCategory(user?.industry);
   const { data } = useDealers(user?.industry);
   const dealers = data?.dealers || [];
-
+const { data: categories = [] } = useCategory(user?.industry);
+const activeCategories = categories.filter((c: any) => c.is_active);
   const [activeCategory, setActiveCategory] = useState("");
   const { data: products = [] } = useProductsByCategory(activeCategory);
 
@@ -87,12 +87,11 @@ export default function AddOrder() {
     setItems(updated);
   };
 
-  const handleCategoryChange = (index: number, value: string) => {
-    updateItem(index, "category_id", value);
-    updateItem(index, "product_id", "");
-    setActiveCategory(value);
-  };
-
+const handleCategoryChange = (index: number, value: string) => {
+  updateItem(index, "category_id", value);
+  updateItem(index, "product_id", "");
+  setActiveCategory(value); 
+};
   const subtotal = items.reduce((sum, item) => sum + item.total, 0);
 
   const getFinalTotal = () => {
@@ -259,36 +258,37 @@ export default function AddOrder() {
           </div>
         )}
 
-        {/* ROWS */}
-        {items.map((item, index) => {
-          const rowProducts = products;
-          const isEditing = editingIndex === index;
+{/* ROWS */}
+{items.map((item, index) => {
+  const rowProducts = products;
+  // const rowProducts = item.category_id === activeCategory ? products : [];
+  const isEditing = editingIndex === index;
 
-          return (
-            <div
-              key={index}
-              className="grid grid-cols-[1fr_1fr_80px_140px_60px_80px_80px] gap-2 items-center mb-2"
-            >
-              {/* CATEGORY */}
-              {isEditing ? (
-                <select
-                  value={item.category_id}
-                  onChange={(e) => handleCategoryChange(index, e.target.value)}
-                  className={field}
-                >
-                  <option value="">Select</option>
-                  {categories.map((c: any) => (
-                    <option key={c._id} value={c._id}>
-                      {c.name}
-                    </option>
-                  ))}
-                </select>
-              ) : (
-                <span className="text-sm truncate px-1">
-                  {categories.find((c: any) => c._id === item.category_id)
-                    ?.name || "-"}
-                </span>
-              )}
+  return (
+    <div key={index} className="grid grid-cols-[1fr_1fr_80px_140px_60px_80px_80px] gap-2 items-center mb-2">
+
+      {/* CATEGORY */}
+      {isEditing ? (
+        <select
+          value={item.category_id}
+          onChange={(e) => handleCategoryChange(index, e.target.value)}
+          className={field}
+        >
+          <option value="">Select</option>
+{/* {categories
+  .filter((c: any) => c.is_active === true)
+  .map((c: any) => (
+    <option key={c._id} value={c._id}>{c.name}</option>
+))} */}
+{activeCategories.map((c: any) => (
+  <option key={c._id} value={c._id}>{c.name}</option>
+))}
+        </select>
+      ) : (
+        <span className="text-sm truncate px-1">
+          {categories.find((c: any) => c._id === item.category_id)?.name || "-"}
+        </span>
+      )}
 
               {/* PRODUCT */}
               {isEditing ? (

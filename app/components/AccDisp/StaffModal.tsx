@@ -24,6 +24,7 @@ export default function StaffModal({
   const [form, setForm] = useState({
     name: "",
     email: "",
+
     phone_number: "",
     whatsapp_number: "",
     city: "",
@@ -49,7 +50,13 @@ export default function StaffModal({
     if (!form.address.trim()) return "Address is required";
 
     // 👉 Only for CREATE (not edit)
-    if (!data && !form.password.trim()) return "Password is required";
+// CREATE
+if (!data && !form.password.trim())
+  return "Password is required";
+
+// EDIT (optional but validate if entered)
+if (data && form.password && form.password.length < 6)
+  return "Password must be at least 6 characters";      
     if (!data && form.password.length < 6)
       return "Password must be at least 6 characters";
 
@@ -80,10 +87,15 @@ export default function StaffModal({
       formData.append("status", form.status);
 
       // 👉 only send password if creating
-      if (!data && form.password) {
-        formData.append("password", form.password);
-      }
+// 👉 CREATE case
+if (!data) {
+  formData.append("password", form.password);
+}
 
+// 👉 EDIT case (only if user entered)
+if (data && form.password) {
+  formData.append("password", form.password);
+}
       if (file) {
         formData.append("profile_image", file);
       }
@@ -187,20 +199,18 @@ export default function StaffModal({
         />
 
         {/* PASSWORD */}
-        {!data && (
-          <>
-            <label className="text-sm text-gray-500">
-              Password<span className="text-red-500">*</span>
-            </label>
-            <input
-              type="password"
-              className="w-full border p-2 rounded"
-              value={form.password}
-              onChange={(e) => setForm({ ...form, password: e.target.value })}
-            />
-          </>
-        )}
+<label className="text-sm text-gray-500">
+  {isEdit ? "New Password (optional)" : "Password"}
+  {!isEdit && <span className="text-red-500">*</span>}
+</label>
 
+<input
+  type="password"
+  className="w-full border p-2 rounded"
+  value={form.password}
+  onChange={(e) => setForm({ ...form, password: e.target.value })}
+  placeholder={isEdit ? "Leave empty to keep current password" : ""}
+/>
         <label className="text-sm text-gray-500">Status</label>
         <select
           className="w-full border p-2 rounded"

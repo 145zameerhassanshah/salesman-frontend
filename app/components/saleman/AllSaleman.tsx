@@ -5,11 +5,11 @@ import {
   Plus,
   SlidersHorizontal,
   Pencil,
+  Trash2,
 } from "lucide-react";
 import { useUsers } from "@/hooks/useUsers";
 import { useSelector } from "react-redux";
 import { useMemo, useState } from "react";
-import API_URL from "@/app/components/lib/apiConfig";
 import UserService from "@/app/components/services/userService";
 import toast from "react-hot-toast";
 
@@ -26,6 +26,7 @@ export default function AllSaleman() {
   const [form, setForm] = useState<any>({
     name: "",
     email: "",
+    password: "",
     status: "Active",
     profile_image: null,
   });
@@ -69,6 +70,22 @@ export default function AllSaleman() {
      [name]: value,
     });
   };
+  const handleDelete = async (id) => {
+  try {
+    
+    if (!confirm("Are you sure?")) return;
+
+    const res = await UserService.deleteUser(id);
+
+    if (!res?.success) return toast.error(res?.message);
+
+    toast.success(res?.message);
+    await refetch();
+
+  } catch (err) {
+    console.log(err);
+  }
+};
 
   const handleImageChange = (e: any) => {
     const file = e.target.files[0];
@@ -87,12 +104,11 @@ export default function AllSaleman() {
   try {
     const formData = new FormData();
 
-    Object.keys(form).forEach((key) => {
-      if (form[key] !== null && form[key] !== undefined) {
-        formData.append(key, form[key]);
-      }
-    });
-
+Object.keys(form).forEach((key) => {
+  if (form[key] !== null && form[key] !== undefined && form[key] !== "") {
+    formData.append(key, form[key]);
+  }
+});
     const updateUser = await UserService.updateUser(editItem._id, formData);
 
     if (!updateUser?.success) return toast.error(updateUser?.message);
@@ -153,7 +169,7 @@ export default function AllSaleman() {
     <th className="py-3">Saleman Name</th>
     <th>Phone No.</th>
     <th>Email</th>
-    <th>Designation</th> {/* ✅ NEW */}
+    <th>Designation</th> 
     <th>Status</th>
     <th>Joined</th>
     <th className="text-center">Action</th>
@@ -209,6 +225,12 @@ export default function AllSaleman() {
         <Pencil size={16} />
       </button>
     </div>
+                <button
+                  onClick={() => handleDelete(item._id)}
+                  className="p-2 bg-red-100 text-red-600 rounded-md hover:bg-red-200"
+                >
+                  <Trash2 size={16} /> {/* ✅ ICON */}
+                </button>
   </td>
 
 </tr>
@@ -251,6 +273,14 @@ export default function AllSaleman() {
     placeholder="Email"
     className="w-full border p-2 rounded"
   />
+  <input
+  name="password"
+  type="password"
+  value={form.password || ""}
+  onChange={handleChange}
+  placeholder="New Password (optional)"
+  className="w-full border p-2 rounded"
+/>
 
   {/* PHONE */}
   <input

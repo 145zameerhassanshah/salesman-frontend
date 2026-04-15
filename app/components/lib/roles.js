@@ -4,4 +4,5 @@ export const USER_ROLES = {
   SALESMAN: "salesman",
   DISPATCHER: "dispatcher",
   ACCOUNTANT: "accountant",
+  MANAGER: "manager"
 };

@@ -24,9 +24,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
-      <body className={`${poppins.className} antialiased`}>
-        <ReduxProvider>
+<html lang="en" suppressHydrationWarning>
+  <body
+    className={`${poppins.className} antialiased`}
+    suppressHydrationWarning
+  >
+            <ReduxProvider>
           <ReactQueryProvider>
             <AuthProvider>
               <Toaster position="top-right" />

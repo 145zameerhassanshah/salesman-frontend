@@ -117,7 +117,7 @@ export default function CategoriesPage() {
                         item?.is_active
                       )}`}
                     >
-                      {item?.is_active ? "Yes" : "No"}
+                      {item?.is_active ? "Active" : "Inactive"}
                     </span>
                   </td>
                   <td>
@@ -184,8 +184,8 @@ export default function CategoriesPage() {
               }
               className="w-full border p-2 rounded"
             >
-              <option value="true">Yes</option>
-              <option value="false">No</option>
+              <option value="true">Active</option>
+              <option value="false">Inactive</option>
             </select>
 
             {/* Buttons */}
