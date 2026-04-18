@@ -10,33 +10,74 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const [expanded, setExpanded] = useState(true);
+  const [isMobile, setIsMobile] = useState(false);
 
-  // Auto-collapse sidebar on mobile
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      if (window.innerWidth < 768) setExpanded(false);
-    }
+    const handleResize = () => {
+      const mobile = window.innerWidth < 768;
+      setIsMobile(mobile);
+      if (mobile) setExpanded(false);
+      else setExpanded(true);
+    };
+
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
   }, []);
 
   return (
-    <div className="flex min-h-screen font-sans">
-      {/* Sidebar */}
-      <Sidebar expanded={expanded} setExpanded={setExpanded} />
+    <>
+      {/* Mobile zoom fix */}
+      <style>{`
+        @media (max-width: 767px) {
+          html { touch-action: manipulation; }
+        }
+      `}</style>
 
-      {/* Main Content */}
-      <div
-        className={`flex-1 flex flex-col transition-all duration-300
-          ${expanded ? "md:ml-56" : "md:ml-16"}
-        `}
-      >
-        {/* Topbar */}
-        <div className="sticky top-0 z-40 bg-white shadow-sm">
-          <Topbar expanded={expanded} setExpanded={setExpanded} />
+      <div className="flex h-screen w-screen overflow-hidden font-sans bg-gray-50">
+
+        {/* Mobile Overlay */}
+        {isMobile && expanded && (
+          <div
+            className="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm"
+            onClick={() => setExpanded(false)}
+          />
+        )}
+
+        {/* SIDEBAR — always fixed */}
+        <aside
+          className={`
+            fixed inset-y-0 left-0 z-50
+            transition-all duration-300 ease-in-out
+            ${expanded ? "w-56" : "w-16"}
+            ${isMobile && !expanded ? "-translate-x-full" : "translate-x-0"}
+          `}
+        >
+          <Sidebar expanded={expanded} setExpanded={setExpanded} />
+        </aside>
+
+        {/* MAIN CONTENT */}
+        <div
+          className={`
+            flex flex-col flex-1 min-w-0
+            transition-all duration-300 ease-in-out
+            ${!isMobile ? (expanded ? "ml-56" : "ml-16") : "ml-0"}
+          `}
+        >
+          {/* TOPBAR */}
+          <header className="sticky top-0 z-40 w-full bg-white border-b border-gray-200 shadow-sm">
+            <Topbar expanded={expanded} setExpanded={setExpanded} />
+          </header>
+
+          {/* PAGE CONTENT */}
+          <main className="flex-1 overflow-y-auto overflow-x-hidden p-4 md:p-6">
+            <div className="max-w-7xl mx-auto">
+              {children}
+            </div>
+          </main>
         </div>
 
-        {/* Page Content */}
-        <main className="flex-1 p-4 md:p-6">{children}</main>
       </div>
-    </div>
+    </>
   );
 }
