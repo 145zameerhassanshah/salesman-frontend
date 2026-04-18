@@ -136,7 +136,13 @@ export default function AddQuotation() {
   const handleSubmit = async () => {
     if (!form.dealer_id) return toast.error("Please select a dealer");
     if (items.length === 0) return toast.error("Please add at least one item");
-    if (items.some((i) => !i.product_id)) return toast.error("Please select a product for all items");
+  if (
+  items.some((i) =>
+    !i.product_id && !i.item_name
+  )
+) {
+  return toast.error("Please enter product or item name");
+}
 
     try {
       setLoading(true);
@@ -151,7 +157,7 @@ export default function AddQuotation() {
         discount_type: form.discount_type,
         tax_type: form.tax_type,
         items: items.map((i) => ({
-          product_id: i.product_id,
+          product_id: i.product_id || null,
           category_id: i.category_id,
           unit_price: Number(i.price) || 0,
           item_name: i.item_name,
@@ -170,6 +176,11 @@ export default function AddQuotation() {
       setLoading(false);
     }
   };
+
+  const isGeneralCategory = (categoryId) => {
+  const cat = categories.find((c) => c._id === categoryId);
+  return cat?.name === "General Appliances";
+};
 
   const field = "border p-2 rounded-lg text-sm w-full focus:outline-none focus:ring-2 focus:ring-black";
 
@@ -290,31 +301,50 @@ export default function AddQuotation() {
 
               {/* PRODUCT */}
               {isEditing ? (
-                <select
-                  value={item.product_id}
-                  onChange={(e) => {
-                    const product = rowProducts?.find((p: any) => p._id === e.target.value);
-                    updateItem(index, "product_id", e.target.value);
-                    updateItem(index, "item_name", product?.name || "");
-                    updateItem(index, "price", product?.mrp || 0);
-                    updateItem(index, "discount", 0);
-                  }}
-                  className={field}
-                >
-                  <option value="">Select</option>
-                  {rowProducts.map((p: any) => (
-                    <option key={p._id} value={p._id}>{p.name}</option>
-                  ))}
-                </select>
-              ) : (
-                <span className="text-sm truncate px-1">
-                  {rowProducts.find((p: any) => p._id === item.product_id)?.name || item.item_name || "-"}
-                </span>
-              )}
+  isGeneralCategory(item.category_id) ? (
+    <input
+      type="text"
+      placeholder="Enter product name"
+      value={item.item_name}
+      onChange={(e) => {
+        updateItem(index, "item_name", e.target.value);
+        updateItem(index, "product_id", null); // IMPORTANT
+      }}
+      className={field}
+    />
+  ) : (
+    <select
+      value={item.product_id}
+      onChange={(e) => {
+        const product = rowProducts?.find((p) => p._id === e.target.value);
+        updateItem(index, "product_id", e.target.value);
+        updateItem(index, "item_name", product?.name || "");
+        updateItem(index, "price", product?.mrp || 0);
+        updateItem(index, "discount", 0);
+      }}
+      className={field}
+    >
+      <option value="">Select</option>
+      {rowProducts.map((p) => (
+        <option key={p._id} value={p._id}>{p.name}</option>
+      ))}
+    </select>
+  )
+) : (
+  <span className="text-sm truncate px-1">
+    {item.item_name || "-"}
+  </span>
+)}
 
               {/* MRP */}
               {isEditing ? (
-                <input type="number" value={item.price} readOnly className={field} />
+                <input
+  type="number"
+  value={item.price}
+  onChange={(e) => updateItem(index, "price", e.target.value)}
+  readOnly={!isGeneralCategory(item.category_id)}
+  className={field}
+/>
               ) : (
                 <span className="text-sm px-1">{item.price}</span>
               )}

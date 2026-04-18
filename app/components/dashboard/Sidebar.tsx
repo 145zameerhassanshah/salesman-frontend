@@ -74,6 +74,17 @@ export default function Sidebar({
     { icon: ClipboardList, label: "Reports", href: "/reports" },
   ];
 
+  const salesmanMenu = [
+    { icon: ShoppingCart, label: "Orders", href: "/orders" },
+    { icon: ClipboardList, label: "Quotations", href: "/quotations" },
+    { icon: Package, label: "My Dealers", href: "/dealers" },
+  ];
+
+  const staffMenu = [
+        { icon: LayoutGrid, label: "Dashboard", href: "/dashboard" },
+
+    { icon: ShoppingCart, label: "Orders", href: "/orders" }];
+
   const roleMenus: any = {
     admin: adminMenu,
   };

@@ -48,10 +48,10 @@ export default function OrdersPage() {
 
   const [search, setSearch] = useState("");
   const [confirmOrderId, setConfirmOrderId] = useState<string | null>(null);
+  // Update type
   const [confirmAction, setConfirmAction] = useState<
-    "approve" | "reject" | "unapprove" | null
+    "approve" | "reject" | "unapprove" | "delete" | null
   >(null);
-
   const [viewOrder, setViewOrder] = useState<any>(null);
   const [viewItems, setViewItems] = useState<any[]>([]);
   const [viewLoading, setViewLoading] = useState(false);
@@ -62,11 +62,16 @@ export default function OrdersPage() {
   const [editLoading, setEditLoading] = useState(false);
   const [editSaving, setEditSaving] = useState(false);
   const [editFields, setEditFields] = useState<any>({});
-const {data:dealer}=useDealers(user?.industry);
-const dealers=dealer?.dealers;
+  const { data: dealer } = useDealers(user?.industry);
+  const dealers = dealer?.dealers;
 
   useEffect(() => {
-    const handleClickOutside = () => setOpenMenu(null);
+    const handleClickOutside = (e) => {
+      // ignore clicks inside dropdown
+      if ((e.target as HTMLElement).closest(".dropdown-menu")) return;
+      setOpenMenu(null);
+    };
+
     window.addEventListener("click", handleClickOutside);
     return () => window.removeEventListener("click", handleClickOutside);
   }, []);
@@ -106,15 +111,12 @@ const dealers=dealer?.dealers;
     return result;
   }, [search, statusFilter, data]);
 
-
-
-  
   const formatStatus = (status: string) =>
     status ? status.charAt(0).toUpperCase() + status.slice(1) : "-";
 
   const handleAction = (
     orderId: string,
-    action: "approve" | "reject" | "unapprove",
+    action: "approve" | "reject" | "unapprove" | "delete",
   ) => {
     setConfirmOrderId(orderId);
     setConfirmAction(action);
@@ -157,6 +159,12 @@ const dealers=dealer?.dealers;
         return toast.error(res?.message || "Problem approving order");
 
       toast.success(res?.message);
+      await refetch();
+    } else if (confirmAction === "delete") {
+      const res = await order.deleteOrder(confirmOrderId);
+      if (!res.success)
+        return toast.error(res?.message || "Problem deleting order");
+      toast.success(res?.message || "Order deleted");
       await refetch();
     } else if (confirmAction === "unapprove") {
       const res = await order.updateStatus(confirmOrderId, {
@@ -409,6 +417,11 @@ const handleEditItemChange = (index: number, field: string, value: any) => {
     setEditFields({});
   };
 
+  const isGeneralCategory = (categoryId) => {
+    const cat = categories.find((c) => c._id === categoryId);
+    return cat?.name === "General Appliances";
+  };
+
   const isFinancialLocked =
     isDispatcher ||isManager ||
     user?.user_type === "accountant" ||
@@ -416,7 +429,13 @@ const handleEditItemChange = (index: number, field: string, value: any) => {
     editOrder?.status === "posted";
 
   // Add these state variables
-  const [menuPosition, setMenuPosition] = useState({ top: 0, right: 0 });
+  // State
+  const [menuPosition, setMenuPosition] = useState({
+    top: 0,
+    left: 0,
+  });
+
+  console.log(editOrder)
   return (
     <div className="p-4 md:p-8 bg-gray-100 min-h-screen">
       {/* CONFIRMATION MODAL */}
@@ -424,13 +443,15 @@ const handleEditItemChange = (index: number, field: string, value: any) => {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
           <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-sm">
             <h2 className="text-lg font-semibold text-gray-800 mb-2">
-              {confirmAction === "approve"
-                ? "Approve Order?"
-                : confirmAction === "unapprove"
-                  ? "Unapprove Order?"
-                  : user?.user_type === "salesman"
-                    ? "Delete Order?"
-                    : "Reject Order?"}
+              {confirmAction === "delete"
+                ? "Delete Order?"
+                : confirmAction === "approve"
+                  ? "Approve Order?"
+                  : confirmAction === "unapprove"
+                    ? "Unapprove Order?"
+                    : user?.user_type === "salesman"
+                      ? "Delete Order?"
+                      : "Reject Order?"}
             </h2>
             {confirmAction === "reject" && user?.user_type !== "salesman" && (
               <div className="mb-4">
@@ -448,11 +469,13 @@ const handleEditItemChange = (index: number, field: string, value: any) => {
               </div>
             )}
             <p className="text-sm text-gray-500 mb-6">
-              {confirmAction === "approve"
-                ? "Are you sure you want to approve this order?"
-                : confirmAction === "unapprove"
-                  ? "Are you sure you want to move this order back to unapproved?"
-                  : `Are you sure you want to ${user?.user_type === "admin" ? "reject" : "delete"} this order? This action cannot be undone.`}
+              {confirmAction === "delete"
+                ? "Are you sure you want to permanently delete this order?"
+                : confirmAction === "approve"
+                  ? "Are you sure you want to approve this order?"
+                  : confirmAction === "unapprove"
+                    ? "Are you sure you want to move this order back to unapproved?"
+                    : `Are you sure you want to ${user?.user_type === "admin" ? "reject" : "delete"} this order? This action cannot be undone.`}
             </p>
             <div className="flex justify-end gap-3">
               <button
@@ -475,20 +498,22 @@ const handleEditItemChange = (index: number, field: string, value: any) => {
                       ? "bg-yellow-500 hover:bg-yellow-600"
                       : "bg-red-500 hover:bg-red-600"
                 } ${
-                  confirmAction === "reject" &&
-                  user?.user_type !== "salesman" &&
-                  !rejectReason.trim()
-                    ? "opacity-50 cursor-not-allowed"
-                    : ""
+                  confirmAction === "delete"
+                    ? "Delete"
+                    : confirmAction === "reject" &&
+                        user?.user_type !== "salesman" &&
+                        !rejectReason.trim()
+                      ? "opacity-50 cursor-not-allowed"
+                      : ""
                 }`}
               >
-                {confirmAction === "approve"
-                  ? "Approve"
-                  : confirmAction === "unapprove"
-                    ? "Unapprove"
-                    : user?.user_type === "salesman"
-                      ? "Delete"
-                      : "Reject"}
+                {confirmAction === "delete"
+                  ? "Delete"
+                  : confirmAction === "approve"
+                    ? "Approve"
+                    : confirmAction === "unapprove"
+                      ? "Unapprove"
+                      : user?.user_type === "salesman" && "Delete"}
               </button>
             </div>
           </div>
@@ -1073,7 +1098,10 @@ const handleEditItemChange = (index: number, field: string, value: any) => {
                     <span>{computedTotals.total.toFixed(2)}</span>
                   </div>
                 </div>
-                {(isDispatcher || isManager || user?.user_type === "accountant") && (
+                {/* Status — dispatcher, accountant, AND admin when order needs status change */}
+                {(isDispatcher || isManager ||
+                  user?.user_type === "accountant" ||
+                  user?.user_type === "admin") && (
                   <div className="mb-6">
                     <label className="text-xs text-gray-500 font-medium">
                       Order Status <span className="text-red-500">*</span>
@@ -1088,16 +1116,33 @@ const handleEditItemChange = (index: number, field: string, value: any) => {
                       }
                       className="w-full border rounded-lg px-3 py-2 mt-1"
                     >
-                      <option value="">Select Status</option>
-                      {isDispatcher || isManager&& (
+                      <option value={editOrder?.status}>
+                        {formatStatus(editOrder?.status)}
+                      </option>
+
+                      {isDispatcher && editOrder?.status !== "dispatched" || isManager&& (
                         <>
                           <option value="partial">Partial</option>
                           <option value="dispatched">Dispatched</option>
                         </>
                       )}
+
                       {user?.user_type === "accountant" && (
                         <option value="posted">Posted</option>
                       )}
+
+                      {user?.user_type === "admin" &&
+                        editOrder?.status === "dispatched" && (
+                          <option value="posted">Posted</option>
+                        )}
+
+                      {user?.user_type === "admin" &&
+                        editOrder?.status === "approved" && (
+                          <>
+                            <option value="partial">Partial</option>
+                            <option value="dispatched">Dispatched</option>
+                          </>
+                        )}
                     </select>
                   </div>
                 )}
@@ -1224,105 +1269,97 @@ const handleEditItemChange = (index: number, field: string, value: any) => {
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
-                            if (openMenu === o._id) {
-                              setOpenMenu(null);
-                            } else {
-                              const rect = (
-                                e.currentTarget as HTMLElement
-                              ).getBoundingClientRect();
-                              setMenuPosition({
-                                top: rect.bottom + window.scrollY + 4,
-                                right: window.innerWidth - rect.right,
-                              });
-                              setOpenMenu(o._id);
+
+                            const rect =
+                              e.currentTarget.getBoundingClientRect();
+
+                            const dropdownHeight = 260;
+                            const dropdownWidth = 180;
+
+                            let top = rect.bottom;
+                            let left = rect.left;
+
+                            // ✅ FIX 1: vertical overflow
+                            if (top + dropdownHeight > window.innerHeight) {
+                              top = rect.top - dropdownHeight;
                             }
+
+                            // ✅ FIX 2: horizontal overflow
+                            if (left + dropdownWidth > window.innerWidth) {
+                              left = window.innerWidth - dropdownWidth - 10;
+                            }
+
+                            setMenuPosition({
+                              top,
+                              left,
+                            });
+
+                            setOpenMenu(o._id);
                           }}
-                          className="p-2 bg-gray-100 rounded-md"
+                          className="p-2 bg-gray-100 rounded-md hover:bg-gray-200"
                         >
                           <MoreVertical size={16} />
                         </button>
+                        {/* DROPDOWN PORTAL — place just before closing </div> of page */}
+                        {openMenu === o._id &&
+                          (() => {
+                            const o = filtered?.find(
+                              (o: any) => o._id === openMenu,
+                            );
+                            if (!o) return null;
 
-                        {/* DROPDOWN PORTAL — rendered outside table scroll container */}
-                        {openMenu && (
-                          <div
-                            style={{
-                              position: "fixed",
-                              top: menuPosition.top,
-                              right: menuPosition.right,
-                              zIndex: 9999,
-                            }}
-                            className="w-44 bg-white border border-gray-200 rounded-xl shadow-2xl overflow-hidden"
-                            onClick={(e) => e.stopPropagation()}
-                          >
-                            {/* Find the current order for this menu */}
-                            {(() => {
-                              const o = filtered?.find(
-                                (o: any) => o._id === openMenu,
-                              );
-                              if (!o) return null;
+                            return (
+                              <div
+                                style={{
+                                  position: "fixed",
+                                  top: menuPosition.top,
+                                  left: menuPosition.left,
+                                  zIndex: 9999,
+                                }}
+                                className="dropdown-menu w-44 bg-white border rounded-xl shadow-lg max-h-60 overflow-y-auto"
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                {/* VIEW */}
+                                <button
+                                  onClick={() => {
+                                    handleView(o._id);
+                                    setOpenMenu(null);
+                                  }}
+                                  className="block w-full text-left px-4 py-2.5 hover:bg-gray-50 text-sm"
+                                >
+                                  View
+                                </button>
 
-                              return (
-                                <>
-                                  <button
-                                    onClick={() => {
-                                      handleView(o._id);
-                                      setOpenMenu(null);
-                                    }}
-                                    className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-sm"
-                                  >
-                                    View
-                                  </button>
-                                  {o?.status !== "unapproved" &&
-                                    o?.status !== "rejected" && (
-                                      <button
-                                        onClick={async () => {
-                                          const blob = await order.downloadPDF(
-                                            o._id,
-                                          );
-                                          const url =
-                                            window.URL.createObjectURL(blob);
-                                          const a = document.createElement("a");
-                                          a.href = url;
-                                          a.download = `order-${o.order_number}.pdf`;
-                                          a.click();
-                                          window.URL.revokeObjectURL(url);
-                                          setOpenMenu(null);
-                                        }}
-                                        className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-sm"
-                                      >
-                                        Download PDF
-                                      </button>
-                                    )}
+                                {/* EDIT — Admin: all except posted */}
+                                {user?.user_type === "admin" &&
+                                  o.status !== "posted" && (
+                                    <button
+                                      onClick={() => {
+                                        handleEdit(o._id);
+                                        setOpenMenu(null);
+                                      }}
+                                      className="block w-full text-left px-4 py-2.5 hover:bg-gray-50 text-sm"
+                                    >
+                                      Edit
+                                    </button>
+                                  )}
 
-                                  {user?.user_type === "admin" &&
-                                    o.status !== "dispatched" &&
-                                    o.status !== "posted" && (
-                                      <button
-                                        onClick={() => {
-                                          handleEdit(o._id);
-                                          setOpenMenu(null);
-                                        }}
-                                        className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-sm"
-                                      >
-                                        Edit
-                                      </button>
-                                    )}
-
-                                  {user?.user_type === "salesman" &&
-                                    (o.status === "unapproved" ||
-                                      o.status === "approved" ||
-                                      o.status === "rejected") &&
-                                    o?.createdBy?._id === user?._id && (
-                                      <button
-                                        onClick={() => {
-                                          handleEdit(o._id);
-                                          setOpenMenu(null);
-                                        }}
-                                        className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-sm"
-                                      >
-                                        Edit
-                                      </button>
-                                    )}
+                                {/* EDIT — Salesman: own unapproved/approved/rejected */}
+                                {user?.user_type === "salesman" &&
+                                  (o.status === "unapproved" ||
+                                    o.status === "approved" ||
+                                    o.status === "rejected") &&
+                                  o?.createdBy?._id === user?._id && (
+                                    <button
+                                      onClick={() => {
+                                        handleEdit(o._id);
+                                        setOpenMenu(null);
+                                      }}
+                                      className="block w-full text-left px-4 py-2.5 hover:bg-gray-50 text-sm"
+                                    >
+                                      Edit
+                                    </button>
+                                  )}
 
                                   {user?.user_type === "dispatcher"|| user?.user_type === "manager" &&
                                     (o.status === "approved" ||
@@ -1339,79 +1376,121 @@ const handleEditItemChange = (index: number, field: string, value: any) => {
                                       </button>
                                     )}
 
-                                  {user?.user_type === "accountant" &&
-                                    o.status === "dispatched" && (
-                                      <button
-                                        onClick={() => {
-                                          handleEdit(o._id);
-                                          setOpenMenu(null);
-                                        }}
-                                        className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-sm"
-                                      >
-                                        Edit
-                                      </button>
-                                    )}
+                                {/* EDIT — Accountant: dispatched only */}
+                                {user?.user_type === "accountant" &&
+                                  o.status === "dispatched" && (
+                                    <button
+                                      onClick={() => {
+                                        handleEdit(o._id);
+                                        setOpenMenu(null);
+                                      }}
+                                      className="block w-full text-left px-4 py-2.5 hover:bg-gray-50 text-sm"
+                                    >
+                                      Edit
+                                    </button>
+                                  )}
 
-                                  {user?.user_type === "admin" &&
-                                    (o.status === "unapproved" ||
-                                      o.status === "rejected") && (
-                                      <button
-                                        onClick={() => {
-                                          handleAction(o._id, "approve");
-                                          setOpenMenu(null);
-                                        }}
-                                        className="block w-full text-left px-4 py-2 text-green-600 hover:bg-gray-100 text-sm"
-                                      >
-                                        Approve
-                                      </button>
-                                    )}
+                                {/* APPROVE */}
+                                {user?.user_type === "admin" &&
+                                  (o.status === "unapproved" ||
+                                    o.status === "rejected") && (
+                                    <button
+                                      onClick={() => {
+                                        handleAction(o._id, "approve");
+                                        setOpenMenu(null);
+                                      }}
+                                      className="block w-full text-left px-4 py-2.5 text-green-600 hover:bg-gray-50 text-sm"
+                                    >
+                                      Approve
+                                    </button>
+                                  )}
 
-                                  {user?.user_type === "admin" &&
-                                    o.status === "approved" && (
-                                      <button
-                                        onClick={() => {
-                                          handleAction(o._id, "unapprove");
-                                          setOpenMenu(null);
-                                        }}
-                                        className="block w-full text-left px-4 py-2 text-yellow-600 hover:bg-gray-100 text-sm"
-                                      >
-                                        Unapprove
-                                      </button>
-                                    )}
+                                {/* UNAPPROVE */}
+                                {user?.user_type === "admin" &&
+                                  o.status === "approved" && (
+                                    <button
+                                      onClick={() => {
+                                        handleAction(o._id, "unapprove");
+                                        setOpenMenu(null);
+                                      }}
+                                      className="block w-full text-left px-4 py-2.5 text-yellow-600 hover:bg-gray-50 text-sm"
+                                    >
+                                      Unapprove
+                                    </button>
+                                  )}
 
-                                  {user?.user_type === "admin" &&
-                                    o.status !== "rejected" &&
-                                    o.status !== "dispatched" &&
-                                    o.status !== "posted" && (
-                                      <button
-                                        onClick={() => {
-                                          handleAction(o._id, "reject");
-                                          setOpenMenu(null);
-                                        }}
-                                        className="block w-full text-left px-4 py-2 text-red-600 hover:bg-gray-100 text-sm"
-                                      >
-                                        Reject
-                                      </button>
-                                    )}
+                                {/* REJECT — admin, non-rejected/dispatched/posted */}
+                                {user?.user_type === "admin" &&
+                                  o.status !== "rejected" &&
+                                  o.status !== "dispatched" &&
+                                  o.status !== "posted" && (
+                                    <button
+                                      onClick={() => {
+                                        handleAction(o._id, "reject");
+                                        setOpenMenu(null);
+                                      }}
+                                      className="block w-full text-left px-4 py-2.5 text-red-600 hover:bg-gray-50 text-sm"
+                                    >
+                                      Reject
+                                    </button>
+                                  )}
 
-                                  {user?.user_type === "salesman" &&
-                                    o.status === "unapproved" &&
-                                    o?.createdBy?._id === user?._id && (
-                                      <button
-                                        onClick={() => {
-                                          handleAction(o._id, "reject");
-                                          setOpenMenu(null);
-                                        }}
-                                        className="block w-full text-left px-4 py-2 text-red-600 hover:bg-gray-100 text-sm"
-                                      >
-                                        Delete
-                                      </button>
-                                    )}
-                                </>
-                              );
-                            })()}
-                          </div>
-                        )}
+                                {/* DELETE — admin when approved/unapproved/rejected */}
+                                {user?.user_type === "admin" &&
+                                  (o.status === "approved" ||
+                                    o.status === "unapproved" ||
+                                    o.status === "rejected") && (
+                                    <button
+                                      onClick={() => {
+                                        handleAction(o._id, "delete");
+                                        setOpenMenu(null);
+                                      }}
+                                      className="block w-full text-left px-4 py-2.5 text-red-600 hover:bg-gray-50 text-sm"
+                                    >
+                                      Delete
+                                    </button>
+                                  )}
+
+                                {/* DELETE — Salesman: own unapproved only */}
+                                {user?.user_type === "salesman" &&
+                                  o.status === "unapproved" &&
+                                  o?.createdBy?._id === user?._id && (
+                                    <button
+                                      onClick={() => {
+                                        handleAction(o._id, "reject");
+                                        setOpenMenu(null);
+                                      }}
+                                      className="block w-full text-left px-4 py-2.5 text-red-600 hover:bg-gray-50 text-sm"
+                                    >
+                                      Delete
+                                    </button>
+                                  )}
+
+                                {/* PDF */}
+                                {o.status !== "unapproved" &&
+                                  o.status !== "rejected" && (
+                                    <button
+                                      onClick={async () => {
+                                        const blob = await order.downloadPDF(
+                                          o._id,
+                                        );
+                                        const url =
+                                          window.URL.createObjectURL(blob);
+                                        const a = document.createElement("a");
+                                        a.href = url;
+                                        a.download = `order-${o.order_number}.pdf`;
+                                        a.click();
+                                        window.URL.revokeObjectURL(url);
+                                        setOpenMenu(null);
+                                      }}
+                                      className="block w-full text-left px-4 py-2.5 hover:bg-gray-50 text-sm"
+                                    >
+                                      Download PDF
+                                    </button>
+                                  )}
+                              </div>
+                            );
+                          })()}
                       </div>
                     </td>
                   </tr>

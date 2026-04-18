@@ -1,6 +1,8 @@
 import { Pencil, Trash2 } from "lucide-react";
 import UserService from "@/app/components/services/userService";
 import toast from "react-hot-toast";
+import { useUsers } from "@/hooks/useUsers";
+import { useSelector } from "react-redux";
 
 export default function StaffTable({
   data,
@@ -11,6 +13,7 @@ export default function StaffTable({
   onEdit: (item: any) => void;
   refetch?: () => void;
 }) {
+  const user = useSelector((state: any) => state.user.user);
 
   // ✅ FUNCTION YAHAN LIKHNA HAI
   const handleDelete = async (id: string) => {
