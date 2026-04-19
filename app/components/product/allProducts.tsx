@@ -1,6 +1,6 @@
 "use client";
 
-import { Pencil, Trash2, X } from "lucide-react";
+import { Pencil, Trash2, X, Package } from "lucide-react";
 import { useState } from "react";
 import ProductService from "@/app/components/services/productService";
 import toast from "react-hot-toast";
@@ -39,15 +39,12 @@ export default function ProductsTable({ products, refetch }: any) {
     const formData = new FormData();
     Object.entries(form).forEach(([key, val]) => formData.append(key, String(val)));
     if (imageFile) formData.append("image", imageFile);
-
     const res = await ProductService.updateProduct(formData, editProduct._id);
-
     if (!res.success) {
       toast.error(res?.message);
       setLoading(false);
       return;
     }
-
     toast.success(res?.message);
     setLoading(false);
     await refetch();
@@ -67,20 +64,17 @@ export default function ProductsTable({ products, refetch }: any) {
 
   return (
     <>
-      {/* EDIT MODAL — ADMIN ONLY */}
+      {/* ── EDIT MODAL — ADMIN ONLY ───────────────────────── */}
       {editProduct && user?.user_type === "admin" && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
           <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-md">
-
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-semibold">Edit Product</h2>
               <button onClick={closeEdit}>
                 <X size={18} className="text-gray-500" />
               </button>
             </div>
-
             <div className="space-y-3">
-
               <div>
                 <label className="text-sm text-gray-500">Name</label>
                 <input
@@ -89,7 +83,6 @@ export default function ProductsTable({ products, refetch }: any) {
                   className="w-full border rounded-lg px-3 py-2 text-sm mt-1 focus:outline-none"
                 />
               </div>
-
               <div>
                 <label className="text-sm text-gray-500">SKU</label>
                 <input
@@ -98,7 +91,6 @@ export default function ProductsTable({ products, refetch }: any) {
                   className="w-full border rounded-lg px-3 py-2 text-sm mt-1 focus:outline-none"
                 />
               </div>
-
               <div className="flex gap-3">
                 <div className="flex-1">
                   <label className="text-sm text-gray-500">MRP</label>
@@ -120,7 +112,6 @@ export default function ProductsTable({ products, refetch }: any) {
                   />
                 </div>
               </div>
-
               <div>
                 <label className="text-sm text-gray-500">Status</label>
                 <select
@@ -132,7 +123,6 @@ export default function ProductsTable({ products, refetch }: any) {
                   <option value="false">Inactive</option>
                 </select>
               </div>
-
               <div>
                 <label className="text-sm text-gray-500">Image</label>
                 <input
@@ -142,20 +132,12 @@ export default function ProductsTable({ products, refetch }: any) {
                   className="w-full text-sm mt-1"
                 />
                 {editProduct.image && !imageFile && (
-                  <img
-                    src={editProduct.image}
-                    className="w-16 h-16 rounded-lg object-cover mt-2"
-                  />
+                  <img src={editProduct.image} className="w-16 h-16 rounded-lg object-cover mt-2" />
                 )}
               </div>
-
             </div>
-
             <div className="flex justify-end gap-3 mt-6">
-              <button
-                onClick={closeEdit}
-                className="px-4 py-2 rounded-lg border text-gray-600 hover:bg-gray-50 text-sm"
-              >
+              <button onClick={closeEdit} className="px-4 py-2 rounded-lg border text-gray-600 hover:bg-gray-50 text-sm">
                 Cancel
               </button>
               <button
@@ -166,14 +148,13 @@ export default function ProductsTable({ products, refetch }: any) {
                 {loading ? "Saving..." : "Save Changes"}
               </button>
             </div>
-
           </div>
         </div>
       )}
 
-      {/* DELETE CONFIRMATION MODAL */}
+      {/* ── DELETE MODAL ─────────────────────────────────── */}
       {deleteProductId && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40 px-4 pb-6 sm:pb-0">
           <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-sm">
             <h2 className="text-lg font-semibold text-gray-800 mb-2">Delete Product?</h2>
             <p className="text-sm text-gray-500 mb-6">
@@ -197,110 +178,159 @@ export default function ProductsTable({ products, refetch }: any) {
         </div>
       )}
 
-      {/* TABLE */}
-      {/* TABLE */}
-<div className="overflow-x-auto rounded-2xl border border-gray-200 bg-white">
-  <table className="w-full table-fixed text-sm">
-    <thead className="bg-gray-50 border-b border-gray-200">
-      <tr>
-        <th className="w-[32%] px-4 py-3 text-left font-semibold text-gray-600">
-          Product
-        </th>
-        <th className="w-[16%] px-4 py-3 text-center font-semibold text-gray-600">
-          SKU
-        </th>
-        <th className="w-[18%] px-4 py-3 text-center font-semibold text-gray-600">
-          Category
-        </th>
-        <th className="w-[14%] px-4 py-3 text-center font-semibold text-gray-600">
-          MRP
-        </th>
-        <th className="w-[10%] px-4 py-3 text-center font-semibold text-gray-600">
-          Status
-        </th>
-        <th className="w-[10%] px-4 py-3 text-center font-semibold text-gray-600">
-          Action
-        </th>
-      </tr>
-    </thead>
+      {/* ── MOBILE: CARDS ─────────────────────────────────── */}
+      <div className="md:hidden space-y-2.5">
+        {products && products.length > 0 ? (
+          products.map((p: any) => (
+            <div
+              key={p._id}
+              className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden"
+            >
+              <div className="flex items-center gap-3 p-3">
+                {/* Image */}
+                <div className="w-14 h-14 rounded-xl overflow-hidden bg-gray-100 flex-shrink-0">
+                  {p.image ? (
+                    <img src={p.image} alt={p.name} className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center">
+                      <Package size={20} className="text-gray-400" />
+                    </div>
+                  )}
+                </div>
 
-    <tbody>
-      {products?.map((p: any) => (
-        <tr
-          key={p._id}
-          className="border-b border-gray-100 hover:bg-gray-50 transition-colors"
-        >
-          <td className="px-4 py-4 align-middle">
-            <div className="flex items-center gap-3 min-w-0">
-              <img
-                src={
-                  p.image
-                }
-                alt={p.name}
-                className="w-11 h-11 rounded-xl object-cover border border-gray-200 shrink-0"
-              />
-              <div className="min-w-0">
-                <p className="font-medium text-gray-800 truncate">{p.name}</p>
+                {/* Info */}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between gap-1">
+                    <p className="font-semibold text-sm text-gray-900 truncate leading-tight">
+                      {p.name ?? "—"}
+                    </p>
+                    <span
+                      className={`inline-flex items-center gap-1 text-[10px] font-medium px-2 py-0.5 rounded-full flex-shrink-0 ${statusColor(p.is_active)}`}
+                    >
+                      <span className={`w-1.5 h-1.5 rounded-full ${p.is_active ? "bg-green-500" : "bg-red-500"}`} />
+                      {p.is_active ? "Active" : "Inactive"}
+                    </span>
+                  </div>
+
+                  <p className="text-xs text-gray-400 mt-0.5 truncate">
+                    {p.category_id?.name ?? "Uncategorised"}
+                  </p>
+
+                  <div className="flex items-center gap-3 mt-0.5">
+                    {p.sku && (
+                      <p className="text-xs text-gray-400">SKU: {p.sku}</p>
+                    )}
+                    {p.mrp !== undefined && (
+                      <p className="text-sm font-bold text-gray-800">
+                        Rs {typeof p.mrp === "number" ? p.mrp.toLocaleString() : p.mrp}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Action Bar */}
+              <div className="border-t border-gray-100 flex">
+                {user?.user_type === "admin" && (
+                  <button
+                    onClick={() => openEdit(p)}
+                    className="flex-1 flex items-center justify-center gap-1.5 py-2.5 text-xs font-medium text-blue-600 hover:bg-blue-50 active:bg-blue-100 transition"
+                  >
+                    <Pencil size={13} />
+                    Edit
+                  </button>
+                )}
+                {user?.user_type === "admin" && <div className="w-px bg-gray-100" />}
+                <button
+                  onClick={() => setDeleteProductId(p._id)}
+                  className="flex-1 flex items-center justify-center gap-1.5 py-2.5 text-xs font-medium text-red-500 hover:bg-red-50 active:bg-red-100 transition"
+                >
+                  <Trash2 size={13} />
+                  Delete
+                </button>
               </div>
             </div>
-          </td>
+          ))
+        ) : (
+          <div className="text-center py-16 text-gray-400 text-sm">
+            No products found.
+          </div>
+        )}
+      </div>
 
-          <td className="px-4 py-4 text-center text-gray-700 align-middle break-words">
-            {p.sku || "-"}
-          </td>
+      {/* ── DESKTOP: TABLE ────────────────────────────────── */}
+      <div className="hidden md:block">
+        <div className="overflow-x-auto rounded-2xl border border-gray-200 bg-white">
+          <table className="w-full table-fixed text-sm">
+            <thead className="bg-gray-50 border-b border-gray-200">
+              <tr>
+                <th className="w-[32%] px-4 py-3 text-left font-semibold text-gray-600">Product</th>
+                <th className="w-[16%] px-4 py-3 text-center font-semibold text-gray-600">SKU</th>
+                <th className="w-[18%] px-4 py-3 text-center font-semibold text-gray-600">Category</th>
+                <th className="w-[14%] px-4 py-3 text-center font-semibold text-gray-600">MRP</th>
+                <th className="w-[10%] px-4 py-3 text-center font-semibold text-gray-600">Status</th>
+                <th className="w-[10%] px-4 py-3 text-center font-semibold text-gray-600">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {products?.map((p: any) => (
+                <tr key={p._id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+                  <td className="px-4 py-4 align-middle">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <img
+                        src={p.image}
+                        alt={p.name}
+                        className="w-11 h-11 rounded-xl object-cover border border-gray-200 shrink-0"
+                      />
+                      <div className="min-w-0">
+                        <p className="font-medium text-gray-800 truncate">{p.name}</p>
+                      </div>
+                    </div>
+                  </td>
+                  <td className="px-4 py-4 text-center text-gray-700 align-middle break-words">{p.sku || "-"}</td>
+                  <td className="px-4 py-4 text-center align-middle">
+                    <span className="inline-flex items-center justify-center rounded-full bg-blue-50 px-3 py-1 text-xs font-medium text-blue-600">
+                      {p.category_id?.name || "-"}
+                    </span>
+                  </td>
+                  <td className="px-4 py-4 text-center text-gray-700 align-middle">{p.mrp ?? "-"}</td>
+                  <td className="px-4 py-4 text-center align-middle">
+                    <span className={`inline-flex items-center justify-center rounded-full px-3 py-1 text-xs font-medium ${statusColor(p.is_active)}`}>
+                      {p.is_active ? "Active" : "Inactive"}
+                    </span>
+                  </td>
+                  <td className="px-4 py-4 text-center align-middle">
+                    <div className="flex items-center justify-center gap-2">
+                      {user?.user_type === "admin" && (
+                        <button
+                          onClick={() => openEdit(p)}
+                          className="p-2 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition"
+                        >
+                          <Pencil size={14} />
+                        </button>
+                      )}
+                      <button
+                        onClick={() => setDeleteProductId(p._id)}
+                        className="p-2 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 transition"
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
 
-          <td className="px-4 py-4 text-center align-middle">
-            <span className="inline-flex items-center justify-center rounded-full bg-blue-50 px-3 py-1 text-xs font-medium text-blue-600">
-              {p.category_id?.name || "-"}
-            </span>
-          </td>
-
-          <td className="px-4 py-4 text-center text-gray-700 align-middle">
-            {p.mrp ?? "-"}
-          </td>
-
-          <td className="px-4 py-4 text-center align-middle">
-            <span
-              className={`inline-flex items-center justify-center rounded-full px-3 py-1 text-xs font-medium ${statusColor(
-                p.is_active
-              )}`}
-            >
-              {p.is_active ? "Active" : "Inactive"}
-            </span>
-          </td>
-
-          <td className="px-4 py-4 text-center align-middle">
-            <div className="flex items-center justify-center gap-2">
-              {user?.user_type === "admin" && (
-                <button
-                  onClick={() => openEdit(p)}
-                  className="p-2 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition"
-                >
-                  <Pencil size={14} />
-                </button>
-              )}
-
-              <button
-                onClick={() => setDeleteProductId(p._id)}
-                className="p-2 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 transition"
-              >
-                <Trash2 size={14} />
-              </button>
-            </div>
-          </td>
-        </tr>
-      ))}
-    </tbody>
-  </table>
-</div>
-
-      {/* FOOTER */}
-      <div className="flex flex-col md:flex-row justify-between items-center mt-4 text-sm gap-3">
-        <p className="text-gray-500">Total Products: {products?.length}</p>
-        <div className="flex gap-2">
-          <button className="px-3 py-1 border rounded">1</button>
-          <button className="px-3 py-1">2</button>
-          <button className="px-3 py-1">3</button>
+        {/* Footer */}
+        <div className="flex flex-col md:flex-row justify-between items-center mt-4 text-sm gap-3">
+          <p className="text-gray-500">Total Products: {products?.length}</p>
+          <div className="flex gap-2">
+            <button className="px-3 py-1 border rounded">1</button>
+            <button className="px-3 py-1">2</button>
+            <button className="px-3 py-1">3</button>
+          </div>
         </div>
       </div>
     </>
