@@ -11,10 +11,9 @@ export default function StaffTable({
 }: {
   data: any[];
   onEdit: (item: any) => void;
-  refetch?: () => void;
+  refetch: () => void;
 }) {
   const user = useSelector((state: any) => state.user.user);
-
   // ✅ FUNCTION YAHAN LIKHNA HAI
   const handleDelete = async (id: string) => {
     try {
@@ -29,7 +28,7 @@ export default function StaffTable({
 
       toast.success(res?.message);
 
-      refetch && refetch(); // safe call
+      await refetch(); // safe call
 
     } catch (err: any) {
       console.log(err);
@@ -56,7 +55,7 @@ export default function StaffTable({
             <tr key={item._id} className="border-t">
               <td className="p-3">
                 <img
-                  src={item.profile_image || "/profile.png"} // ✅ fix
+                  src={item?.image} // ✅ fix
                   className="w-10 h-10 rounded-full object-cover"
                 />
               </td>

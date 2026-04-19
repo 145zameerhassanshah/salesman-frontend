@@ -436,10 +436,6 @@ const handleEditItemChange = (index: number, field: string, value: any) => {
     top: 0,
     left: 0,
   });
-
-  // console.log(editItems)
-
-  // console.log(editOrder)
   return (
     <div className="p-4 md:p-8 bg-gray-100 min-h-screen">
       {/* CONFIRMATION MODAL */}
