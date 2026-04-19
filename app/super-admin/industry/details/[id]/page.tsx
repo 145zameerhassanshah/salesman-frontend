@@ -69,11 +69,7 @@ const [showPassword, setShowPassword] = useState(false);
       password: "",
     });
 
-    setPreview(
-      user.profile_image
-        ? `${process.env.NEXT_PUBLIC_API_URL}/uploads/${user.profile_image}`
-        : null
-    );
+    setPreview(user?.profile_image);
 
     setShowModal(true);
   };
@@ -198,16 +194,12 @@ const [showPassword, setShowPassword] = useState(false);
   );
 }
 
+
 /* ================= CARD ================= */
 
 function RoleCard({ name, user_type, profile_image, onEdit, onDelete }: any) {
 
   const imageUrl = profile_image
-    ? profile_image.startsWith("http") 
-      ? profile_image
-      : `${process.env.NEXT_PUBLIC_API_URL}/uploads/${profile_image}` // local case
-    : "/profile.png";
-
   return (
     <div className="border p-4 rounded-lg flex flex-col gap-3 items-center text-center">
       
