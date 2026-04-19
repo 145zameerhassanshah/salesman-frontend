@@ -103,8 +103,8 @@ export default function QuotationsPage() {
 
   // ── EDIT
   const openEdit = async (quotation: any) => {
-    setEditFetchLoading(true);
-    setEditQuotation({ _placeholder: true });
+   setEditFetchLoading(true);
+  setEditQuotation({ _placeholder: true });
     const discountType = quotation?.discount_type || "fixed";
     const taxType      = quotation?.tax_type      || "fixed";
     const rawDiscount  = discountType === "percentage" && quotation?.subtotal > 0
@@ -115,27 +115,27 @@ export default function QuotationsPage() {
       : quotation?.tax || 0;
 
     setEditForm({
-      valid_until:   quotation?.valid_until?.split("T")[0] || "",
-      discount:      rawDiscount,
-      discount_type: discountType,
-      tax:           rawTax,
-      tax_type:      taxType,
-      deliveryNotes: quotation?.deliveryNotes || "",
-      dealer_id:     quotation?.dealer_id?._id || quotation?.dealer_id || "",  // ✅ dealer
-    });
-    try {
-      const res = await QuotationService.getQuotationById(quotation._id);
-      if (res.success) {
-        setEditQuotation(res.quotation);
-        setEditItems(res.items.map((item: any) => ({
-          ...item,
-          product_id:  item.product_id?._id || item.product_id,
-          category_id: item.category_id || item.product_id?.category_id || "",
-        })));
-      }
-    } catch { toast.error("Failed to load quotation items"); setEditQuotation(null); }
-    finally { setEditFetchLoading(false); }
-    setOpenMenu(null);
+    valid_until:   quotation?.valid_until?.split("T")[0] || "",
+    discount:      rawDiscount,
+    discount_type: discountType,
+    tax:           rawTax,
+    tax_type:      taxType,
+    deliveryNotes: quotation?.deliveryNotes || "",
+    dealer_id:     quotation?.dealer_id?._id || quotation?.dealer_id || "",
+  });
+     try {
+    const res = await QuotationService.getQuotationById(quotation._id);
+    if (res.success) {
+      setEditQuotation(res.quotation);
+      setEditItems(res.items.map((item: any) => ({
+        ...item,
+        product_id:  item.product_id || "",   // ✅ empty string for General
+        category_id: item.category_id || "",  // ✅ now populated correctly
+      })));
+    }
+  } catch { toast.error("Failed to load quotation items"); setEditQuotation(null); }
+  finally { setEditFetchLoading(false); }
+  setOpenMenu(null);
   };
 
   const closeEdit = () => { setEditQuotation(null); setEditForm({}); setEditItems([]); };
@@ -165,37 +165,37 @@ export default function QuotationsPage() {
   }, [editItems, editForm]);
 
   const handleUpdate = async () => {
-    setEditLoading(true);
-    try {
-      const payload = {
-        valid_until:   editForm.valid_until,
-        deliveryNotes: editForm.deliveryNotes,
-        discount:      editForm.discount,
-        discount_type: editForm.discount_type,
-        tax:           editForm.tax,
-        tax_type:      editForm.tax_type,
-        dealer_id:     editForm.dealer_id,              // ✅ include dealer
-        subtotal:      computedTotals.subtotal,
-        total:         computedTotals.total,
-        items: editItems.map((item) => ({
-          product_id:       item.product_id,
-          category_id:      item.category_id,
-          item_name:        item.item_name,
-          unit_price:       Number(item.unit_price),
-          discount_percent: Number(item.discount_percent),
-          quantity:         Number(item.quantity),
-          total:            Number(item.total),
-        })),
-      };
-      const res = await QuotationService.updateQuotation(payload, editQuotation._id);
-      if (!res.success) return toast.error(res?.message || "Update failed");
-      toast.success("Quotation updated successfully");
-      await refetch();
-      closeEdit();
-    } catch { toast.error("Update failed"); }
-    finally { setEditLoading(false); }
-  };
+  setEditLoading(true);
+  try {
+    const payload = {
+      valid_until:   editForm.valid_until,
+      deliveryNotes: editForm.deliveryNotes,
+      discount:      editForm.discount,
+      discount_type: editForm.discount_type,
+      tax:           editForm.tax,
+      tax_type:      editForm.tax_type,
+      dealer_id:     editForm.dealer_id,
+      subtotal:      computedTotals.subtotal,
+      total:         computedTotals.total,
+      items: editItems.map((item) => ({
+        product_id:       item.product_id || null,    // ✅ null for General
+        category_id:      item.category_id || null,   // ✅ always send
+        item_name:        item.item_name,
+        unit_price:       Number(item.unit_price),
+        discount_percent: Number(item.discount_percent),
+        quantity:         Number(item.quantity),
+        total:            Number(item.total),
+      })),
+    };
 
+    const res = await QuotationService.updateQuotation(payload, editQuotation._id);
+    if (!res.success) return toast.error(res?.message || "Update failed");
+    toast.success("Quotation updated successfully");
+    await refetch();
+    closeEdit();
+  } catch { toast.error("Update failed"); }
+  finally { setEditLoading(false); }
+};
   // ── DOWNLOAD
   const handleDownloadPDF = async (id: string) => {
     try { await QuotationService.downloadPdf(id); toast.success("Downloading PDF..."); }
@@ -432,64 +432,114 @@ export default function QuotationsPage() {
                           <th className="px-4 py-3 text-center">Action</th>
                         </tr>
                       </thead>
-                      <tbody>
-                        {editItems.map((item, index) => (
-                          <tr key={index} className="border-t">
-                            <td className="px-2 py-2">
-                              <select value={item.category_id || ""}
-                                onChange={async (e) => {
-                                  const categoryId = e.target.value;
-                                  updateEditItem(index, "category_id", categoryId);
-                                  updateEditItem(index, "product_id", "");
-                                  const res = await QuotationService.getProductsByCategory(categoryId);
-                                  setProductMap((prev: any) => ({ ...prev, [categoryId]: res.products || res || [] }));
-                                }}
-                                className="w-full border rounded-lg px-2 py-1 text-sm">
-                                <option value="">Category</option>
-                                {categories?.map((cat: any) => <option key={cat._id} value={cat._id}>{cat.name}</option>)}
-                              </select>
-                            </td>
-                            <td className="px-2 py-2">
-                              <select value={item.product_id || ""}
-                                onChange={(e) => {
-                                  const productId = e.target.value;
-                                  const selected  = productMap[item.category_id]?.find((p: any) => p._id === productId);
-                                  const updated   = [...editItems];
-                                  updated[index] = { ...updated[index], product_id: productId, item_name: selected?.name || "", unit_price: Number(selected?.sale_price || selected?.price || 0) };
-                                  const gross = Number(updated[index].unit_price) * Number(updated[index].quantity);
-                                  const disc  = (gross * Number(updated[index].discount_percent)) / 100;
-                                  updated[index].total = Number((gross - disc).toFixed(2));
-                                  setEditItems(updated);
-                                }}
-                                className="w-full border rounded-lg px-2 py-1 text-sm">
-                                <option value="">Product</option>
-                                {(productMap[item.category_id] || []).map((p: any) => <option key={p._id} value={p._id}>{p.name}</option>)}
-                              </select>
-                            </td>
-                            <td className="px-2 py-2">
-                              <input type="number" value={item.quantity || 1}
-                                onChange={(e) => updateEditItem(index, "quantity", e.target.value)}
-                                className="w-full text-center border rounded-lg px-2 py-1 text-sm" />
-                            </td>
-                            <td className="px-2 py-2">
-                              <input type="number" value={item.unit_price || 0}
-                                onChange={(e) => updateEditItem(index, "unit_price", e.target.value)}
-                                className="w-full text-center border rounded-lg px-2 py-1 text-sm" />
-                            </td>
-                            <td className="px-2 py-2">
-                              <input type="number" value={item.discount_percent || 0}
-                                onChange={(e) => updateEditItem(index, "discount_percent", e.target.value)}
-                                className="w-full text-center border rounded-lg px-2 py-1 text-sm" />
-                            </td>
-                            <td className="px-2 py-2 text-right font-medium">{(item.total ?? 0).toFixed(2)}</td>
-                            <td className="px-2 py-2 text-center">
-                              <button onClick={() => removeEditItem(index)} className="p-1 bg-red-100 text-red-600 rounded-md">
-                                <X size={14} />
-                              </button>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
+                     <tbody>
+  {editItems.map((item, index) => {
+    const rowProducts = productMap[item.category_id] || [];
+    return (
+      <tr key={index} className="border-t">
+
+        {/* CATEGORY */}
+        <td className="px-2 py-2">
+          <select
+            value={item.category_id || ""}
+            onChange={async (e) => {
+              const categoryId = e.target.value;
+              updateEditItem(index, "category_id", categoryId);
+              updateEditItem(index, "product_id", "");
+              updateEditItem(index, "item_name", "");
+              if (!productMap[categoryId]) {
+                const res = await QuotationService.getProductsByCategory(categoryId);
+                setProductMap((prev: any) => ({ ...prev, [categoryId]: res.products || res || [] }));
+              }
+            }}
+            className="w-full border rounded-lg px-2 py-1 text-sm"
+          >
+            <option value="">Category</option>
+            {categories?.filter((c: any) => c.is_active).map((cat: any) => (
+              <option key={cat._id} value={cat._id}>{cat.name}</option>
+            ))}
+          </select>
+        </td>
+
+        {/* PRODUCT — text input for General, select for others */}
+        <td className="px-2 py-2">
+          {isGeneralCategory(item.category_id) ? (
+            <input
+              type="text"
+              placeholder="Enter product name"
+              value={item.item_name || ""}
+              onChange={(e) => {
+                updateEditItem(index, "item_name", e.target.value);
+                updateEditItem(index, "product_id", "");
+              }}
+              className="w-full border rounded-lg px-2 py-1 text-sm"
+            />
+          ) : (
+            <select
+              value={item.product_id || ""}
+              onChange={(e) => {
+                const productId = e.target.value;
+                const selected = rowProducts.find((p: any) => p._id === productId);
+                updateEditItem(index, "product_id", productId);
+                updateEditItem(index, "item_name", selected?.name || "");
+                updateEditItem(index, "unit_price", selected?.mrp || 0);
+                updateEditItem(index, "discount_percent", 0);
+              }}
+              className="w-full border rounded-lg px-2 py-1 text-sm"
+            >
+              <option value="">Product</option>
+              {rowProducts.map((p: any) => (
+                <option key={p._id} value={p._id}>{p.name}</option>
+              ))}
+            </select>
+          )}
+        </td>
+
+        {/* QTY */}
+        <td className="px-2 py-2">
+          <input
+            type="number"
+            value={item.quantity || 1}
+            onChange={(e) => updateEditItem(index, "quantity", e.target.value)}
+            className="w-full text-center border rounded-lg px-2 py-1 text-sm"
+          />
+        </td>
+
+        {/* PRICE — editable for General, read-only for others */}
+        <td className="px-2 py-2">
+          <input
+            type="number"
+            value={item.unit_price || 0}
+            onChange={(e) => updateEditItem(index, "unit_price", e.target.value)}
+            readOnly={!isGeneralCategory(item.category_id)}
+            className="w-full text-center border rounded-lg px-2 py-1 text-sm disabled:bg-gray-50"
+          />
+        </td>
+
+        {/* DISCOUNT % */}
+        <td className="px-2 py-2">
+          <input
+            type="number"
+            value={item.discount_percent || 0}
+            onChange={(e) => updateEditItem(index, "discount_percent", e.target.value)}
+            className="w-full text-center border rounded-lg px-2 py-1 text-sm"
+          />
+        </td>
+
+        {/* TOTAL */}
+        <td className="px-2 py-2 text-right font-medium">{(item.total ?? 0).toFixed(2)}</td>
+
+        {/* DELETE */}
+        <td className="px-2 py-2 text-center">
+          <button onClick={() => removeEditItem(index)} className="p-1 bg-red-100 text-red-600 rounded-md">
+            <X size={14} />
+          </button>
+        </td>
+
+      </tr>
+    );
+  })}
+</tbody>
                     </table>
                   </div>
                 </div>
