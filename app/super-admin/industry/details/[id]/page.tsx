@@ -1,16 +1,20 @@
 "use client";
 
 import UserService from "@/app/components/services/userService";
+import AuthService from "@/app/components/services/authService";
 import { useUsers } from "@/hooks/useUsers";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
 import toast from "react-hot-toast";
 
 export default function BusinessDetail() {
-
-  const [showDirectorForm, setShowDirectorForm] = useState(false);
+  const router = useRouter();
   const params = useParams();
-  const { data } = useUsers(params?.id as string);
+  const { data, refetch } = useUsers(params?.id as string);
+const [showPassword, setShowPassword] = useState(false);
+  const [showModal, setShowModal] = useState(false);
+  const [isEdit, setIsEdit] = useState(false);
+  const [editId, setEditId] = useState<string | null>(null);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -20,242 +24,262 @@ export default function BusinessDetail() {
     city: "",
     address: "",
     password: "",
-    
   });
 
   const [profileImage, setProfileImage] = useState<File | null>(null);
+  const [preview, setPreview] = useState<string | null>(null);
 
   /* ================= HANDLE CHANGE ================= */
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value
-    }));
+  const handleChange = (e: any) => {
+    setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
-  /* ================= HANDLE IMAGE ================= */
+  /* ================= IMAGE ================= */
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      setProfileImage(e.target.files[0]);
+  const handleFileChange = (e: any) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setProfileImage(file);
+      setPreview(URL.createObjectURL(file));
     }
+  };
+
+  /* ================= OPEN ADD ================= */
+
+  const openAdd = () => {
+    resetForm();
+    setIsEdit(false);
+    setShowModal(true);
+  };
+
+  /* ================= OPEN EDIT ================= */
+
+  const openEdit = (user: any) => {
+    setEditId(user._id);
+    setIsEdit(true);
+
+    setFormData({
+      name: user.name || "",
+      email: user.email || "",
+      phone_number: user.phone_number || "",
+      whatsapp_number: user.whatsapp_number || "",
+      city: user.city || "",
+      address: user.address || "",
+      password: "",
+    });
+
+    setPreview(
+      user.profile_image
+        ? `${process.env.NEXT_PUBLIC_API_URL}/uploads/${user.profile_image}`
+        : null
+    );
+
+    setShowModal(true);
   };
 
   /* ================= SUBMIT ================= */
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: any) => {
     e.preventDefault();
 
     try {
-
       const fd = new FormData();
 
-      fd.append("name", formData.name);
-      fd.append("email", formData.email);
-      fd.append("phone_number", formData.phone_number);
-      fd.append("whatsapp_number", formData.whatsapp_number);
-      fd.append("city", formData.city);
-      fd.append("address", formData.address);
-      fd.append("password", formData.password);
-
-      fd.append("industry", params?.id as string);
-      fd.append("user_type", "admin");
-
-      if (profileImage) {
-        fd.append("profile_image", profileImage);
-      }
-
-      console.log(fd)
-
-      const res = await UserService.createAdmin(fd);
-
-      if (!res?.success) {
-        return toast.error(res?.message || "Failed to add director");
-      }
-
-      toast.success("Director added successfully");
-
-      setShowDirectorForm(false);
-
-      setFormData({
-        name: "",
-        email: "",
-        phone_number: "",
-        whatsapp_number: "",
-        city: "",
-        address: "",
-        password: "",
+      Object.entries(formData).forEach(([k, v]) => {
+        if (v) fd.append(k, v as string);
       });
 
-      setProfileImage(null);
+      if (!isEdit) {
+        fd.append("industry", params?.id as string);
+        fd.append("user_type", "admin");
+      }
 
-    } catch (error) {
-      toast.error("Failed to add director");
+      if (profileImage) fd.append("profile_image", profileImage);
+
+      const res = isEdit
+        ? await UserService.updateUser(editId, fd)
+        : await UserService.createAdmin(fd);
+
+      if (!res?.success) return toast.error(res?.message);
+
+      toast.success(isEdit ? "Updated" : "Created");
+      setShowModal(false);
+      resetForm();
+      refetch();
+
+    } catch {
+      toast.error("Something went wrong");
     }
   };
 
-  return (
+  /* ================= DELETE ================= */
 
+  const handleDelete = async (id: string) => {
+    if (!confirm("Delete this user?")) return;
+
+    try {
+      await AuthService.deleteUser(id);
+      toast.success("Deleted");
+      refetch();
+    } catch {
+      toast.error("Delete failed");
+    }
+  };
+
+  /* ================= RESET ================= */
+
+  const resetForm = () => {
+    setFormData({
+      name: "",
+      email: "",
+      phone_number: "",
+      whatsapp_number: "",
+      city: "",
+      address: "",
+      password: "",
+    });
+    setProfileImage(null);
+    setPreview(null);
+  };
+
+  return (
     <div className="p-8 bg-white min-h-screen text-black">
 
       {/* HEADER */}
-      <div className="flex justify-between items-center mb-8">
-
-        <h1 className="text-2xl font-bold">
-          Industry Management
-        </h1>
+      <div className="flex justify-between items-center mb-6">
 
         <button
-          onClick={() => setShowDirectorForm(true)}
-          className="bg-black text-white px-6 py-2 rounded-lg"
+          onClick={() => router.push("/super-admin")}
+          className="text-sm text-black-600 hover:underline"
         >
-          Add Director
+          ← Back
         </button>
 
+        <h1 className="text-2xl font-bold">Industry Management</h1>
+
+        <button
+          onClick={openAdd}
+          className="bg-black text-white px-5 py-2 rounded-lg"
+        >
+          + Add Admin
+        </button>
       </div>
 
-      {/* USERS GRID */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-
-        {data?.userByIndustry?.map((info: any) => (
+      {/* USERS */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
+        {data?.userByIndustry?.map((u: any) => (
           <RoleCard
-            key={info?._id}
-            name={info?.name}
-            role={info?.user_type}
-            image={info?.profile_image}
+            key={u._id}
+            {...u}
+            onEdit={() => openEdit(u)}
+            onDelete={() => handleDelete(u._id)}
           />
         ))}
-
       </div>
 
-      {/* ================= MODAL ================= */}
-
-      {showDirectorForm && (
-
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center">
-
-          <div className="bg-white p-8 rounded-xl w-[500px] max-h-[90vh] overflow-y-auto">
-
-            <h2 className="text-xl font-bold mb-6">
-              Add Director
-            </h2>
-
-            <form className="space-y-4" onSubmit={handleSubmit}>
-
-              <input
-                name="name"
-                placeholder="Name"
-                value={formData.name}
-                onChange={handleChange}
-                className="border p-2 w-full"
-                required
-              />
-
-              <input
-                type="email"
-                name="email"
-                placeholder="Email"
-                value={formData.email}
-                onChange={handleChange}
-                className="border p-2 w-full"
-                required
-              />
-
-              <input
-                name="phone_number"
-                placeholder="Phone Number"
-                value={formData.phone_number}
-                onChange={handleChange}
-                className="border p-2 w-full"
-              />
-
-              <input
-                name="whatsapp_number"
-                placeholder="WhatsApp Number"
-                value={formData.whatsapp_number}
-                onChange={handleChange}
-                className="border p-2 w-full"
-                required
-              />
-
-              <input
-                name="city"
-                placeholder="City"
-                value={formData.city}
-                onChange={handleChange}
-                className="border p-2 w-full"
-                required
-              />
-
-              <input
-                name="address"
-                placeholder="Address"
-                value={formData.address}
-                onChange={handleChange}
-                className="border p-2 w-full"
-                required
-              />
-
-              <input
-                type="password"
-                name="password"
-                placeholder="Password"
-                value={formData.password}
-                onChange={handleChange}
-                className="border p-2 w-full"
-                required
-              />
-
-              {/* IMAGE UPLOAD */}
-              <input
-                type="file"
-                onChange={handleFileChange}
-                className="border p-2 w-full"
-              />
-
-              <button
-                type="submit"
-                className="bg-black text-white px-6 py-2 rounded-lg w-full"
-              >
-                Add Director
-              </button>
-
-            </form>
-
-          </div>
-
-        </div>
-
+      {/* MODAL */}
+      {showModal && (
+        <Modal
+          title={isEdit ? "Edit Admin" : "Add Admin"}
+          onClose={() => setShowModal(false)}
+        >
+          <Form
+            formData={formData}
+            handleChange={handleChange}
+            handleFileChange={handleFileChange}
+            preview={preview}
+            onSubmit={handleSubmit}
+            isEdit={isEdit}
+          />
+        </Modal>
       )}
-
     </div>
-
   );
 }
 
-/* ================= ROLE CARD ================= */
+/* ================= CARD ================= */
 
-function RoleCard({ name, role, image }: any) {
+function RoleCard({ name, user_type, profile_image, onEdit, onDelete }: any) {
+
+  const imageUrl = profile_image
+    ? profile_image.startsWith("http") 
+      ? profile_image
+      : `${process.env.NEXT_PUBLIC_API_URL}/uploads/${profile_image}` // local case
+    : "/profile.png";
+
   return (
-    <div className="border border-black p-4 rounded-xl flex items-center gap-3">
-
+    <div className="border p-4 rounded-lg flex flex-col gap-3 items-center text-center">
+      
       <img
-        src={
-          image
-            ? `${process.env.NEXT_PUBLIC_API_URL}/uploads/${image}`
-            : "/profile.png"
-        }
-        className="w-10 h-10 rounded-full object-cover border"
+        src={imageUrl}
+        alt="profile"
+        className="w-14 h-14 rounded-full object-cover border"
       />
 
       <div>
         <h3 className="font-semibold">{name}</h3>
-        <p className="text-sm text-gray-600">{role}</p>
+        <p className="text-xs text-gray-500">{user_type}</p>
+      </div>
+
+      <div className="flex gap-3 text-sm">
+        <button onClick={onEdit} className="text-blue-500">Edit</button>
+        <button onClick={onDelete} className="text-red-500">Delete</button>
       </div>
 
     </div>
+  );
+}/* ================= MODAL ================= */
+
+function Modal({ children, title, onClose }: any) {
+  return (
+    <div className="fixed inset-0 bg-black/40 flex justify-center items-center z-50">
+      <div className="bg-white p-6 rounded-xl w-[450px]">
+        <h2 className="text-lg font-bold mb-4">{title}</h2>
+        {children}
+        <button onClick={onClose} className="mt-4 text-sm text-gray-500">
+          Close
+        </button>
+      </div>
+    </div>
+  );
+}
+
+/* ================= FORM ================= */
+
+function Form({ formData, handleChange, handleFileChange, preview, onSubmit, isEdit }: any) {
+  return (
+    <form className="space-y-3" onSubmit={onSubmit}>
+
+      {/* IMAGE */}
+      <div className="flex flex-col items-center gap-2">
+        <img
+          src={preview || "/profile.png"}
+          className="w-16 h-16 rounded-full object-cover border"
+        />
+        <input type="file" onChange={handleFileChange} />
+      </div>
+
+      {/* FIELDS */}
+      {Object.entries(formData).map(([key, val]) => (
+        <div key={key}>
+          <label className="text-xs text-gray-600 capitalize">
+            {key.replace("_", " ")}
+          </label>
+          <input
+            type={key === "password" ? "password" : "text"}
+            name={key}
+            value={val as string}
+            onChange={handleChange}
+            className="border p-2 w-full rounded"
+          />
+        </div>
+      ))}
+
+      <button className="bg-black text-white w-full py-2 rounded mt-2">
+        {isEdit ? "Update" : "Create"}
+      </button>
+
+    </form>
   );
 }
