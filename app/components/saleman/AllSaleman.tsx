@@ -70,9 +70,8 @@ export default function AllSaleman() {
      [name]: value,
     });
   };
-  const handleDelete = async (id) => {
+const handleDelete = async (id) => {
   try {
-    
     if (!confirm("Are you sure?")) return;
 
     const res = await UserService.deleteUser(id);
@@ -80,14 +79,16 @@ export default function AllSaleman() {
     if (!res?.success) return toast.error(res?.message);
 
     toast.success(res?.message);
+
     await refetch();
 
-  } catch (err) {
-    console.log(err);
-  }
-};
+    // ✅ SAME BEHAVIOR LIKE DEALER (FORCE UI UPDATE)
+    window.location.reload();
 
-  const handleImageChange = (e: any) => {
+  } catch (err: any) {
+    toast.error(err.message || "Delete failed");
+  }
+};  const handleImageChange = (e: any) => {
     const file = e.target.files[0];
     if (!file) return;
 
@@ -226,7 +227,7 @@ Object.keys(form).forEach((key) => {
       </button>
     </div>
                 <button
-                  onClick={() => handleDelete(item._id)}
+                  onClick={() => handleDelete(salesman._id)}
                   className="p-2 bg-red-100 text-red-600 rounded-md hover:bg-red-200"
                 >
                   <Trash2 size={16} /> {/* ✅ ICON */}

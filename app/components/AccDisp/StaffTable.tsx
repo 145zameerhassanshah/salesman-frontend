@@ -15,19 +15,17 @@ export default function StaffTable({
 }) {
   const user = useSelector((state: any) => state.user.user);
   // ✅ FUNCTION YAHAN LIKHNA HAI
-  const handleDelete = async (id: string) => {
-    try {
-      if (!confirm("Are you sure?")) return;
+const handleDelete = async (id) => {
+  try {
+    if (!confirm("Are you sure?")) return;
 
-      const res = await UserService.deleteUser(id);
+    const res = await UserService.deleteUser(id);
 
-      if (!res?.success) {
-        toast.error(res?.message);
-        return;
-      }
+    if (!res?.success) return toast.error(res?.message);
 
-      toast.success(res?.message);
+    toast.success(res?.message);
 
+<<<<<<< HEAD
       await refetch(); // safe call
 
     } catch (err: any) {
@@ -35,7 +33,13 @@ export default function StaffTable({
       toast.error(err.message);
     }
   };
+=======
+>>>>>>> 909048913272bf5968fcb2a17c9f3e91c8d676e2
 
+  } catch (err: any) {
+    toast.error(err.message || "Delete failed");
+  }
+};
   return (
     <div className="overflow-x-auto border rounded-lg">
       <table className="w-full text-left">
@@ -75,10 +79,11 @@ export default function StaffTable({
                 </span>
               </td>
 
-              <td className="p-3">
-                {new Date(item.createdAt).toLocaleDateString("en-GB")}
-              </td>
-
+<td className="p-3">
+  {item.createdAt
+    ? new Date(item.createdAt).toLocaleDateString("en-GB")
+    : "-"}
+</td>
               <td className="p-3 flex items-center gap-2">
 
                 {/* EDIT */}
