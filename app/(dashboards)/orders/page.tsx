@@ -228,6 +228,7 @@ export default function OrdersPage() {
     setEditOrder({ _placeholder: true }); // show modal with loader immediately
     try {
       const res = await order.getOrderById(orderId);
+      console.log(res)
       if (!res.success) {
         setEditOrder(null);
         return toast.error(res?.message || "Failed to load order");
@@ -383,15 +384,16 @@ const handleEditItemChange = (index: number, field: string, value: any) => {
         tax: editFields.tax,
         dealer_id: editFields.dealer_id, // ✅ raw input
         tax_type: editFields.tax_type,
-        items: editItems.map((item) => ({
-          _id: item._id,
-          product_id: item.product_id?._id || item.product_id,
-          quantity: parseFloat(item.quantity),
-          item_name: item?.item_name,
-          unit_price: parseFloat(item.unit_price),
-          discount_percent: parseFloat(item.discount_percent) || 0,
-          total: item.total,
-        })),
+       items: editItems.map((item) => ({
+  _id: item._id,
+  product_id: item.product_id?._id || item.product_id || null,  // ✅ null for General
+  category_id: item.category_id || null,  // ✅ always send
+  quantity: parseFloat(item.quantity),
+  item_name: item?.item_name,
+  unit_price: parseFloat(item.unit_price),
+  discount_percent: parseFloat(item.discount_percent) || 0,
+  total: item.total,
+})),
         subtotal: computedTotals.subtotal,
         total: computedTotals.total,
         status: editOrder?.status,
@@ -435,7 +437,9 @@ const handleEditItemChange = (index: number, field: string, value: any) => {
     left: 0,
   });
 
-  console.log(editOrder)
+  // console.log(editItems)
+
+  // console.log(editOrder)
   return (
     <div className="p-4 md:p-8 bg-gray-100 min-h-screen">
       {/* CONFIRMATION MODAL */}
@@ -864,152 +868,135 @@ const handleEditItemChange = (index: number, field: string, value: any) => {
                               productMap[item.category_id] || [];
                             return (
                               <tr key={i} className="border-t">
-                                {/* CATEGORY */}
-                                <td className="px-2 py-2">
-                                  <select
-                                    value={item.category_id}
-                                    onChange={async (e) => {
-                                      const categoryId = e.target.value;
 
-                                      handleEditItemChange(
-                                        i,
-                                        "category_id",
-                                        categoryId,
-                                      );
-                                      handleEditItemChange(i, "product_id", "");
-                                      handleEditItemChange(i, "item_name", "");
+  {/* CATEGORY */}
+  <td className="px-2 py-2">
+    <select
+      value={item.category_id}
+      onChange={async (e) => {
+        const categoryId = e.target.value;
 
-                                      if (!productMap[categoryId]) {
-                                        const res =
-                                          await order.getProductsByCategory(
-                                            categoryId,
-                                          );
+        handleEditItemChange(i, "category_id", categoryId);
+        handleEditItemChange(i, "product_id", "");
+        handleEditItemChange(i, "item_name", "");
 
-                                        setProductMap((prev: any) => ({
-                                          ...prev,
-                                          [categoryId]: res,
-                                        }));
-                                      }
-                                    }}
-                                    className="w-full border rounded-lg px-2 py-1 text-sm"
-                                  >
-                                    <option value="">Category</option>
-                                    {categories.map((c: any) => (
-                                      <option key={c._id} value={c._id}>
-                                        {c.name}
-                                      </option>
-                                    ))}
-                                  </select>
-                                </td>
+        if (!productMap[categoryId]) {
+          const res = await order.getProductsByCategory(categoryId);
 
-                                {/* PRODUCT */}
-                                <td className="px-2 py-2">
-                                  <select
-                                    value={
-                                      item.product_id?._id || item.product_id
-                                    }
-                                    onChange={(e) => {
-                                      const product = rowProducts.find(
-                                        (p: any) =>
-                                          String(p._id) ===
-                                          String(e.target.value),
-                                      );
-                                      handleEditItemChange(
-                                        i,
-                                        "product_id",
-                                        e.target.value,
-                                      );
-                                      handleEditItemChange(
-                                        i,
-                                        "item_name",
-                                        product?.name || "",
-                                      );
-                                      handleEditItemChange(
-                                        i,
-                                        "unit_price",
-                                        product?.mrp || 0,
-                                      );
-                                    }}
-                                    className="w-full border rounded-lg px-2 py-1 text-sm"
-                                  >
-                                    <option value="">Product</option>
-                                    {rowProducts.map((p: any) => (
-                                      <option key={p._id} value={p._id}>
-                                        {p.name}
-                                      </option>
-                                    ))}
-                                  </select>
-                                </td>
+          setProductMap((prev: any) => ({
+            ...prev,
+            [categoryId]: res,
+          }));
+        }
+      }}
+      className="w-full border rounded-lg px-2 py-1 text-sm"
+    >
+      <option value="">Category</option>
+      {categories.map((c: any) => (
+        <option key={c._id} value={c._id}>{c.name}</option>
+      ))}
+    </select>
+  </td>
 
-                                {/* QTY */}
-                                <td className="px-2 py-2">
-                                  <input
-                                    type="number"
-                                    value={item.quantity}
-                                    onChange={(e) =>
-                                      handleEditItemChange(
-                                        i,
-                                        "quantity",
-                                        e.target.value,
-                                      )
-                                    }
-                                    className="w-full text-center border rounded-lg px-2 py-1 text-sm"
-                                  />
-                                </td>
+  {/* PRODUCT */}
+  <td className="px-2 py-2">
+    {isGeneralCategory(item.category_id) ? (
+      <input
+        type="text"
+        placeholder="Enter product name"
+        value={item.item_name || ""}
+        onChange={(e) => {
+          handleEditItemChange(i, "item_name", e.target.value);
+          handleEditItemChange(i, "product_id", "");
+        }}
+        className="w-full border rounded-lg px-2 py-1 text-sm"
+      />
+    ) : (
+      <select
+        value={item.product_id?._id || item.product_id || ""}
+        onChange={(e) => {
+          const product = rowProducts.find(
+            (p: any) => String(p._id) === String(e.target.value)
+          );
 
-                                {/* PRICE */}
-                                <td className="px-2 py-2">
-                                  <input
-                                    type="number"
-                                    value={item.unit_price}
-                                    onChange={(e) =>
-                                      handleEditItemChange(
-                                        i,
-                                        "unit_price",
-                                        e.target.value,
-                                      )
-                                    }
-                                    className="w-full text-center border rounded-lg px-2 py-1 text-sm"
-                                  />
-                                </td>
+          handleEditItemChange(i, "product_id", e.target.value);
+          handleEditItemChange(i, "item_name", product?.name || "");
+          handleEditItemChange(i, "unit_price", product?.mrp || 0);
+        }}
+        className="w-full border rounded-lg px-2 py-1 text-sm"
+      >
+        <option value="">Product</option>
+        {rowProducts.map((p: any) => (
+          <option key={p._id} value={p._id}>{p.name}</option>
+        ))}
+      </select>
+    )}
+  </td>
 
-                                {/* DISCOUNT */}
-<td className="px-2 py-2 flex gap-1">
-  <select
-    value={item.discount_type}
-    onChange={(e) =>
-      handleEditItemChange(i, "discount_type", e.target.value)
-    }
-    className="border rounded px-1 text-xs"
-  >
-    <option value="percent">%</option>
-    <option value="amount">Amt</option>
-  </select>
+  {/* QTY ✅ correct position */}
+  <td className="px-2 py-2">
+    <input
+      type="number"
+      value={item.quantity}
+      onChange={(e) =>
+        handleEditItemChange(i, "quantity", e.target.value)
+      }
+      className="w-full text-center border rounded-lg px-2 py-1 text-sm"
+    />
+  </td>
 
-  <input
-    type="number"
-    value={item.discount_percent}
-    onChange={(e) =>
-      handleEditItemChange(i, "discount_percent", e.target.value)
-    }
-    className="w-full text-center border rounded-lg px-2 py-1 text-sm"
-  />
-</td>
-                                {/* TOTAL */}
-                                <td className="px-2 py-2 text-right font-medium">
-                                  {(item.total ?? 0).toFixed(2)}
-                                </td>
+  {/* PRICE ✅ single correct column */}
+  <td className="px-2 py-2">
+    <input
+      type="number"
+      value={item.unit_price}
+      onChange={(e) =>
+        handleEditItemChange(i, "unit_price", e.target.value)
+      }
+      readOnly={!isGeneralCategory(item.category_id)}
+      className="w-full text-center border rounded-lg px-2 py-1 text-sm"
+    />
+  </td>
 
-                                {/* DELETE */}
-                                <td className="px-2 py-2 text-center">
-                                  <button
-                                    onClick={() => handleRemoveItem(i)}
-                                    className="p-1 bg-red-100 text-red-600 rounded-md"
-                                  >
-                                    <X size={14} />
-                                  </button>
-                                </td>
-                              </tr>
+  {/* DISCOUNT */}
+  <td className="px-2 py-2 flex gap-1">
+    <select
+      value={item.discount_type}
+      onChange={(e) =>
+        handleEditItemChange(i, "discount_type", e.target.value)
+      }
+      className="border rounded px-1 text-xs"
+    >
+      <option value="percent">%</option>
+      <option value="amount">Amt</option>
+    </select>
+
+    <input
+      type="number"
+      value={item.discount_percent}
+      onChange={(e) =>
+        handleEditItemChange(i, "discount_percent", e.target.value)
+      }
+      className="w-full text-center border rounded-lg px-2 py-1 text-sm"
+    />
+  </td>
+
+  {/* TOTAL */}
+  <td className="px-2 py-2 text-right font-medium">
+    {(item.total ?? 0).toFixed(2)}
+  </td>
+
+  {/* DELETE */}
+  <td className="px-2 py-2 text-center">
+    <button
+      onClick={() => handleRemoveItem(i)}
+      className="p-1 bg-red-100 text-red-600 rounded-md"
+    >
+      <X size={14} />
+    </button>
+  </td>
+
+</tr>
                             );
                           })}
                         </tbody>
