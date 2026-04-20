@@ -6,7 +6,7 @@ import ProductService from "@/app/components/services/productService";
 import toast from "react-hot-toast";
 import { useSelector } from "react-redux";
 
-export default function ProductsTable({ products, refetch }: any) {
+export default function ProductsTable({ products, refetch,count }: any) {
   const user = useSelector((state: any) => state.user.user);
 
   const [editProduct, setEditProduct] = useState<any>(null);
@@ -325,12 +325,7 @@ export default function ProductsTable({ products, refetch }: any) {
 
         {/* Footer */}
         <div className="flex flex-col md:flex-row justify-between items-center mt-4 text-sm gap-3">
-          <p className="text-gray-500">Total Products: {products?.length}</p>
-          <div className="flex gap-2">
-            <button className="px-3 py-1 border rounded">1</button>
-            <button className="px-3 py-1">2</button>
-            <button className="px-3 py-1">3</button>
-          </div>
+          <p className="text-gray-500">Total Products: {count}</p>
         </div>
       </div>
     </>
