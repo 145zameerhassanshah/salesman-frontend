@@ -11,10 +11,9 @@ export default function StaffTable({
 }: {
   data: any[];
   onEdit: (item: any) => void;
-  refetch?: () => void;
+  refetch: () => void;
 }) {
   const user = useSelector((state: any) => state.user.user);
-
   // ✅ FUNCTION YAHAN LIKHNA HAI
 const handleDelete = async (id) => {
   try {
@@ -26,6 +25,16 @@ const handleDelete = async (id) => {
 
     toast.success(res?.message);
 
+<<<<<<< HEAD
+      await refetch(); // safe call
+
+    } catch (err: any) {
+      console.log(err);
+      toast.error(err.message);
+    }
+  };
+=======
+>>>>>>> 909048913272bf5968fcb2a17c9f3e91c8d676e2
 
   } catch (err: any) {
     toast.error(err.message || "Delete failed");
@@ -50,7 +59,7 @@ const handleDelete = async (id) => {
             <tr key={item._id} className="border-t">
               <td className="p-3">
                 <img
-                  src={item.profile_image || "/profile.png"} // ✅ fix
+                  src={item?.image} // ✅ fix
                   className="w-10 h-10 rounded-full object-cover"
                 />
               </td>

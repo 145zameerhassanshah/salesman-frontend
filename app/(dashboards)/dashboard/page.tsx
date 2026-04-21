@@ -43,9 +43,7 @@ const id = user?.industry;
       try {
         const res = await dashboard.getStats(id);
 
-        console.log("DASHBOARD RESPONSE:", res); // ✅ DEBUG
-
-        if (res?.stats) {
+          if (res?.stats) {
           setStats(res.stats);
         }
 

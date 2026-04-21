@@ -259,11 +259,7 @@ const handleDelete = async (id) => {
             className="border border-black p-6 rounded-xl hover:bg-black hover:text-white transition flex items-center gap-4"
           >
             <img
-              src={
-                b?.business_logo
-                  ? `${API_URL}/uploads/${b.business_logo}`
-                  : "/profile.png"
-              }
+              src={b?.business_logo}
               className="w-12 h-12 rounded-full object-cover border"
             />
 

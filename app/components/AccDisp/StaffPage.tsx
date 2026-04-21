@@ -67,6 +67,7 @@ export default function StaffPage({ role }: { role: string }) {
   image: u.profile_image
 }))}
           onEdit={handleEdit}
+          refetch={refetch} // ✅ PASS THIS
         />
       )}
 
