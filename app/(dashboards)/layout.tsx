@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useLayoutEffect } from "react";
 import Sidebar from "@/app/components/dashboard/Sidebar";
 import Topbar from "../components/dashboard/topbar";
 
@@ -12,12 +12,11 @@ export default function DashboardLayout({
   const [expanded, setExpanded] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const handleResize = () => {
       const mobile = window.innerWidth < 768;
       setIsMobile(mobile);
-      if (mobile) setExpanded(false);
-      else setExpanded(true);
+      setExpanded(!mobile);
     };
 
     handleResize();
@@ -25,58 +24,79 @@ export default function DashboardLayout({
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
+  const SIDEBAR_W = 224;
+
   return (
     <>
-      {/* Mobile zoom fix */}
       <style>{`
         @media (max-width: 767px) {
           html { touch-action: manipulation; }
         }
       `}</style>
 
-      <div className="flex h-screen w-screen overflow-hidden font-sans bg-gray-50">
+      <div style={{
+        display: "flex",
+        height: "100vh",
+        width: "100vw",
+        overflow: "hidden",
+        backgroundColor: "#f9fafb",
+      }}>
 
-        {/* Mobile Overlay */}
-        {isMobile && expanded && (
-          <div
-            className="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm"
-            onClick={() => setExpanded(false)}
-          />
-        )}
-
-        {/* SIDEBAR — always fixed */}
-        <aside
-          className={`
-            fixed inset-y-0 left-0 z-50
-            transition-all duration-300 ease-in-out
-            ${expanded ? "w-56" : "w-16"}
-            ${isMobile && !expanded ? "-translate-x-full" : "translate-x-0"}
-          `}
-        >
+        {/* SIDEBAR */}
+        <aside style={{
+          position: "fixed",
+          top: 0, left: 0, bottom: 0,
+          zIndex: 50,
+          width: `${SIDEBAR_W}px`,
+          transform: isMobile && !expanded ? "translateX(-100%)" : "translateX(0)",
+          transition: "transform 300ms ease-in-out",
+        }}>
           <Sidebar expanded={expanded} setExpanded={setExpanded} />
         </aside>
 
-        {/* MAIN CONTENT */}
-        <div
-          className={`
-            flex flex-col flex-1 min-w-0
-            transition-all duration-300 ease-in-out
-            ${!isMobile ? (expanded ? "ml-56" : "ml-16") : "ml-0"}
-          `}
-        >
+        {/* MOBILE OVERLAY */}
+        {isMobile && expanded && (
+          <div
+            onClick={() => setExpanded(false)}
+            style={{
+              position: "fixed", inset: 0, zIndex: 40,
+              backgroundColor: "rgba(0,0,0,0.4)",
+            }}
+          />
+        )}
+
+        {/* MAIN — ✅ desktop pe hamesha 224px margin, mobile pe 0 */}
+        <div style={{
+          display: "flex",
+          flexDirection: "column",
+          flex: 1,
+          minWidth: 0,
+          marginLeft: isMobile ? 0 : `${SIDEBAR_W}px`,
+        }}>
+
           {/* TOPBAR */}
-          <header className="sticky top-0 z-40 w-full bg-white border-b border-gray-200 shadow-sm">
+          <header style={{
+            position: "sticky",
+            top: 0, zIndex: 40,
+            flexShrink: 0,
+            backgroundColor: "#ffffff",
+            borderBottom: "1px solid #e5e7eb",
+            boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
+          }}>
             <Topbar expanded={expanded} setExpanded={setExpanded} />
           </header>
 
           {/* PAGE CONTENT */}
-          <main className="flex-1 overflow-y-auto overflow-x-hidden p-4 md:p-6">
-            <div className="max-w-7xl mx-auto">
-              {children}
-            </div>
+          <main style={{
+            flex: 1,
+            overflowY: "auto",
+            overflowX: "hidden",
+            padding: "1rem",
+          }}>
+            {children}
           </main>
-        </div>
 
+        </div>
       </div>
     </>
   );
