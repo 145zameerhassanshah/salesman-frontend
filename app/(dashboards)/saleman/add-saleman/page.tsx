@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { User, KeyRound } from "lucide-react";
+import { User, Eye, EyeOff } from "lucide-react";
 import { useSelector } from "react-redux";
 import toast from "react-hot-toast";
 import UserService from "@/app/components/services/userService";
@@ -10,7 +10,7 @@ import { useRouter } from "next/navigation";
 export default function AddSalesman() {
   const router=useRouter();
   const user = useSelector((state: any) => state.user.user);
-
+const [showPassword, setShowPassword] = useState(false);
   const [form, setForm] = useState({
   name: "",
   email: "",
@@ -18,8 +18,8 @@ export default function AddSalesman() {
   whatsapp_number: "",
   city: "",
   address: "",
-  territory: "",        // ✅ NEW
-  designation: "",      // ✅ NEW
+  territory: "",        
+  designation: "",      
   password: "",
   profile_image: null,
 });
@@ -185,18 +185,6 @@ if (form.designation.length < 2) {
               />
             </div>
 
-            <div>
-              <label className="text-sm text-gray-500">Email Address</label><span className="text-red-500">*</span>
-              <input
-                name="email"
-                value={form.email}
-                onChange={handleChange}
-                required
-                type="email"
-                placeholder="contact@client.com"
-                className="w-full mt-1 bg-gray-100 rounded-lg px-3 py-2 outline-none"
-              />
-            </div>
 
             <div>
               <label className="text-sm text-gray-500">Phone Number</label><span className="text-red-500">*</span>
@@ -284,18 +272,44 @@ if (form.designation.length < 2) {
                 className="w-full mt-1 bg-gray-100 rounded-lg px-3 py-2 outline-none"
               />
             </div>
-             <div>
-              <label className="text-sm text-gray-500">Password</label><span className="text-red-500">*</span>
+                        <div>
+              <label className="text-sm text-gray-500">Email Address</label><span className="text-red-500">*</span>
               <input
-                name="password"
-                value={form.password}
-                required
+                name="email"
+                value={form.email}
                 onChange={handleChange}
-                type="password"
+                required
+                type="email"
+                placeholder="contact@client.com"
                 className="w-full mt-1 bg-gray-100 rounded-lg px-3 py-2 outline-none"
               />
             </div>
 
+<div>
+  <label className="text-sm text-gray-500">
+    Password
+  </label>
+  <span className="text-red-500">*</span>
+
+  <div className="relative mt-1">
+    <input
+      name="password"
+      value={form.password}
+      required
+      onChange={handleChange}
+      type={showPassword ? "text" : "password"}
+      className="w-full bg-gray-100 rounded-lg px-3 py-2 pr-10 outline-none"
+    />
+
+    <button
+      type="button"
+      onClick={() => setShowPassword(!showPassword)}
+      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500"
+    >
+      {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+    </button>
+  </div>
+</div>
           </div>
         </div>
       </div>

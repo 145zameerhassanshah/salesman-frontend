@@ -5,7 +5,7 @@ import AuthService from "@/app/components/services/authService";
 import toast from "react-hot-toast";
 import UserService from "@/app/components/services/userService";
 import { useSelector } from "react-redux";
-
+import { Eye, EyeOff } from "lucide-react";
 export default function StaffModal({
   data,
   role,
@@ -33,7 +33,7 @@ export default function StaffModal({
     status: "Active",
     profile_image: null,
   });
-
+const [showPassword, setShowPassword] = useState(false);
   const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -151,14 +151,6 @@ if (data && form.password) {
           onChange={(e) => setForm({ ...form, name: e.target.value })}
         />
 
-        <label className="text-sm text-gray-500">
-          Email{!isEdit && <span className="text-red-500">*</span>}
-        </label>
-        <input
-          className="w-full border p-2 rounded"
-          value={form.email}
-          onChange={(e) => setForm({ ...form, email: e.target.value })}
-        />
 
         <label className="text-sm text-gray-500">
           Phone No{!isEdit && <span className="text-red-500">*</span>}
@@ -197,6 +189,14 @@ if (data && form.password) {
           value={form.address}
           onChange={(e) => setForm({ ...form, address: e.target.value })}
         />
+        <label className="text-sm text-gray-500">
+          Email{!isEdit && <span className="text-red-500">*</span>}
+        </label>
+        <input
+          className="w-full border p-2 rounded"
+          value={form.email}
+          onChange={(e) => setForm({ ...form, email: e.target.value })}
+        />
 
         {/* PASSWORD */}
 <label className="text-sm text-gray-500">
@@ -204,14 +204,23 @@ if (data && form.password) {
   {!isEdit && <span className="text-red-500">*</span>}
 </label>
 
-<input
-  type="password"
-  className="w-full border p-2 rounded"
-  value={form.password}
-  onChange={(e) => setForm({ ...form, password: e.target.value })}
-  placeholder={isEdit ? "Leave empty to keep current password" : ""}
-/>
-        <label className="text-sm text-gray-500">Status</label>
+<div className="relative">
+  <input
+    type={showPassword ? "text" : "password"}
+    className="w-full border p-2 rounded pr-10"
+    value={form.password}
+    onChange={(e) => setForm({ ...form, password: e.target.value })}
+    placeholder={isEdit ? "Leave empty to keep current password" : ""}
+  />
+
+  <button
+    type="button"
+    onClick={() => setShowPassword(!showPassword)}
+    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500"
+  >
+    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+  </button>
+</div>        <label className="text-sm text-gray-500">Status</label>
         <select
           className="w-full border p-2 rounded"
           value={form.status}

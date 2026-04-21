@@ -6,6 +6,8 @@ import {
   SlidersHorizontal,
   Pencil,
   Trash2,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 import { useUsers } from "@/hooks/useUsers";
 import { useSelector } from "react-redux";
@@ -23,6 +25,7 @@ export default function AllSaleman() {
   const { data,refetch } = useUsers(user?.industry);
   const users = data?.userByIndustry || [];
   const [editItem, setEditItem] = useState<any>(null);
+  const [showPassword, setShowPassword] = useState(false);
   const [form, setForm] = useState<any>({
     name: "",
     email: "",
@@ -43,6 +46,8 @@ export default function AllSaleman() {
      OPEN EDIT
   ============================== */
   const openEdit = (item: any) => {
+      setShowPassword(false); 
+
   setEditItem(item);
 
   setForm({
@@ -274,15 +279,24 @@ Object.keys(form).forEach((key) => {
     placeholder="Email"
     className="w-full border p-2 rounded"
   />
+<div className="relative">
   <input
-  name="password"
-  type="password"
-  value={form.password || ""}
-  onChange={handleChange}
-  placeholder="New Password (optional)"
-  className="w-full border p-2 rounded"
-/>
+    name="password"
+    type={showPassword ? "text" : "password"}
+    value={form.password || ""}
+    onChange={handleChange}
+    placeholder="New Password (optional)"
+    className="w-full border p-2 rounded pr-10"
+  />
 
+  <button
+    type="button"
+    onClick={() => setShowPassword(!showPassword)}
+    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500"
+  >
+    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+  </button>
+</div>
   {/* PHONE */}
   <input
     name="phone_number"

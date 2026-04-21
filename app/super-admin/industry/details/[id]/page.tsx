@@ -151,7 +151,7 @@ const [showPassword, setShowPassword] = useState(false);
 
         <button
           onClick={() => router.push("/super-admin")}
-          className="text-sm text-black-600 hover:underline"
+          className="text-sm text-black-600 hover:underline cursor-pointer"
         >
           ← Back
         </button>
@@ -191,6 +191,8 @@ const [showPassword, setShowPassword] = useState(false);
             preview={preview}
             onSubmit={handleSubmit}
             isEdit={isEdit}
+            showPassword={showPassword}
+            setShowPassword={setShowPassword}
           />
         </Modal>
       )}
@@ -247,7 +249,7 @@ function Modal({ children, title, onClose }: any) {
 
 /* ================= FORM ================= */
 
-function Form({ formData, handleChange, handleFileChange, preview, onSubmit, isEdit }: any) {
+function Form({ formData, handleChange, handleFileChange, preview, onSubmit, isEdit, showPassword, setShowPassword}: any) {
   return (
     <form className="space-y-3" onSubmit={onSubmit}>
 
@@ -261,21 +263,41 @@ function Form({ formData, handleChange, handleFileChange, preview, onSubmit, isE
       </div>
 
       {/* FIELDS */}
-      {Object.entries(formData).map(([key, val]) => (
-        <div key={key}>
-          <label className="text-xs text-gray-600 capitalize">
-            {key.replace("_", " ")}
-          </label>
-          <input
-            type={key === "password" ? "password" : "text"}
-            name={key}
-            value={val as string}
-            onChange={handleChange}
-            className="border p-2 w-full rounded"
-          />
-        </div>
-      ))}
+{Object.entries(formData).map(([key, val]) => (
+  <div key={key}>
+    <label className="text-xs text-gray-600 capitalize">
+      {key.replace("_", " ")}
+    </label>
 
+    {key === "password" ? (
+      <div className="relative">
+        <input
+          type={showPassword ? "text" : "password"}
+          name={key}
+          value={val as string}
+          onChange={handleChange}
+          className="border p-2 w-full rounded pr-12"
+        />
+
+        <button
+          type="button"
+          onClick={() => setShowPassword(!showPassword)}
+          className="absolute right-2 top-2 text-xs text-gray-500"
+        >
+          {showPassword ? "Hide" : "Show"}
+        </button>
+      </div>
+    ) : (
+      <input
+        type="text"
+        name={key}
+        value={val as string}
+        onChange={handleChange}
+        className="border p-2 w-full rounded"
+      />
+    )}
+  </div>
+))}
       <button className="bg-black text-white w-full py-2 rounded mt-2">
         {isEdit ? "Update" : "Create"}
       </button>
