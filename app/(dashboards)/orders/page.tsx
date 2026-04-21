@@ -13,7 +13,6 @@ import {
   Plus,
   Download,
   Search,
-  SlidersHorizontal,
   Pencil,
   MoreVertical,
   Save,
@@ -37,7 +36,6 @@ const statusStyle: any = {
 export default function OrdersPage() {
   const [openMenu, setOpenMenu] = useState(null);
   const user = useSelector((state: any) => state.user.user);
-  // const [downloadOrderId, setDownloadOrderId] = useState(null);
   const isDispatcher = user?.user_type === "dispatcher";
   const isManager = user?.user_type === "manager";
   const canEditFull =
@@ -48,7 +46,6 @@ export default function OrdersPage() {
 
   const [search, setSearch] = useState("");
   const [confirmOrderId, setConfirmOrderId] = useState<string | null>(null);
-  // Update type
   const [confirmAction, setConfirmAction] = useState<
     "approve" | "reject" | "unapprove" | "delete" | null
   >(null);
@@ -63,11 +60,13 @@ export default function OrdersPage() {
   const [editSaving, setEditSaving] = useState(false);
   const [editFields, setEditFields] = useState<any>({});
   const { data: dealer } = useDealers(user?.industry);
-  const dealers = dealer?.dealers;
+  const dealers = dealer?.dealers || [];
+
+  const ORDERS_PER_PAGE = 5;
+  const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
-    const handleClickOutside = (e) => {
-      // ignore clicks inside dropdown
+    const handleClickOutside = (e: any) => {
       if ((e.target as HTMLElement).closest(".dropdown-menu")) return;
       setOpenMenu(null);
     };
@@ -94,37 +93,46 @@ export default function OrdersPage() {
       loadProducts();
     }
   }, [editItems]);
-  const [statusFilter, setStatusFilter] = useState("");
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search]);
 
   const filtered = useMemo(() => {
-    let result = data;
+    let result = data || [];
+
     if (search.trim()) {
       result = result?.filter((o: any) =>
-        o?.order_number?.toLowerCase().includes(search.toLowerCase()),
+        o?.order_number?.toLowerCase().includes(search.toLowerCase())
       );
     }
-    if (statusFilter) {
-      result = result?.filter(
-        (o: any) => o?.status?.toLowerCase() === statusFilter.toLowerCase(),
-      );
-    }
+
     return result;
-  }, [search, statusFilter, data]);
+  }, [search, data]);
+
+  const totalPages = Math.ceil((filtered?.length || 0) / ORDERS_PER_PAGE);
+
+  const paginatedOrders = useMemo(() => {
+    const startIndex = (currentPage - 1) * ORDERS_PER_PAGE;
+    const endIndex = startIndex + ORDERS_PER_PAGE;
+    return filtered?.slice(startIndex, endIndex);
+  }, [filtered, currentPage]);
 
   const formatStatus = (status: string) =>
     status ? status.charAt(0).toUpperCase() + status.slice(1) : "-";
 
   const handleAction = (
     orderId: string,
-    action: "approve" | "reject" | "unapprove" | "delete",
+    action: "approve" | "reject" | "unapprove" | "delete"
   ) => {
     setConfirmOrderId(orderId);
     setConfirmAction(action);
 
     if (action === "reject") {
-      setRejectReason(""); // reset every time
+      setRejectReason("");
     }
   };
+
   const handleDownload = async (id: any) => {
     try {
       const res = await fetch(`${API_URL}/orders/pdf/${id}`, {
@@ -133,7 +141,6 @@ export default function OrdersPage() {
       });
 
       const blob = await res.blob();
-
       const url = window.URL.createObjectURL(blob);
 
       const a = document.createElement("a");
@@ -149,6 +156,7 @@ export default function OrdersPage() {
       console.log(error);
     }
   };
+
   const handleConfirm = async () => {
     if (confirmAction === "approve") {
       const res = await order.updateStatus(confirmOrderId, {
@@ -225,26 +233,23 @@ export default function OrdersPage() {
 
   const handleEdit = async (orderId: string) => {
     setEditLoading(true);
-    setEditOrder({ _placeholder: true }); // show modal with loader immediately
+    setEditOrder({ _placeholder: true });
     try {
       const res = await order.getOrderById(orderId);
-      console.log(res)
+      console.log(res);
       if (!res.success) {
         setEditOrder(null);
         return toast.error(res?.message || "Failed to load order");
       }
       setEditOrder(res.order);
-      // setEditItems(res.items.map((item: any) => ({ ...item })));
       setEditItems(
         res.items.map((item: any) => ({
           ...item,
           product_id: item.product_id || "",
           category_id: item.category_id || "",
-              discount_type: item.discount_type || "percent", 
-
-        })),
+          discount_type: item.discount_type || "percent",
+        }))
       );
-      // Add these to editFields state when opening edit modal
       setEditFields({
         due_date: res.order?.due_date
           ? new Date(res.order.due_date).toISOString().split("T")[0]
@@ -252,9 +257,8 @@ export default function OrdersPage() {
         deliveryNotes: res.order?.deliveryNotes || "",
         payment_term: res.order?.payment_term || "cash",
         discount_type: res.order?.discount_type || "amount",
-        
         tax_type: res.order?.tax_type || "amount",
-dealer_id: res.order?.dealer_id?._id || "",      
+        dealer_id: res.order?.dealer_id?._id || "",
         discount:
           res.order?.discount_type === "percent"
             ? res.order?.subtotal > 0
@@ -279,28 +283,29 @@ dealer_id: res.order?.dealer_id?._id || "",
     }
   };
 
-const handleEditItemChange = (index: number, field: string, value: any) => {
-  setEditItems((prev) => {
-    const updated = [...prev];
-    updated[index] = { ...updated[index], [field]: value };
+  const handleEditItemChange = (index: number, field: string, value: any) => {
+    setEditItems((prev) => {
+      const updated = [...prev];
+      updated[index] = { ...updated[index], [field]: value };
 
-    const qty = parseFloat(updated[index].quantity) || 0;
-    const price = parseFloat(updated[index].unit_price) || 0;
-    const discount = parseFloat(updated[index].discount_percent) || 0;
+      const qty = parseFloat(updated[index].quantity) || 0;
+      const price = parseFloat(updated[index].unit_price) || 0;
+      const discount = parseFloat(updated[index].discount_percent) || 0;
 
-    let total = 0;
+      let total = 0;
 
-    if (updated[index].discount_type === "amount") {
-      total = qty * price - discount;
-    } else {
-      total = qty * price * (1 - discount / 100);
-    }
+      if (updated[index].discount_type === "amount") {
+        total = qty * price - discount;
+      } else {
+        total = qty * price * (1 - discount / 100);
+      }
 
-    updated[index].total = total;
+      updated[index].total = total;
 
-    return updated;
-  });
-};
+      return updated;
+    });
+  };
+
   const handleAddItem = () => {
     setEditItems((prev) => [
       ...prev,
@@ -316,15 +321,15 @@ const handleEditItemChange = (index: number, field: string, value: any) => {
       },
     ]);
   };
+
   const handleRemoveItem = (index: number) => {
     setEditItems((prev) => prev.filter((_, i) => i !== index));
   };
 
   const computedTotals = useMemo(() => {
-    // item.total already has item-level discount applied
     const itemsSubtotal = editItems.reduce(
       (sum, item) => sum + (parseFloat(item.total) || 0),
-      0,
+      0
     );
 
     const discount = Number(editFields.discount) || 0;
@@ -344,13 +349,13 @@ const handleEditItemChange = (index: number, field: string, value: any) => {
 
     return { subtotal: itemsSubtotal, discountAmt, taxAmt, total };
   }, [editItems, editFields]);
+
   const handleEditSave = async () => {
     setEditSaving(true);
 
     let payload;
 
-    // ✅ DISPATCHER → ONLY STATUS + DELIVERY NOTES
-    if (user?.user_type === "dispatcher"||user?.user_type === "manager") {
+    if (user?.user_type === "dispatcher" || user?.user_type === "manager") {
       if (!editOrder?.status) {
         setEditSaving(false);
         return toast.error("Status is required");
@@ -360,10 +365,7 @@ const handleEditItemChange = (index: number, field: string, value: any) => {
         deliveryNotes: editFields.deliveryNotes,
         payment_term: editFields.payment_term,
       };
-    }
-
-    // ✅ ACCOUNTANT → ONLY STATUS
-    else if (user?.user_type === "accountant") {
+    } else if (user?.user_type === "accountant") {
       if (!editOrder?.status) {
         setEditSaving(false);
         return toast.error("Status is required");
@@ -371,29 +373,26 @@ const handleEditItemChange = (index: number, field: string, value: any) => {
       payload = {
         status: editOrder?.status,
       };
-    }
-
-    // ✅ ADMIN + SALESMAN → FULL EDIT
-    else if (canEditFull) {
+    } else if (canEditFull) {
       payload = {
         due_date: editFields.due_date,
         deliveryNotes: editFields.deliveryNotes,
         payment_term: editFields.payment_term,
-        discount: editFields.discount, // ✅ raw input (e.g. "10" for 10%)
+        discount: editFields.discount,
         discount_type: editFields.discount_type,
         tax: editFields.tax,
-        dealer_id: editFields.dealer_id, // ✅ raw input
+        dealer_id: editFields.dealer_id,
         tax_type: editFields.tax_type,
-       items: editItems.map((item) => ({
-  _id: item._id,
-  product_id: item.product_id?._id || item.product_id || null,  // ✅ null for General
-  category_id: item.category_id || null,  // ✅ always send
-  quantity: parseFloat(item.quantity),
-  item_name: item?.item_name,
-  unit_price: parseFloat(item.unit_price),
-  discount_percent: parseFloat(item.discount_percent) || 0,
-  total: item.total,
-})),
+        items: editItems.map((item) => ({
+          _id: item._id,
+          product_id: item.product_id?._id || item.product_id || null,
+          category_id: item.category_id || null,
+          quantity: parseFloat(item.quantity),
+          item_name: item?.item_name,
+          unit_price: parseFloat(item.unit_price),
+          discount_percent: parseFloat(item.discount_percent) || 0,
+          total: item.total,
+        })),
         subtotal: computedTotals.subtotal,
         total: computedTotals.total,
         status: editOrder?.status,
@@ -413,36 +412,32 @@ const handleEditItemChange = (index: number, field: string, value: any) => {
     setEditSaving(false);
     await refetch();
   };
+
   const closeEditModal = () => {
     setEditOrder(null);
     setEditItems([]);
     setEditFields({});
   };
 
-  const isGeneralCategory = (categoryId) => {
-    const cat = categories.find((c) => c._id === categoryId);
+  const isGeneralCategory = (categoryId: any) => {
+    const cat = categories.find((c: any) => c._id === categoryId);
     return cat?.name === "General Appliances";
   };
 
   const isFinancialLocked =
-    isDispatcher ||isManager ||
+    isDispatcher ||
+    isManager ||
     user?.user_type === "accountant" ||
     editOrder?.status === "dispatched" ||
     editOrder?.status === "posted";
 
-  // Add these state variables
-  // State
   const [menuPosition, setMenuPosition] = useState({
     top: 0,
     left: 0,
   });
 
-  // console.log(editItems)
-
-  // console.log(editOrder)
   return (
     <div className="p-4 md:p-8 bg-gray-100 min-h-screen">
-      {/* CONFIRMATION MODAL */}
       {confirmOrderId && confirmAction && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
           <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-sm">
@@ -450,12 +445,12 @@ const handleEditItemChange = (index: number, field: string, value: any) => {
               {confirmAction === "delete"
                 ? "Delete Order?"
                 : confirmAction === "approve"
-                  ? "Approve Order?"
-                  : confirmAction === "unapprove"
-                    ? "Unapprove Order?"
-                    : user?.user_type === "salesman"
-                      ? "Delete Order?"
-                      : "Reject Order?"}
+                ? "Approve Order?"
+                : confirmAction === "unapprove"
+                ? "Unapprove Order?"
+                : user?.user_type === "salesman"
+                ? "Delete Order?"
+                : "Reject Order?"}
             </h2>
             {confirmAction === "reject" && user?.user_type !== "salesman" && (
               <div className="mb-4">
@@ -476,10 +471,12 @@ const handleEditItemChange = (index: number, field: string, value: any) => {
               {confirmAction === "delete"
                 ? "Are you sure you want to permanently delete this order?"
                 : confirmAction === "approve"
-                  ? "Are you sure you want to approve this order?"
-                  : confirmAction === "unapprove"
-                    ? "Are you sure you want to move this order back to unapproved?"
-                    : `Are you sure you want to ${user?.user_type === "admin" ? "reject" : "delete"} this order? This action cannot be undone.`}
+                ? "Are you sure you want to approve this order?"
+                : confirmAction === "unapprove"
+                ? "Are you sure you want to move this order back to unapproved?"
+                : `Are you sure you want to ${
+                    user?.user_type === "admin" ? "reject" : "delete"
+                  } this order? This action cannot be undone.`}
             </p>
             <div className="flex justify-end gap-3">
               <button
@@ -499,32 +496,31 @@ const handleEditItemChange = (index: number, field: string, value: any) => {
                   confirmAction === "approve"
                     ? "bg-green-500 hover:bg-green-600"
                     : confirmAction === "unapprove"
-                      ? "bg-yellow-500 hover:bg-yellow-600"
-                      : "bg-red-500 hover:bg-red-600"
+                    ? "bg-yellow-500 hover:bg-yellow-600"
+                    : "bg-red-500 hover:bg-red-600"
                 } ${
                   confirmAction === "delete"
                     ? "Delete"
                     : confirmAction === "reject" &&
-                        user?.user_type !== "salesman" &&
-                        !rejectReason.trim()
-                      ? "opacity-50 cursor-not-allowed"
-                      : ""
+                      user?.user_type !== "salesman" &&
+                      !rejectReason.trim()
+                    ? "opacity-50 cursor-not-allowed"
+                    : ""
                 }`}
               >
                 {confirmAction === "delete"
                   ? "Delete"
                   : confirmAction === "approve"
-                    ? "Approve"
-                    : confirmAction === "unapprove"
-                      ? "Unapprove"
-                      : user?.user_type === "salesman" && "Delete"}
+                  ? "Approve"
+                  : confirmAction === "unapprove"
+                  ? "Unapprove"
+                  : user?.user_type === "salesman" && "Delete"}
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* VIEW ORDER MODAL */}
       {(viewOrder || viewLoading) && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
           <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
@@ -540,7 +536,9 @@ const handleEditItemChange = (index: number, field: string, value: any) => {
                       {viewOrder?.order_number}
                     </h2>
                     <span
-                      className={`text-xs px-2 py-1 rounded-md font-medium ${statusStyle[formatStatus(viewOrder?.status)]}`}
+                      className={`text-xs px-2 py-1 rounded-md font-medium ${
+                        statusStyle[formatStatus(viewOrder?.status)]
+                      }`}
                     >
                       {formatStatus(viewOrder?.status)}
                     </span>
@@ -576,7 +574,7 @@ const handleEditItemChange = (index: number, field: string, value: any) => {
                     <p className="text-sm font-medium">
                       {viewOrder?.order_date
                         ? new Date(viewOrder.order_date).toLocaleDateString(
-                            "en-GB",
+                            "en-GB"
                           )
                         : "-"}
                     </p>
@@ -584,7 +582,7 @@ const handleEditItemChange = (index: number, field: string, value: any) => {
                     <p className="text-sm font-medium">
                       {viewOrder?.due_date
                         ? new Date(viewOrder.due_date).toLocaleDateString(
-                            "en-GB",
+                            "en-GB"
                           )
                         : "-"}
                     </p>
@@ -673,7 +671,6 @@ const handleEditItemChange = (index: number, field: string, value: any) => {
         </div>
       )}
 
-      {/* ─── EDIT ORDER MODAL ─── */}
       {editOrder && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
           <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-3xl max-h-[90vh] overflow-y-auto">
@@ -683,14 +680,15 @@ const handleEditItemChange = (index: number, field: string, value: any) => {
               </div>
             ) : (
               <>
-                {/* Header */}
                 <div className="flex items-center justify-between mb-6">
                   <div>
                     <h2 className="text-lg font-semibold text-gray-800">
                       Edit Order — {editOrder?.order_number}
                     </h2>
                     <span
-                      className={`text-xs px-2 py-1 rounded-md font-medium ${statusStyle[formatStatus(editOrder?.status)]}`}
+                      className={`text-xs px-2 py-1 rounded-md font-medium ${
+                        statusStyle[formatStatus(editOrder?.status)]
+                      }`}
                     >
                       {formatStatus(editOrder?.status)}
                     </span>
@@ -703,44 +701,54 @@ const handleEditItemChange = (index: number, field: string, value: any) => {
                   </button>
                 </div>
 
-                {/* Info row */}
                 <div className="grid grid-cols-2 gap-4 mb-6">
                   <div className="bg-gray-50 rounded-xl p-4">
-  <p className="text-xs text-gray-400 mb-1">Dealer</p>
-  {/* ✅ Editable for admin/salesman, static for dispatcher/accountant */}
-  {isDispatcher || isManager || user?.user_type === "accountant" ? (
-    <p className="text-sm font-medium">{editOrder?.dealer_id?.name}</p>
-  ) : (
-    <select
-      value={editFields.dealer_id || ""}
-      onChange={(e) => setEditFields((prev: any) => ({ ...prev, dealer_id: e.target.value }))}
-      className="w-full text-sm border rounded-lg px-2 py-1 focus:outline-none focus:ring-1 focus:ring-gray-300 bg-white"
-    >
-      <option value="">Select Dealer</option>
-      {dealers.map((d: any) => (
-        <option key={d._id} value={d._id}>{d.name}</option>
-      ))}
-    </select>
-  )}
-  <p className="text-xs text-gray-400 mt-2 mb-1">Created By</p>
-  <p className="text-sm">{editOrder?.createdBy?.name} ({editOrder?.createdBy?.user_type==="admin"?"Director":"Salesman"})</p>
-</div>
+                    <p className="text-xs text-gray-400 mb-1">Dealer</p>
+                    {isDispatcher || isManager || user?.user_type === "accountant" ? (
+                      <p className="text-sm font-medium">{editOrder?.dealer_id?.name}</p>
+                    ) : (
+                      <select
+                        value={editFields.dealer_id || ""}
+                        onChange={(e) =>
+                          setEditFields((prev: any) => ({
+                            ...prev,
+                            dealer_id: e.target.value,
+                          }))
+                        }
+                        className="w-full text-sm border rounded-lg px-2 py-1 focus:outline-none focus:ring-1 focus:ring-gray-300 bg-white"
+                      >
+                        <option value="">Select Dealer</option>
+                        {dealers.map((d: any) => (
+                          <option key={d._id} value={d._id}>
+                            {d.name}
+                          </option>
+                        ))}
+                      </select>
+                    )}
+                    <p className="text-xs text-gray-400 mt-2 mb-1">Created By</p>
+                    <p className="text-sm">
+                      {editOrder?.createdBy?.name} (
+                      {editOrder?.createdBy?.user_type === "admin"
+                        ? "Director"
+                        : "Salesman"}
+                      )
+                    </p>
+                  </div>
                   <div className="bg-gray-50 rounded-xl p-4">
                     <p className="text-xs text-gray-400 mb-1">Order Date</p>
                     <p className="text-sm font-medium">
                       {editOrder?.order_date
                         ? new Date(editOrder.order_date).toLocaleDateString(
-                            "en-GB",
+                            "en-GB"
                           )
                         : "-"}
                     </p>
                     <p className="text-xs text-gray-400 mt-2 mb-1">Due Date</p>
-                    {/* Due Date — admin/salesman only */}
                     <input
                       type="date"
                       value={editFields.due_date}
                       disabled={
-                        isDispatcher ||isManager || user?.user_type === "accountant"
+                        isDispatcher || isManager || user?.user_type === "accountant"
                       }
                       onChange={(e) =>
                         setEditFields((prev: any) => ({
@@ -752,12 +760,11 @@ const handleEditItemChange = (index: number, field: string, value: any) => {
                     />
                   </div>
                 </div>
+
                 <div className="mb-4">
                   <label className="text-xs text-gray-500 font-medium">
                     Payment Term
                   </label>
-
-                  {/* Payment Term — accountant CAN edit, dispatcher cannot */}
                   <select
                     value={editFields.payment_term || "cash"}
                     onChange={(e) =>
@@ -774,13 +781,11 @@ const handleEditItemChange = (index: number, field: string, value: any) => {
                     <option value="periodical">Periodical</option>
                   </select>
                 </div>
-                {/* Delivery notes */}
-                {/* Delivery notes — dispatcher can edit, accountant cannot */}
+
                 <div className="mb-6">
                   <label className="text-xs text-gray-500 font-medium mb-1 block">
                     Delivery Notes
                   </label>
-                  {/* Delivery Notes — dispatcher CAN edit, accountant cannot */}
                   <textarea
                     rows={2}
                     value={editFields.deliveryNotes}
@@ -796,7 +801,7 @@ const handleEditItemChange = (index: number, field: string, value: any) => {
                   />
                 </div>
 
-                {isDispatcher || isManager|| user?.user_type === "accountant" ? (
+                {isDispatcher || isManager || user?.user_type === "accountant" ? (
                   <div className="mb-5">
                     <p className="text-sm font-semibold text-gray-700 mb-3">
                       Order Items
@@ -864,139 +869,133 @@ const handleEditItemChange = (index: number, field: string, value: any) => {
                         </thead>
                         <tbody>
                           {editItems?.map((item: any, i: number) => {
-                            const rowProducts =
-                              productMap[item.category_id] || [];
+                            const rowProducts = productMap[item.category_id] || [];
                             return (
                               <tr key={i} className="border-t">
+                                <td className="px-2 py-2">
+                                  <select
+                                    value={item.category_id}
+                                    onChange={async (e) => {
+                                      const categoryId = e.target.value;
 
-  {/* CATEGORY */}
-  <td className="px-2 py-2">
-    <select
-      value={item.category_id}
-      onChange={async (e) => {
-        const categoryId = e.target.value;
+                                      handleEditItemChange(i, "category_id", categoryId);
+                                      handleEditItemChange(i, "product_id", "");
+                                      handleEditItemChange(i, "item_name", "");
 
-        handleEditItemChange(i, "category_id", categoryId);
-        handleEditItemChange(i, "product_id", "");
-        handleEditItemChange(i, "item_name", "");
+                                      if (!productMap[categoryId]) {
+                                        const res = await order.getProductsByCategory(categoryId);
 
-        if (!productMap[categoryId]) {
-          const res = await order.getProductsByCategory(categoryId);
+                                        setProductMap((prev: any) => ({
+                                          ...prev,
+                                          [categoryId]: res,
+                                        }));
+                                      }
+                                    }}
+                                    className="w-full border rounded-lg px-2 py-1 text-sm"
+                                  >
+                                    <option value="">Category</option>
+                                    {categories.map((c: any) => (
+                                      <option key={c._id} value={c._id}>
+                                        {c.name}
+                                      </option>
+                                    ))}
+                                  </select>
+                                </td>
 
-          setProductMap((prev: any) => ({
-            ...prev,
-            [categoryId]: res,
-          }));
-        }
-      }}
-      className="w-full border rounded-lg px-2 py-1 text-sm"
-    >
-      <option value="">Category</option>
-      {categories.map((c: any) => (
-        <option key={c._id} value={c._id}>{c.name}</option>
-      ))}
-    </select>
-  </td>
+                                <td className="px-2 py-2">
+                                  {isGeneralCategory(item.category_id) ? (
+                                    <input
+                                      type="text"
+                                      placeholder="Enter product name"
+                                      value={item.item_name || ""}
+                                      onChange={(e) => {
+                                        handleEditItemChange(i, "item_name", e.target.value);
+                                        handleEditItemChange(i, "product_id", "");
+                                      }}
+                                      className="w-full border rounded-lg px-2 py-1 text-sm"
+                                    />
+                                  ) : (
+                                    <select
+                                      value={item.product_id?._id || item.product_id || ""}
+                                      onChange={(e) => {
+                                        const product = rowProducts.find(
+                                          (p: any) => String(p._id) === String(e.target.value)
+                                        );
 
-  {/* PRODUCT */}
-  <td className="px-2 py-2">
-    {isGeneralCategory(item.category_id) ? (
-      <input
-        type="text"
-        placeholder="Enter product name"
-        value={item.item_name || ""}
-        onChange={(e) => {
-          handleEditItemChange(i, "item_name", e.target.value);
-          handleEditItemChange(i, "product_id", "");
-        }}
-        className="w-full border rounded-lg px-2 py-1 text-sm"
-      />
-    ) : (
-      <select
-        value={item.product_id?._id || item.product_id || ""}
-        onChange={(e) => {
-          const product = rowProducts.find(
-            (p: any) => String(p._id) === String(e.target.value)
-          );
+                                        handleEditItemChange(i, "product_id", e.target.value);
+                                        handleEditItemChange(i, "item_name", product?.name || "");
+                                        handleEditItemChange(i, "unit_price", product?.mrp || 0);
+                                      }}
+                                      className="w-full border rounded-lg px-2 py-1 text-sm"
+                                    >
+                                      <option value="">Product</option>
+                                      {rowProducts.map((p: any) => (
+                                        <option key={p._id} value={p._id}>
+                                          {p.name}
+                                        </option>
+                                      ))}
+                                    </select>
+                                  )}
+                                </td>
 
-          handleEditItemChange(i, "product_id", e.target.value);
-          handleEditItemChange(i, "item_name", product?.name || "");
-          handleEditItemChange(i, "unit_price", product?.mrp || 0);
-        }}
-        className="w-full border rounded-lg px-2 py-1 text-sm"
-      >
-        <option value="">Product</option>
-        {rowProducts.map((p: any) => (
-          <option key={p._id} value={p._id}>{p.name}</option>
-        ))}
-      </select>
-    )}
-  </td>
+                                <td className="px-2 py-2">
+                                  <input
+                                    type="number"
+                                    value={item.quantity}
+                                    onChange={(e) =>
+                                      handleEditItemChange(i, "quantity", e.target.value)
+                                    }
+                                    className="w-full text-center border rounded-lg px-2 py-1 text-sm"
+                                  />
+                                </td>
 
-  {/* QTY ✅ correct position */}
-  <td className="px-2 py-2">
-    <input
-      type="number"
-      value={item.quantity}
-      onChange={(e) =>
-        handleEditItemChange(i, "quantity", e.target.value)
-      }
-      className="w-full text-center border rounded-lg px-2 py-1 text-sm"
-    />
-  </td>
+                                <td className="px-2 py-2">
+                                  <input
+                                    type="number"
+                                    value={item.unit_price}
+                                    onChange={(e) =>
+                                      handleEditItemChange(i, "unit_price", e.target.value)
+                                    }
+                                    readOnly={!isGeneralCategory(item.category_id)}
+                                    className="w-full text-center border rounded-lg px-2 py-1 text-sm"
+                                  />
+                                </td>
 
-  {/* PRICE ✅ single correct column */}
-  <td className="px-2 py-2">
-    <input
-      type="number"
-      value={item.unit_price}
-      onChange={(e) =>
-        handleEditItemChange(i, "unit_price", e.target.value)
-      }
-      readOnly={!isGeneralCategory(item.category_id)}
-      className="w-full text-center border rounded-lg px-2 py-1 text-sm"
-    />
-  </td>
+                                <td className="px-2 py-2 flex gap-1">
+                                  <select
+                                    value={item.discount_type}
+                                    onChange={(e) =>
+                                      handleEditItemChange(i, "discount_type", e.target.value)
+                                    }
+                                    className="border rounded px-1 text-xs"
+                                  >
+                                    <option value="percent">%</option>
+                                    <option value="amount">Amt</option>
+                                  </select>
 
-  {/* DISCOUNT */}
-  <td className="px-2 py-2 flex gap-1">
-    <select
-      value={item.discount_type}
-      onChange={(e) =>
-        handleEditItemChange(i, "discount_type", e.target.value)
-      }
-      className="border rounded px-1 text-xs"
-    >
-      <option value="percent">%</option>
-      <option value="amount">Amt</option>
-    </select>
+                                  <input
+                                    type="number"
+                                    value={item.discount_percent}
+                                    onChange={(e) =>
+                                      handleEditItemChange(i, "discount_percent", e.target.value)
+                                    }
+                                    className="w-full text-center border rounded-lg px-2 py-1 text-sm"
+                                  />
+                                </td>
 
-    <input
-      type="number"
-      value={item.discount_percent}
-      onChange={(e) =>
-        handleEditItemChange(i, "discount_percent", e.target.value)
-      }
-      className="w-full text-center border rounded-lg px-2 py-1 text-sm"
-    />
-  </td>
+                                <td className="px-2 py-2 text-right font-medium">
+                                  {(item.total ?? 0).toFixed(2)}
+                                </td>
 
-  {/* TOTAL */}
-  <td className="px-2 py-2 text-right font-medium">
-    {(item.total ?? 0).toFixed(2)}
-  </td>
-
-  {/* DELETE */}
-  <td className="px-2 py-2 text-center">
-    <button
-      onClick={() => handleRemoveItem(i)}
-      className="p-1 bg-red-100 text-red-600 rounded-md"
-    >
-      <X size={14} />
-    </button>
-  </td>
-
-</tr>
+                                <td className="px-2 py-2 text-center">
+                                  <button
+                                    onClick={() => handleRemoveItem(i)}
+                                    className="p-1 bg-red-100 text-red-600 rounded-md"
+                                  >
+                                    <X size={14} />
+                                  </button>
+                                </td>
+                              </tr>
                             );
                           })}
                         </tbody>
@@ -1004,17 +1003,15 @@ const handleEditItemChange = (index: number, field: string, value: any) => {
                     </div>
                   </div>
                 )}
+
                 <div className="bg-gray-50 rounded-xl p-4 space-y-3 text-sm mb-6">
                   <div className="flex justify-between">
                     <span className="text-gray-500">Items Subtotal</span>
                     <span>{computedTotals.subtotal.toFixed(2)}</span>
                   </div>
 
-                  {/* OVERALL DISCOUNT */}
                   <div className="flex items-center gap-2">
-                    <span className="text-gray-500 w-20 shrink-0">
-                      Discount
-                    </span>
+                    <span className="text-gray-500 w-20 shrink-0">Discount</span>
                     <select
                       value={editFields.discount_type}
                       disabled={isFinancialLocked}
@@ -1046,7 +1043,6 @@ const handleEditItemChange = (index: number, field: string, value: any) => {
                     </span>
                   </div>
 
-                  {/* OVERALL TAX */}
                   <div className="flex items-center gap-2">
                     <span className="text-gray-500 w-20 shrink-0">Tax</span>
                     <select
@@ -1085,8 +1081,9 @@ const handleEditItemChange = (index: number, field: string, value: any) => {
                     <span>{computedTotals.total.toFixed(2)}</span>
                   </div>
                 </div>
-                {/* Status — dispatcher, accountant, AND admin when order needs status change */}
-                {(isDispatcher || isManager ||
+
+                {(isDispatcher ||
+                  isManager ||
                   user?.user_type === "accountant" ||
                   user?.user_type === "admin") && (
                   <div className="mb-6">
@@ -1107,7 +1104,7 @@ const handleEditItemChange = (index: number, field: string, value: any) => {
                         {formatStatus(editOrder?.status)}
                       </option>
 
-                      {isDispatcher && editOrder?.status !== "dispatched" || isManager&& (
+                      {((isDispatcher && editOrder?.status !== "dispatched") || isManager) && (
                         <>
                           <option value="partial">Partial</option>
                           <option value="dispatched">Dispatched</option>
@@ -1134,7 +1131,6 @@ const handleEditItemChange = (index: number, field: string, value: any) => {
                   </div>
                 )}
 
-                {/* Footer */}
                 <div className="flex justify-end gap-3">
                   <button
                     onClick={closeEditModal}
@@ -1161,7 +1157,6 @@ const handleEditItemChange = (index: number, field: string, value: any) => {
         </div>
       )}
 
-      {/* HEADER */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
         <h1 className="text-3xl font-semibold">Orders</h1>
         <div className="flex items-center gap-3 w-full md:w-auto">
@@ -1178,10 +1173,8 @@ const handleEditItemChange = (index: number, field: string, value: any) => {
               className="w-full pl-9 pr-3 py-2 rounded-lg bg-white border focus:outline-none"
             />
           </div>
-          <button className="p-2 bg-white border rounded-lg">
-            <SlidersHorizontal size={18} />
-          </button>
-          {!(isDispatcher ||isManager|| user?.user_type === "accountant") && (
+
+          {!(isDispatcher || isManager || user?.user_type === "accountant") && (
             <button
               onClick={() => router.push("/orders/add")}
               className="cursor-pointer flex items-center gap-2 bg-black text-white px-4 py-2 rounded-lg"
@@ -1192,7 +1185,6 @@ const handleEditItemChange = (index: number, field: string, value: any) => {
         </div>
       </div>
 
-      {/* TABLE */}
       <div className="bg-white rounded-2xl shadow p-4">
         <div className="overflow-x-auto">
           <table className="w-full min-w-[900px] text-sm">
@@ -1203,31 +1195,16 @@ const handleEditItemChange = (index: number, field: string, value: any) => {
                 <th>Salesman/Director</th>
                 <th>Total</th>
                 <th>Discount</th>
-                <th>
-                  <select
-                    value={statusFilter}
-                    onChange={(e) => setStatusFilter(e.target.value)}
-                    className="text-gray-500 font-semibold bg-transparent focus:outline-none cursor-pointer"
-                  >
-                    <option value="">All Status</option>
-                    <option value="unapproved">Unapproved</option>
-                    <option value="approved">Approved</option>
-                    <option value="rejected">Rejected</option>
-                    <option value="pending">Pending</option>
-                    <option value="dispatched">Dispatched</option>
-                    <option value="partial">Partial</option>
-                    <option value="posted">Posted</option>
-                  </select>
-                </th>
+                <th>Status</th>
                 <th>Due Date</th>
                 <th className="text-center">Action</th>
               </tr>
             </thead>
             <tbody>
-              {filtered?.map((o: any, i: number) => {
+              {paginatedOrders?.map((o: any, i: number) => {
                 const formattedStatus = formatStatus(o?.status);
                 return (
-                  <tr key={i} className="border-b last:border-none">
+                  <tr key={o._id || i} className="border-b last:border-none">
                     <td className="py-4 font-medium">{o?.order_number}</td>
                     <td>{o?.dealer_id?.name}</td>
                     <td>
@@ -1241,7 +1218,9 @@ const handleEditItemChange = (index: number, field: string, value: any) => {
                     <td>{o?.discount}</td>
                     <td>
                       <span
-                        className={`px-3 py-1 text-xs rounded-md font-medium ${statusStyle[formattedStatus]}`}
+                        className={`px-3 py-1 text-xs rounded-md font-medium ${
+                          statusStyle[formattedStatus]
+                        }`}
                       >
                         {formattedStatus}
                       </span>
@@ -1257,8 +1236,7 @@ const handleEditItemChange = (index: number, field: string, value: any) => {
                           onClick={(e) => {
                             e.stopPropagation();
 
-                            const rect =
-                              e.currentTarget.getBoundingClientRect();
+                            const rect = e.currentTarget.getBoundingClientRect();
 
                             const dropdownHeight = 260;
                             const dropdownWidth = 180;
@@ -1266,12 +1244,10 @@ const handleEditItemChange = (index: number, field: string, value: any) => {
                             let top = rect.bottom;
                             let left = rect.left;
 
-                            // ✅ FIX 1: vertical overflow
                             if (top + dropdownHeight > window.innerHeight) {
                               top = rect.top - dropdownHeight;
                             }
 
-                            // ✅ FIX 2: horizontal overflow
                             if (left + dropdownWidth > window.innerWidth) {
                               left = window.innerWidth - dropdownWidth - 10;
                             }
@@ -1287,13 +1263,13 @@ const handleEditItemChange = (index: number, field: string, value: any) => {
                         >
                           <MoreVertical size={16} />
                         </button>
-                        {/* DROPDOWN PORTAL — place just before closing </div> of page */}
+
                         {openMenu === o._id &&
                           (() => {
-                            const o = filtered?.find(
-                              (o: any) => o._id === openMenu,
+                            const selectedOrder = filtered?.find(
+                              (item: any) => item._id === openMenu
                             );
-                            if (!o) return null;
+                            if (!selectedOrder) return null;
 
                             return (
                               <div
@@ -1303,13 +1279,12 @@ const handleEditItemChange = (index: number, field: string, value: any) => {
                                   left: menuPosition.left,
                                   zIndex: 9999,
                                 }}
-                                className="dropdown-menu w-44 bg-white border rounded-xl shadow-lg max-h-60 overflow-y-auto"
+                                className="dropdown-menu w-44 bg-white border rounded-xl shadow-lg"
                                 onClick={(e) => e.stopPropagation()}
                               >
-                                {/* VIEW */}
                                 <button
                                   onClick={() => {
-                                    handleView(o._id);
+                                    handleView(selectedOrder._id);
                                     setOpenMenu(null);
                                   }}
                                   className="block w-full text-left px-4 py-2.5 hover:bg-gray-50 text-sm"
@@ -1317,12 +1292,33 @@ const handleEditItemChange = (index: number, field: string, value: any) => {
                                   View
                                 </button>
 
-                                {/* EDIT — Admin: all except posted */}
+                                {selectedOrder.status !== "unapproved" &&
+                                  selectedOrder.status !== "rejected" && (
+                                    <button
+                                      onClick={async () => {
+                                        const blob = await order.downloadPDF(
+                                          selectedOrder._id
+                                        );
+                                        const url =
+                                          window.URL.createObjectURL(blob);
+                                        const a = document.createElement("a");
+                                        a.href = url;
+                                        a.download = `order-${selectedOrder.order_number}.pdf`;
+                                        a.click();
+                                        window.URL.revokeObjectURL(url);
+                                        setOpenMenu(null);
+                                      }}
+                                      className="block w-full text-left px-4 py-2.5 hover:bg-gray-50 text-sm"
+                                    >
+                                      Download PDF
+                                    </button>
+                                  )}
+
                                 {user?.user_type === "admin" &&
-                                  o.status !== "posted" && (
+                                  selectedOrder.status !== "posted" && (
                                     <button
                                       onClick={() => {
-                                        handleEdit(o._id);
+                                        handleEdit(selectedOrder._id);
                                         setOpenMenu(null);
                                       }}
                                       className="block w-full text-left px-4 py-2.5 hover:bg-gray-50 text-sm"
@@ -1331,15 +1327,14 @@ const handleEditItemChange = (index: number, field: string, value: any) => {
                                     </button>
                                   )}
 
-                                {/* EDIT — Salesman: own unapproved/approved/rejected */}
                                 {user?.user_type === "salesman" &&
-                                  (o.status === "unapproved" ||
-                                    o.status === "approved" ||
-                                    o.status === "rejected") &&
-                                  o?.createdBy?._id === user?._id && (
+                                  (selectedOrder.status === "unapproved" ||
+                                    selectedOrder.status === "approved" ||
+                                    selectedOrder.status === "rejected") &&
+                                  selectedOrder?.createdBy?._id === user?._id && (
                                     <button
                                       onClick={() => {
-                                        handleEdit(o._id);
+                                        handleEdit(selectedOrder._id);
                                         setOpenMenu(null);
                                       }}
                                       className="block w-full text-left px-4 py-2.5 hover:bg-gray-50 text-sm"
@@ -1348,27 +1343,27 @@ const handleEditItemChange = (index: number, field: string, value: any) => {
                                     </button>
                                   )}
 
-                                  {user?.user_type === "dispatcher"|| user?.user_type === "manager" &&
-                                    (o.status === "approved" ||
-                                      o.status === "partial" ||
-                                      o.status === "dispatched") && (
-                                      <button
-                                        onClick={() => {
-                                          handleEdit(o._id);
-                                          setOpenMenu(null);
-                                        }}
-                                        className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-sm"
-                                      >
-                                        Edit
-                                      </button>
-                                    )}
+                                {((user?.user_type === "dispatcher") ||
+                                  (user?.user_type === "manager")) &&
+                                  (selectedOrder.status === "approved" ||
+                                    selectedOrder.status === "partial" ||
+                                    selectedOrder.status === "dispatched") && (
+                                    <button
+                                      onClick={() => {
+                                        handleEdit(selectedOrder._id);
+                                        setOpenMenu(null);
+                                      }}
+                                      className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-sm"
+                                    >
+                                      Edit
+                                    </button>
+                                  )}
 
-                                {/* EDIT — Accountant: dispatched only */}
                                 {user?.user_type === "accountant" &&
-                                  o.status === "dispatched" && (
+                                  selectedOrder.status === "dispatched" && (
                                     <button
                                       onClick={() => {
-                                        handleEdit(o._id);
+                                        handleEdit(selectedOrder._id);
                                         setOpenMenu(null);
                                       }}
                                       className="block w-full text-left px-4 py-2.5 hover:bg-gray-50 text-sm"
@@ -1377,13 +1372,12 @@ const handleEditItemChange = (index: number, field: string, value: any) => {
                                     </button>
                                   )}
 
-                                {/* APPROVE */}
                                 {user?.user_type === "admin" &&
-                                  (o.status === "unapproved" ||
-                                    o.status === "rejected") && (
+                                  (selectedOrder.status === "unapproved" ||
+                                    selectedOrder.status === "rejected") && (
                                     <button
                                       onClick={() => {
-                                        handleAction(o._id, "approve");
+                                        handleAction(selectedOrder._id, "approve");
                                         setOpenMenu(null);
                                       }}
                                       className="block w-full text-left px-4 py-2.5 text-green-600 hover:bg-gray-50 text-sm"
@@ -1392,12 +1386,11 @@ const handleEditItemChange = (index: number, field: string, value: any) => {
                                     </button>
                                   )}
 
-                                {/* UNAPPROVE */}
                                 {user?.user_type === "admin" &&
-                                  o.status === "approved" && (
+                                  selectedOrder.status === "approved" && (
                                     <button
                                       onClick={() => {
-                                        handleAction(o._id, "unapprove");
+                                        handleAction(selectedOrder._id, "unapprove");
                                         setOpenMenu(null);
                                       }}
                                       className="block w-full text-left px-4 py-2.5 text-yellow-600 hover:bg-gray-50 text-sm"
@@ -1406,14 +1399,13 @@ const handleEditItemChange = (index: number, field: string, value: any) => {
                                     </button>
                                   )}
 
-                                {/* REJECT — admin, non-rejected/dispatched/posted */}
                                 {user?.user_type === "admin" &&
-                                  o.status !== "rejected" &&
-                                  o.status !== "dispatched" &&
-                                  o.status !== "posted" && (
+                                  selectedOrder.status !== "rejected" &&
+                                  selectedOrder.status !== "dispatched" &&
+                                  selectedOrder.status !== "posted" && (
                                     <button
                                       onClick={() => {
-                                        handleAction(o._id, "reject");
+                                        handleAction(selectedOrder._id, "reject");
                                         setOpenMenu(null);
                                       }}
                                       className="block w-full text-left px-4 py-2.5 text-red-600 hover:bg-gray-50 text-sm"
@@ -1422,14 +1414,13 @@ const handleEditItemChange = (index: number, field: string, value: any) => {
                                     </button>
                                   )}
 
-                                {/* DELETE — admin when approved/unapproved/rejected */}
                                 {user?.user_type === "admin" &&
-                                  (o.status === "approved" ||
-                                    o.status === "unapproved" ||
-                                    o.status === "rejected") && (
+                                  (selectedOrder.status === "approved" ||
+                                    selectedOrder.status === "unapproved" ||
+                                    selectedOrder.status === "rejected") && (
                                     <button
                                       onClick={() => {
-                                        handleAction(o._id, "delete");
+                                        handleAction(selectedOrder._id, "delete");
                                         setOpenMenu(null);
                                       }}
                                       className="block w-full text-left px-4 py-2.5 text-red-600 hover:bg-gray-50 text-sm"
@@ -1438,41 +1429,17 @@ const handleEditItemChange = (index: number, field: string, value: any) => {
                                     </button>
                                   )}
 
-                                {/* DELETE — Salesman: own unapproved only */}
                                 {user?.user_type === "salesman" &&
-                                  o.status === "unapproved" &&
-                                  o?.createdBy?._id === user?._id && (
+                                  selectedOrder.status === "unapproved" &&
+                                  selectedOrder?.createdBy?._id === user?._id && (
                                     <button
                                       onClick={() => {
-                                        handleAction(o._id, "reject");
+                                        handleAction(selectedOrder._id, "reject");
                                         setOpenMenu(null);
                                       }}
                                       className="block w-full text-left px-4 py-2.5 text-red-600 hover:bg-gray-50 text-sm"
                                     >
                                       Delete
-                                    </button>
-                                  )}
-
-                                {/* PDF */}
-                                {o.status !== "unapproved" &&
-                                  o.status !== "rejected" && (
-                                    <button
-                                      onClick={async () => {
-                                        const blob = await order.downloadPDF(
-                                          o._id,
-                                        );
-                                        const url =
-                                          window.URL.createObjectURL(blob);
-                                        const a = document.createElement("a");
-                                        a.href = url;
-                                        a.download = `order-${o.order_number}.pdf`;
-                                        a.click();
-                                        window.URL.revokeObjectURL(url);
-                                        setOpenMenu(null);
-                                      }}
-                                      className="block w-full text-left px-4 py-2.5 hover:bg-gray-50 text-sm"
-                                    >
-                                      Download PDF
                                     </button>
                                   )}
                               </div>
@@ -1483,7 +1450,8 @@ const handleEditItemChange = (index: number, field: string, value: any) => {
                   </tr>
                 );
               })}
-              {filtered?.length === 0 && (
+
+              {paginatedOrders?.length === 0 && (
                 <tr>
                   <td
                     colSpan={8}
@@ -1496,24 +1464,49 @@ const handleEditItemChange = (index: number, field: string, value: any) => {
             </tbody>
           </table>
         </div>
+
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mt-6 text-sm text-gray-500">
-          <p>Total Orders: {filtered?.length || 0}</p>
-          <div className="flex items-center gap-2">
-            <button className="px-3 py-1 border rounded">1</button>
-            <button className="px-3 py-1 border rounded bg-gray-100">2</button>
-            <button className="px-3 py-1 border rounded">3</button>
-            <span>...</span>
-            <button className="px-3 py-1 border rounded">14</button>
-            <button className="px-3 py-1 border rounded">15</button>
-          </div>
+          <p>
+            Showing {paginatedOrders?.length || 0} of {filtered?.length || 0} orders
+          </p>
+
+          {totalPages > 1 && (
+            <div className="flex items-center gap-2 flex-wrap">
+              <button
+                onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                disabled={currentPage === 1}
+                className="px-3 py-1 border rounded disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Prev
+              </button>
+
+              {Array.from({ length: totalPages }, (_, index) => index + 1).map(
+                (page) => (
+                  <button
+                    key={page}
+                    onClick={() => setCurrentPage(page)}
+                    className={`px-3 py-1 border rounded ${
+                      currentPage === page ? "bg-gray-100 font-semibold" : ""
+                    }`}
+                  >
+                    {page}
+                  </button>
+                )
+              )}
+
+              <button
+                onClick={() =>
+                  setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+                }
+                disabled={currentPage === totalPages}
+                className="px-3 py-1 border rounded disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Next
+              </button>
+            </div>
+          )}
         </div>
       </div>
-      {/* {downloadOrderId && (
-  <OrderPdfGenerator
-    orderId={downloadOrderId}
-    onDone={() => setDownloadOrderId(null)}
-  />
-)} */}
     </div>
   );
 }

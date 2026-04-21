@@ -46,11 +46,12 @@ export default function TableInvoice({ items = [] }) {
                   {/* Product */}
                   <td className="border border-gray-300 px-3 py-2 text-gray-800">
                     <div className="flex items-center gap-2">
-                      <img
-                        src={item?.product_id?.image}
-                        alt="product"
-                        className="h-6 w-6 object-contain"
-                      />
+                      {item.product_id!=null?
+                        <img
+                          src={item?.product_id?.image}
+                          alt="product"
+                          className="h-6 w-6 object-contain"
+                        />:<></>}
                       <span className="leading-tight">
                         {item?.item_name || "N/A"}
                       </span>

@@ -31,7 +31,6 @@ export default function Quotation() {
     if (id) fetchData();
   }, [id]);
 
-  console.log(orderData)
 
   if (!orderData) return <div className="text-center py-20">Loading...</div>;
 if (!orderData) return <div className="text-center py-20">Loading...</div>;
