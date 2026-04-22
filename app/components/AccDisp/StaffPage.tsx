@@ -26,7 +26,6 @@ export default function StaffPage({ role }: { role: string }) {
   /* ================= SAVE ================= */
   const handleSave = () => {
     setOpen(false);
-    // 👉 refetch automatically handled if you invalidate query (optional)
   };
 
   return (

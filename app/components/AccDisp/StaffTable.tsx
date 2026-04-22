@@ -25,16 +25,6 @@ const handleDelete = async (id) => {
 
     toast.success(res?.message);
 
-<<<<<<< HEAD
-      await refetch(); // safe call
-
-    } catch (err: any) {
-      console.log(err);
-      toast.error(err.message);
-    }
-  };
-=======
->>>>>>> 909048913272bf5968fcb2a17c9f3e91c8d676e2
 
   } catch (err: any) {
     toast.error(err.message || "Delete failed");
