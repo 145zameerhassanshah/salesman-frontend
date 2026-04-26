@@ -4,27 +4,28 @@ import { Check, X } from "lucide-react";
 
 export default function CategoryHeader() {
   return (
-    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <div className="flex items-center justify-between gap-2">
 
-      <div>
-        <p className="text-sm text-gray-400">Categories </p>
-        <h1 className="text-3xl font-semibold">Heaters</h1>
+      <div className="min-w-0">
+        <p className="text-xs text-gray-400 mb-0.5">Categories</p>
+        <h1 className="text-lg md:text-2xl font-bold text-gray-900 truncate">Heaters</h1>
       </div>
 
-      <div className="flex flex-wrap gap-2">
+      <div className="flex gap-2 flex-shrink-0">
 
-        <button className="flex items-center gap-2 bg-black text-white px-4 py-2 rounded-lg text-sm">
-          <Check size={16}/>
-          Save Category
-        </button>
-
-        <button className="border px-4 py-2 rounded-lg text-sm">
+        <button className="px-3 py-1.5 text-xs border border-gray-200 rounded-xl text-gray-600 hover:bg-gray-50 transition whitespace-nowrap hidden sm:block">
           Save Draft
         </button>
 
-        <button className="flex items-center gap-2 border px-4 py-2 rounded-lg text-sm text-red-500">
-          <X size={16}/>
-          Cancel
+        <button className="flex items-center gap-1 px-3 py-1.5 text-xs border border-gray-200 rounded-xl text-red-500 hover:bg-red-50 transition whitespace-nowrap">
+          <X size={13} />
+          <span className="hidden sm:inline">Cancel</span>
+        </button>
+
+        <button className="flex items-center gap-1 px-3 py-1.5 text-xs bg-gray-900 text-white rounded-xl hover:bg-gray-700 transition whitespace-nowrap">
+          <Check size={13} />
+          <span className="hidden sm:inline">Save Category</span>
+          <span className="sm:hidden">Save</span>
         </button>
 
       </div>
