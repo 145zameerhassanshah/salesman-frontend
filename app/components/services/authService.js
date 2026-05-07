@@ -253,6 +253,45 @@ class UserService {
     }
   }
 
+  static async getUserById(id) {
+  try {
+    if (!id) {
+      return {
+        success: false,
+        user: null,
+        message: "User id is required",
+      };
+    }
+
+    const res = await fetch(`${API.users}/${id}`, {
+      method: "GET",
+      credentials: "include",
+    });
+
+    const result = await safeJson(res);
+
+    if (!res.ok) {
+      return {
+        success: false,
+        user: null,
+        message: result?.message || "Failed to fetch user details",
+      };
+    }
+
+    return {
+      success: true,
+      user: result?.user || null,
+      message: result?.message || "User fetched successfully",
+    };
+  } catch (err) {
+    return {
+      success: false,
+      user: null,
+      message: err?.message || "Failed to fetch user details",
+    };
+  }
+}
+
   /* ================= CURRENT USER ================= */
 
   static async getCurrentUser() {

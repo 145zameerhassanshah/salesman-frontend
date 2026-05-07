@@ -256,33 +256,43 @@ static async getProducts(id, filters = {}) {
     }
   }
 
-  static async deleteProduct(id) {
-    try {
-      const res = await fetch(`${API.products}/${id}`, {
-        method: "DELETE",
-        credentials: "include",
-      });
+static async deleteProduct(id, businessId) {
+  try {
+    const params = new URLSearchParams();
 
-      const result = await safeJson(res);
+    if (businessId) {
+      params.set("businessId", businessId);
+    }
 
-      if (!res.ok) {
-        return {
-          success: false,
-          message: result?.message || "Failed to delete product",
-        };
-      }
+    const url = params.toString()
+      ? `${API.products}/${id}?${params.toString()}`
+      : `${API.products}/${id}`;
 
-      return result;
-    } catch (err) {
-      console.error("Delete product error:", err);
+    const res = await fetch(url, {
+      method: "DELETE",
+      credentials: "include",
+    });
 
+    const result = await safeJson(res);
+
+    if (!res.ok) {
       return {
         success: false,
-        message: err?.message || "Failed to delete product",
+        message: result?.message || "Failed to delete product",
+        error: result?.error,
       };
     }
-  }
 
+    return result;
+  } catch (err) {
+    console.error("Delete product error:", err);
+
+    return {
+      success: false,
+      message: err?.message || "Failed to delete product",
+    };
+  }
+}
   static async getProductAuditLogs(productId, page = 1, limit = 20) {
     try {
       const res = await fetch(
