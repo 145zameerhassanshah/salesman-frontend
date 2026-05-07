@@ -1,56 +1,132 @@
+
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import ProductsTable from "@/app/components/product/allProducts";
-import { Search, Plus } from "lucide-react";
+import ProductService from "@/app/components/services/productService";
+import { Search, Plus, Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useSelector } from "react-redux";
-import { useProducts } from "@/hooks/useProducts";
+import toast from "react-hot-toast";
 
-export default function Page() {
+export default function ProductsPage() {
   const user = useSelector((state: any) => state.user.user);
   const router = useRouter();
-  const { data, refetch } = useProducts(user?.industry);
 
+  const PRODUCTS_PER_PAGE = 10;
+
+  const [products, setProducts] = useState<any[]>([]);
+  const [pagination, setPagination] = useState<any>(null);
   const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
+  const [listLoading, setListLoading] = useState(false);
 
-  const ITEMS_PER_PAGE = 5;
+  const requestIdRef = useRef(0);
 
-  // 🔍 Filter logic
-  const filtered = useMemo(() => {
-    if (!search.trim()) return data?.products || [];
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(search.trim());
+      setCurrentPage(1);
+    }, 400);
 
-    const q = search.toLowerCase();
-    return data?.products?.filter(
-      (product: any) =>
-        product?.name?.toLowerCase().includes(q) ||
-        product?.category_id?.name?.toLowerCase().includes(q)
-    );
-  }, [search, data?.products]);
+    return () => clearTimeout(timer);
+  }, [search]);
 
-  // 📄 Pagination logic
-  const totalPages = Math.ceil(filtered.length / ITEMS_PER_PAGE);
+  const loadProducts = async (page = currentPage) => {
+    if (!user?.industry) return;
 
-  const paginatedData = useMemo(() => {
-    const start = (currentPage - 1) * ITEMS_PER_PAGE;
-    const end = start + ITEMS_PER_PAGE;
-    return filtered.slice(start, end);
-  }, [filtered, currentPage]);
+    const requestId = ++requestIdRef.current;
+    setListLoading(true);
 
-  // ⬅️➡️ Page handlers
-  const goNext = () => {
-    if (currentPage < totalPages) setCurrentPage((p) => p + 1);
+    try {
+      const res = await ProductService.getProductsPaginated(user.industry, {
+        page,
+        limit: PRODUCTS_PER_PAGE,
+        search: debouncedSearch,
+        status: statusFilter,
+      });
+
+      if (requestId !== requestIdRef.current) return;
+
+      if (res?.success) {
+        setProducts(res.products || []);
+        setPagination(
+          res.pagination || {
+            page,
+            limit: PRODUCTS_PER_PAGE,
+            total: 0,
+            totalPages: 1,
+          }
+        );
+      } else {
+        setProducts([]);
+        setPagination({
+          page: 1,
+          limit: PRODUCTS_PER_PAGE,
+          total: 0,
+          totalPages: 1,
+        });
+      }
+    } catch {
+      if (requestId !== requestIdRef.current) return;
+
+      setProducts([]);
+      setPagination({
+        page: 1,
+        limit: PRODUCTS_PER_PAGE,
+        total: 0,
+        totalPages: 1,
+      });
+
+      toast.error("Failed to load products");
+    } finally {
+      if (requestId === requestIdRef.current) {
+        setListLoading(false);
+      }
+    }
   };
 
-  const goPrev = () => {
-    if (currentPage > 1) setCurrentPage((p) => p - 1);
+  useEffect(() => {
+    loadProducts(currentPage);
+  }, [user?.industry, currentPage, debouncedSearch, statusFilter]);
+
+  const totalRecords = pagination?.total || 0;
+  const totalPages = pagination?.totalPages || 1;
+
+  const showingFrom =
+    totalRecords === 0 ? 0 : (currentPage - 1) * PRODUCTS_PER_PAGE + 1;
+
+  const showingTo = Math.min(currentPage * PRODUCTS_PER_PAGE, totalRecords);
+
+  const pageNumbers = useMemo(() => {
+    const pages: number[] = [];
+    const start = Math.max(1, currentPage - 2);
+    const end = Math.min(totalPages, currentPage + 2);
+
+    for (let i = start; i <= end; i++) {
+      pages.push(i);
+    }
+
+    return pages;
+  }, [currentPage, totalPages]);
+
+  const goToPage = (page: number) => {
+    if (listLoading) return;
+    if (page < 1 || page > totalPages) return;
+    if (page === currentPage) return;
+
+    setCurrentPage(page);
+  };
+
+  const handleStatusChange = (value: string) => {
+    setStatusFilter(value);
+    setCurrentPage(1);
   };
 
   return (
     <div className="w-full max-w-full overflow-x-hidden space-y-4">
-
-      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <h1 className="text-2xl sm:text-3xl md:text-4xl font-semibold">
           Products
@@ -60,50 +136,86 @@ export default function Page() {
           <div className="flex items-center bg-white border border-gray-200 rounded-xl px-3 py-2 flex-1 sm:flex-none">
             <Search size={14} className="text-gray-400 mr-2" />
             <input
-              placeholder="Search..."
+              placeholder="Search product/category..."
               value={search}
-              onChange={(e) => {
-                setSearch(e.target.value);
-                setCurrentPage(1); // reset page on search
-              }}
-              className="bg-transparent outline-none text-sm w-full sm:w-40"
+              onChange={(e) => setSearch(e.target.value)}
+              className="bg-transparent outline-none text-sm w-full sm:w-48"
             />
           </div>
 
-          <button
-            onClick={() => router.push("/products/add")}
-            className="bg-black text-white flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm"
+          <select
+            value={statusFilter}
+            onChange={(e) => handleStatusChange(e.target.value)}
+            className="bg-white border border-gray-200 rounded-xl px-3 py-2 text-sm outline-none"
           >
-            <Plus size={14} />
-            Add
-          </button>
+            <option value="">All</option>
+            <option value="active">Active</option>
+            <option value="inactive">Inactive</option>
+          </select>
+
+          {user?.user_type === "admin" && (
+            <button
+              onClick={() => router.push("/products/add")}
+              className="bg-black text-white flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm"
+            >
+              <Plus size={14} />
+              Add
+            </button>
+          )}
         </div>
       </div>
 
-      {/* Table */}
-      <ProductsTable products={paginatedData} refetch={refetch}  count={data?.count} />
+      {listLoading && products.length === 0 ? (
+        <div className="bg-white border border-gray-200 rounded-2xl py-16 flex items-center justify-center gap-2 text-sm text-gray-400">
+          <Loader2 size={16} className="animate-spin" />
+          Loading products...
+        </div>
+      ) : (
+        <ProductsTable
+          products={products}
+          refetch={() => loadProducts(currentPage)}
+        />
+      )}
 
-      {/* Pagination Controls */}
-      <div className="flex justify-center items-center gap-3 pt-2">
-        <button
-          onClick={goPrev}
-          disabled={currentPage === 1}
-          className="px-3 py-1 border rounded disabled:opacity-50"
-        >
-          Prev
-        </button>
+      <div className="flex flex-col sm:flex-row justify-between items-center gap-3 pt-2 text-sm">
+        <p className="text-gray-500">
+          Showing {showingFrom}-{showingTo} of {totalRecords} products
+        </p>
 
-        <span className="text-sm">
-          Page {currentPage} of {totalPages || 1}
-        </span>
+        {totalPages > 1 && (
+          <div className="flex items-center gap-1">
+            <button
+              onClick={() => goToPage(currentPage - 1)}
+              disabled={currentPage === 1 || listLoading}
+              className="px-3 py-1.5 border border-gray-200 rounded-lg disabled:opacity-40"
+            >
+              Prev
+            </button>
 
-        <button
-          onClick={goNext}
-          disabled={currentPage === totalPages}
-          className="px-3 py-1 border rounded disabled:opacity-50"
-        >
-          Next
-        </button>
+            {pageNumbers.map((page) => (
+              <button
+                key={page}
+                onClick={() => goToPage(page)}
+                disabled={listLoading}
+                className={`px-3 py-1.5 border rounded-lg ${
+                  currentPage === page
+                    ? "bg-black text-white border-black"
+                    : "border-gray-200"
+                }`}
+              >
+                {page}
+              </button>
+            ))}
+
+            <button
+              onClick={() => goToPage(currentPage + 1)}
+              disabled={currentPage === totalPages || listLoading}
+              className="px-3 py-1.5 border border-gray-200 rounded-lg disabled:opacity-40"
+            >
+              Next
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

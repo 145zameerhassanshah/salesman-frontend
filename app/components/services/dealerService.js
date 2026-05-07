@@ -132,15 +132,19 @@ class DealerService {
     return await res.json();
   }
 
-  static async updateDealer(data, id) {
+static async updateDealer(data, id) {
+  try {
     const res = await fetch(`${API.dealers}/${id}`, {
       method: "PUT",
       credentials: "include",
       body: data
     });
-    return await res.json();
-  }
 
+    return await res.json();
+  } catch {
+    return { success: false, message: "Network error" };
+  }
+}
   static async updateDealerStatus(id, data) {
     const res = await fetch(`${API.dealers}/status/${id}`, {
       method: "PATCH",

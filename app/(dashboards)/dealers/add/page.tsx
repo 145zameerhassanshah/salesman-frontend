@@ -42,23 +42,23 @@ export default function AddDealer() {
     setForm({ ...form, business_logo: file });
   };
 
-  const validate = () => {
-    if (!form.name.trim()) return "Dealer name is required";
-    if (!form.email.trim()) return "Email is required";
-    if (!/\S+@\S+\.\S+/.test(form.email)) return "Invalid email format";
-    if (!form.phone_number.trim()) return "Phone number is required";
-    if (!/^[0-9]{10,15}$/.test(form.phone_number)) return "Phone must be 10–15 digits";
-    if (!form.whatsapp_number.trim()) return "WhatsApp number is required";
-    if (!/^[0-9]{10,15}$/.test(form.whatsapp_number)) return "WhatsApp must be 10–15 digits";
-    if (!form.company_name.trim()) return "Company name is required";
-    if (!form.billing_address.trim()) return "Billing address is required";
-    if (!form.shipping_address.trim()) return "Shipping address is required";
-    if (!form.city.trim()) return "City is required";
-    if (!form.country.trim()) return "Country is required";
-    if (user?.user_type === "admin" && !form.userId) return "Salesman is required";
-    return null;
-  };
-
+const validate = () => {
+  if (!form.name.trim()) return "Dealer name is required";
+  if (!form.email.trim()) return "Email is required";
+  if (!/\S+@\S+\.\S+/.test(form.email)) return "Invalid email format";
+  if (!form.phone_number.trim()) return "Phone number is required";
+  if (!/^[0-9]{10,15}$/.test(form.phone_number)) return "Phone must be 10–15 digits";
+  if (!form.whatsapp_number.trim()) return "WhatsApp number is required";
+  if (!/^[0-9]{10,15}$/.test(form.whatsapp_number)) return "WhatsApp must be 10–15 digits";
+  if (!form.company_name.trim()) return "Company name is required";
+  if (!form.billing_address.trim()) return "Billing address is required";
+  if (!form.shipping_address.trim()) return "Shipping address is required";
+  if (!form.city.trim()) return "City is required";
+  if (!form.country.trim()) return "Country is required";
+  if (!form.business_logo) return "Business logo is required";
+  if (user?.user_type === "admin" && !form.userId) return "Salesman is required";
+  return null;
+};
   const handleSubmit = async () => {
     const error = validate();
     if (error) { toast.error(error); return; }
@@ -134,7 +134,7 @@ export default function AddDealer() {
 
         {/* Logo upload */}
         <div className="mb-3">
-          <label className={labelCls}>Business Logo</label>
+          <label className={labelCls}> <span className="text-red-500">*</span>Business Logo</label>
           <div className="mt-1 flex items-center gap-3">
             <div className="w-14 h-14 flex-shrink-0 rounded-xl bg-gray-100 border border-gray-200 flex items-center justify-center overflow-hidden">
               {form.business_logo ? (

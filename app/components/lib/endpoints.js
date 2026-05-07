@@ -17,7 +17,9 @@ export const API = {
   dealers:`${API_URL}/dealers`,
   quotations:`${API_URL}/quotation`,
     dashboard: `${API_URL}/dashboard`,
+  audit: `${API_URL}/audit`,
 
     orderPdf: (id) => `${API_URL}/order/pdf/${id}`,  
+    
 
 };

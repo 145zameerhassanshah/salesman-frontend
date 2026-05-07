@@ -51,19 +51,22 @@ export default function AllSaleman() {
     setForm({ ...form, [name]: value });
   };
 
-  const handleDelete = async (id: any) => {
-    try {
-      if (!confirm("Are you sure?")) return;
-      const res = await UserService.deleteUser(id);
-      if (!res?.success) return toast.error(res?.message);
-      toast.success(res?.message);
-      await refetch();
-      window.location.reload();
-    } catch (err: any) {
-      toast.error(err.message || "Delete failed");
-    }
-  };
+const handleDelete = async (id: any) => {
+  try {
+    if (!confirm("Are you sure?")) return;
 
+    const res = await UserService.deleteUser(id);
+
+    if (!res?.success) {
+      return toast.error(res?.message || "Delete failed");
+    }
+
+    toast.success(res?.message || "Deleted successfully");
+    await refetch();
+  } catch (err: any) {
+    toast.error(err.message || "Delete failed");
+  }
+};
   const handleImageChange = (e: any) => {
     const file = e.target.files[0];
     if (!file) return;

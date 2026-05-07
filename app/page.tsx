@@ -55,9 +55,34 @@ const [verifyLoading, setVerifyLoading] = useState(false);
     }
   }, [user, router]);
 
-  const handleLogin = async (event: any) => {
-    event.preventDefault();
+  // const handleLogin = async (event: any) => {
+  //   event.preventDefault();
 
+  //   setLoading(true);
+
+  //   const res = await AuthService.loginUser({
+  //     email,
+  //     password,
+  //   });
+
+  //   if (!res.success) {
+  //     toast.error(res.message);
+  //     setLoading(false);
+  //     return;
+  //   }
+  //   toast.success(res?.message);
+
+  //   setShowVerifyModal(true);
+  //   localStorage.setItem("tempUser", JSON.stringify(res.isUser));
+
+  //   setLoading(false);
+  // };
+
+
+  const handleLogin = async (event) => {
+  event.preventDefault();
+
+  try {
     setLoading(true);
 
     const res = await AuthService.loginUser({
@@ -67,57 +92,103 @@ const [verifyLoading, setVerifyLoading] = useState(false);
 
     if (!res.success) {
       toast.error(res.message);
-      setLoading(false);
       return;
     }
-    toast.success(res?.message);
 
+    toast.success(res.message);
     setShowVerifyModal(true);
-    localStorage.setItem("tempUser", JSON.stringify(res.isUser));
 
+  } catch (err) {
+    toast.error(err.message || "Login failed");
+  } finally {
     setLoading(false);
-  };
+  }
+};
+//   const handleVerify = async () => {
+//     const tempUser = JSON.parse(localStorage.getItem("tempUser") || "{}");
+//   setVerifyLoading(true);
 
-  const handleVerify = async () => {
-    const tempUser = JSON.parse(localStorage.getItem("tempUser") || "{}");
-  setVerifyLoading(true);
+//   const res = await AuthService.verifyUser({
+//     otp: verificationCode,
+//     email:tempUser?.email
+//   });
 
-  const res = await AuthService.verifyUser({
-    otp: verificationCode,
-    email:tempUser?.email
-  });
+//   if (!res.success) {
+//     toast.error(res.message || "Invalid code");
+//     setVerifyLoading(false);
+//     return;
+//   }
 
-  if (!res.success) {
-    toast.error(res.message || "Invalid code");
+//   toast.success("Verified successfully");
+
+//   dispatch(setUser(res?.user));
+
+//   setShowVerifyModal(false);
+
+//   // 🔥 NOW redirect
+//   const role = res?.user.user_type;
+
+//   if (role === USER_ROLES.SUPER_ADMIN) {
+//     router.push("/super-admin");
+//   } else if (role === USER_ROLES.ADMIN) {
+//     router.push("/dashboard");
+//   } else if (role === USER_ROLES.SALESMAN) {
+//     router.push("/saleman/salemanDashboard");
+//   } else if (role === USER_ROLES.DISPATCHER) {
+//     router.push("/dashboard/dispatch");
+//   } else if (role === USER_ROLES.ACCOUNTANT) {
+//     router.push("/dashboard/accounts");
+//   } else {
+//     router.push("/dashboard");
+//   }
+
+//   localStorage.removeItem("tempUser");
+//   setVerifyLoading(false);
+// };
+
+
+const handleVerify = async () => {
+  try {
+    setVerifyLoading(true);
+
+    const res = await AuthService.verifyUser({
+      otp: verificationCode.trim(),
+      email: email.trim(),
+    });
+
+    if (!res.success) {
+      toast.error(res.message || "Invalid code");
+      return;
+    }
+
+    toast.success("Verified successfully");
+
+    dispatch(setUser(res.user));
+    setShowVerifyModal(false);
+
+    const role = res.user.user_type;
+
+    if (role === USER_ROLES.SUPER_ADMIN) {
+      router.push("/super-admin");
+    } else if (role === USER_ROLES.ADMIN) {
+      router.push("/dashboard");
+    } else if (role === USER_ROLES.SALESMAN) {
+      router.push("/saleman/salemanDashboard");
+    } else if (role === USER_ROLES.DISPATCHER) {
+      router.push("/dashboard/dispatch");
+    } else if (role === USER_ROLES.ACCOUNTANT) {
+      router.push("/dashboard/accounts");
+    } else if (role === USER_ROLES.MANAGER) {
+      router.push("/dashboard/manager");
+    } else {
+      router.push("/dashboard");
+    }
+
+  } catch (err) {
+    toast.error(err.message || "Verification failed");
+  } finally {
     setVerifyLoading(false);
-    return;
   }
-
-  toast.success("Verified successfully");
-
-  dispatch(setUser(res?.user));
-
-  setShowVerifyModal(false);
-
-  // 🔥 NOW redirect
-  const role = res?.user.user_type;
-
-  if (role === USER_ROLES.SUPER_ADMIN) {
-    router.push("/super-admin");
-  } else if (role === USER_ROLES.ADMIN) {
-    router.push("/dashboard");
-  } else if (role === USER_ROLES.SALESMAN) {
-    router.push("/saleman/salemanDashboard");
-  } else if (role === USER_ROLES.DISPATCHER) {
-    router.push("/dashboard/dispatch");
-  } else if (role === USER_ROLES.ACCOUNTANT) {
-    router.push("/dashboard/accounts");
-  } else {
-    router.push("/dashboard");
-  }
-
-  localStorage.removeItem("tempUser");
-  setVerifyLoading(false);
 };
 
   return (
@@ -241,6 +312,8 @@ const [verifyLoading, setVerifyLoading] = useState(false);
             src="/images/login1.jpeg"
             alt="background"
             fill
+                sizes="(max-width: 768px) 100vw, 50vw"
+
             priority
             className="object-cover"
           />

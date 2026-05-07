@@ -1,99 +1,319 @@
+// import { API } from "@/app/components/lib/endpoints";
+
+// class ProductService {
+
+//   /* ================= GET ALL ================= */
+
+//   static async getProducts(id) {
+    
+//       const res = await fetch(`${API.products}/${id}`, {
+//         method: "GET",
+//         credentials: "include"
+//       });
+
+//       const result = await res.json();
+
+//       if (!res.ok) {
+//         throw new Error(result.message || "Failed to fetch products");
+//       }
+
+//       return result;
+
+//   }
+
+//   /* ================= GET BY ID ================= */
+
+//   static async getProductById(id) {
+//     try {
+//       const res = await fetch(`${API.products}/single/${id}`, {
+//         method: "GET",
+//         credentials: "include"
+//       });
+
+//       const result = await res.json();
+
+//       if (!res.ok) {
+//         throw new Error(result.message || "Failed to fetch product");
+//       }
+
+//       return result;
+
+//     } catch (err) {
+//       console.error("Get product error:", err);
+//       throw err;
+//     }
+//   }
+
+//   /* ================= ADD ================= */
+
+//   static async addProduct(data, id) {
+//     try {
+//       const res = await fetch(`${API.products}/create/${id}`, {
+//         method: "POST",
+//         credentials: "include",
+//         body: data
+//       });
+
+//       const result = await res.json();
+
+//       if (!res.ok) {
+//         throw new Error(result.message || "Failed to add product");
+//       }
+
+//       return result;
+
+//     } catch (err) {
+//       console.error("Add product error:", err);
+//       throw err;
+//     }
+//   }
+
+//   /* ================= UPDATE ================= */
+
+//   static async updateProduct(data, id) {
+//       const res = await fetch(`${API.products}/${id}`, {
+//         method: "PATCH", 
+//         credentials: "include",
+//         body: data
+//       });
+
+//       const result = await res.json();
+
+//       return result;
+//   }
+
+//   /* ================= DELETE ================= */
+
+//   static async deleteProduct(id) {
+//       const res = await fetch(`${API.products}/${id}`, {
+//         method: "DELETE",
+//         credentials: "include"
+//       });
+
+//       const result = await res.json();
+//       return result;
+//   }
+
+// }
+
+// export default ProductService;
+
+
+
 import { API } from "@/app/components/lib/endpoints";
 
-class ProductService {
-
-  /* ================= GET ALL ================= */
-
-  static async getProducts(id) {
-    
-      const res = await fetch(`${API.products}/${id}`, {
-        method: "GET",
-        credentials: "include"
-      });
-
-      const result = await res.json();
-
-      if (!res.ok) {
-        throw new Error(result.message || "Failed to fetch products");
-      }
-
-      return result;
-
+const safeJson = async (res) => {
+  try {
+    return await res.json();
+  } catch {
+    return {};
   }
+};
 
-  /* ================= GET BY ID ================= */
+class ProductService {
+static async getProducts(id, filters = {}) {
+  try {
+    if (!id) return { success: false, products: [], count: 0, pagination: null };
+
+    const {
+      page = 1,
+      limit = 100,
+      search = "",
+      status = "",
+      category_id = "",
+    } = filters;
+
+    const params = new URLSearchParams();
+
+    params.set("page", String(page));
+    params.set("limit", String(limit));
+
+    if (search) params.set("search", search);
+    if (category_id) params.set("category_id", category_id);
+
+    // ✅ IMPORTANT: backend expects is_active, not status
+    if (status === "active") params.set("is_active", "true");
+    if (status === "inactive") params.set("is_active", "false");
+
+    const res = await fetch(`${API.products}/${id}?${params.toString()}`, {
+      method: "GET",
+      credentials: "include",
+    });
+
+    const result = await safeJson(res);
+
+    if (!res.ok) {
+      return {
+        success: false,
+        message: result?.message || "Failed to fetch products",
+        products: [],
+        count: 0,
+        pagination: null,
+      };
+    }
+
+    return {
+      success: true,
+      products: result?.products || [],
+      count: result?.pagination?.total || result?.count || 0,
+      pagination: result?.pagination || null,
+    };
+  } catch (err) {
+    return {
+      success: false,
+      message: err?.message || "Failed to fetch products",
+      products: [],
+      count: 0,
+      pagination: null,
+    };
+  }
+}  static async getProductsPaginated(id, filters = {}) {
+    return this.getProducts(id, filters);
+  }
 
   static async getProductById(id) {
     try {
       const res = await fetch(`${API.products}/single/${id}`, {
         method: "GET",
-        credentials: "include"
+        credentials: "include",
       });
 
-      const result = await res.json();
+      const result = await safeJson(res);
 
       if (!res.ok) {
-        throw new Error(result.message || "Failed to fetch product");
+        return {
+          success: false,
+          message: result?.message || "Failed to fetch product",
+          product: null,
+        };
       }
 
       return result;
-
     } catch (err) {
       console.error("Get product error:", err);
-      throw err;
+
+      return {
+        success: false,
+        message: err?.message || "Failed to fetch product",
+        product: null,
+      };
     }
   }
-
-  /* ================= ADD ================= */
 
   static async addProduct(data, id) {
     try {
       const res = await fetch(`${API.products}/create/${id}`, {
         method: "POST",
         credentials: "include",
-        body: data
+        body: data,
       });
 
-      const result = await res.json();
+      const result = await safeJson(res);
 
       if (!res.ok) {
-        throw new Error(result.message || "Failed to add product");
+        return {
+          success: false,
+          message: result?.message || "Failed to add product",
+        };
       }
 
       return result;
-
     } catch (err) {
       console.error("Add product error:", err);
-      throw err;
+
+      return {
+        success: false,
+        message: err?.message || "Failed to add product",
+      };
     }
   }
 
-  /* ================= UPDATE ================= */
-
   static async updateProduct(data, id) {
+    try {
       const res = await fetch(`${API.products}/${id}`, {
-        method: "PATCH", 
+        method: "PATCH",
         credentials: "include",
-        body: data
+        body: data,
       });
 
-      const result = await res.json();
+      const result = await safeJson(res);
+
+      if (!res.ok) {
+        return {
+          success: false,
+          message: result?.message || "Failed to update product",
+        };
+      }
 
       return result;
-  }
+    } catch (err) {
+      console.error("Update product error:", err);
 
-  /* ================= DELETE ================= */
+      return {
+        success: false,
+        message: err?.message || "Failed to update product",
+      };
+    }
+  }
 
   static async deleteProduct(id) {
+    try {
       const res = await fetch(`${API.products}/${id}`, {
         method: "DELETE",
-        credentials: "include"
+        credentials: "include",
       });
 
-      const result = await res.json();
+      const result = await safeJson(res);
+
+      if (!res.ok) {
+        return {
+          success: false,
+          message: result?.message || "Failed to delete product",
+        };
+      }
+
       return result;
+    } catch (err) {
+      console.error("Delete product error:", err);
+
+      return {
+        success: false,
+        message: err?.message || "Failed to delete product",
+      };
+    }
   }
 
+  static async getProductAuditLogs(productId, page = 1, limit = 20) {
+    try {
+      const res = await fetch(
+        `${API.audit}/entity/PRODUCT/${productId}?page=${page}&limit=${limit}`,
+        {
+          method: "GET",
+          credentials: "include",
+        }
+      );
+
+      const result = await safeJson(res);
+
+      if (!res.ok) {
+        return {
+          success: false,
+          data: [],
+          pagination: null,
+          message: result?.message || "Failed to fetch product activity",
+        };
+      }
+
+      return result;
+    } catch (err) {
+      return {
+        success: false,
+        data: [],
+        pagination: null,
+        message: err?.message || "Failed to fetch product activity",
+      };
+    }
+  }
 }
 
 export default ProductService;

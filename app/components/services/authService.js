@@ -1,177 +1,588 @@
+// import { API } from "@/app/components/lib/endpoints";
+
+// class AuthService {
+
+
+//   static async loginUser(data){
+//     try{
+
+//       const res = await fetch(API.login,{
+//         method:"POST",
+//         headers:{
+//           "Content-Type":"application/json"
+//         },
+//         credentials:"include",
+//         body:JSON.stringify(data)
+//       });
+
+//       const result = await res.json();
+//       return result;
+
+//     }catch(err){
+//       console.error("Login error:",err);
+//       throw err;
+//     }
+//   }
+
+
+//   /* LOGOUT */
+
+//   static async logoutUser(){
+//     try{
+
+//       const res = await fetch(API.logout,{
+//         method:"GET",
+//         credentials:"include"
+//       });
+
+//       const result = await res.json();
+
+//       if(!res.ok){
+//         throw new Error(result.message || "Logout failed");
+//       }
+
+//       return result;
+
+//     }catch(err){
+//       console.error("Logout error:",err);
+//       throw err;
+//     }
+//   }
+
+
+//   /* CURRENT USER */
+
+//   static async getCurrentUser(){
+//       const res = await fetch(API.me,{
+//         method:"GET",
+//         credentials:"include"
+//       });
+
+//       const result = await res.json();
+
+//       if(!res.ok){
+//         throw new Error(result.message || "Failed to fetch user");
+//       }
+
+//       return result;
+//   }
+
+
+//   /* CHANGE PASSWORD */
+
+//   static async changePassword(data){
+//     try{
+
+//       const res = await fetch(API.changePassword,{
+//         method:"POST",
+//         headers:{
+//           "Content-Type":"application/json"
+//         },
+//         credentials:"include",
+//         body:JSON.stringify(data)
+//       });
+
+//       const result = await res.json();
+
+//       if(!res.ok){
+//         throw new Error(result.message || "Password change failed");
+//       }
+
+//       return result;
+
+//     }catch(err){
+//       console.error("Change password error:",err);
+//       throw err;
+//     }
+//   }
+
+
+//   /* FORGOT PASSWORD */
+
+//   static async forgotPassword(data){
+//     try{
+
+//       const res = await fetch(API.forgotPassword,{
+//         method:"POST",
+//         headers:{
+//           "Content-Type":"application/json"
+//         },
+//         body:JSON.stringify(data)
+//       });
+
+//       const result = await res.json();
+
+//       if(!res.ok){
+//         throw new Error(result.message || "Forgot password failed");
+//       }
+
+//       return result;
+
+//     }catch(err){
+//       console.error("Forgot password error:",err);
+//       throw err;
+//     }
+//   }
+
+//   static async verifyUser(data){
+//     const res=await fetch(`${API.users}/verify-user`,{method:"POST", headers:{
+//           "Content-Type":"application/json"
+//         },
+//         credentials:"include",
+//         body:JSON.stringify(data)});
+
+//     const result=await res.json();
+//     return result;
+//   }
+//  static async resetPassword(data){  
+//     try{
+
+//       const res = await fetch(API.resetPassword,{
+//         method:"POST",
+//         headers:{
+//           "Content-Type":"application/json"
+//         },
+//         body:JSON.stringify(data)
+//       }); 
+//             const result = await res.json();
+
+//       if(!res.ok){
+//         throw new Error(result.message || "Reset password failed");
+//       }
+//       return result;
+
+//     } 
+//     catch(err){
+//       console.error("Reset password error:",err);
+//       throw err;
+//     }
+//   }
+
+// static async deleteUser(id) {
+//   const res = await fetch(`${API.users}/${id}`, {
+//     method: "DELETE",
+//     credentials: "include",
+//   });
+
+//   const result = await res.json();
+
+//   if (!res.ok) {
+//     throw new Error(result.message || "Delete failed");
+//   }
+
+//   return result;
+// }
+// }
+
+// export default AuthService;
+
+
+
 import { API } from "@/app/components/lib/endpoints";
 
-class AuthService {
-
-
-  static async loginUser(data){
-    try{
-
-      const res = await fetch(API.login,{
-        method:"POST",
-        headers:{
-          "Content-Type":"application/json"
-        },
-        credentials:"include",
-        body:JSON.stringify(data)
-      });
-
-      const result = await res.json();
-      return result;
-
-    }catch(err){
-      console.error("Login error:",err);
-      throw err;
-    }
+const safeJson = async (res) => {
+  try {
+    return await res.json();
+  } catch {
+    return {};
   }
+};
 
-
-  /* LOGOUT */
-
-  static async logoutUser(){
-    try{
-
-      const res = await fetch(API.logout,{
-        method:"GET",
-        credentials:"include"
+class UserService {
+    static async loginUser(data) {
+    try {
+      const res = await fetch(API.login, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify(data),
       });
 
-      const result = await res.json();
+      const result = await safeJson(res);
 
-      if(!res.ok){
-        throw new Error(result.message || "Logout failed");
+      if (!res.ok) {
+        return {
+          success: false,
+          message: result?.message || "Login failed",
+        };
       }
 
       return result;
+    } catch (err) {
+      console.error("Login error:", err);
 
-    }catch(err){
-      console.error("Logout error:",err);
-      throw err;
+      return {
+        success: false,
+        message: err?.message || "Login failed",
+      };
     }
   }
 
+  /* ================= VERIFY USER OTP ================= */
 
-  /* CURRENT USER */
-
-  static async getCurrentUser(){
-      const res = await fetch(API.me,{
-        method:"GET",
-        credentials:"include"
+  static async verifyUser(data) {
+    try {
+      const res = await fetch(`${API.users}/verify-user`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify(data),
       });
 
-      const result = await res.json();
+      const result = await safeJson(res);
 
-      if(!res.ok){
-        throw new Error(result.message || "Failed to fetch user");
+      if (!res.ok) {
+        return {
+          success: false,
+          message: result?.message || "Verification failed",
+        };
       }
 
       return result;
+    } catch (err) {
+      console.error("Verify user error:", err);
+
+      return {
+        success: false,
+        message: err?.message || "Verification failed",
+      };
+    }
   }
 
+  /* ================= CURRENT USER ================= */
 
-  /* CHANGE PASSWORD */
-
-  static async changePassword(data){
-    try{
-
-      const res = await fetch(API.changePassword,{
-        method:"POST",
-        headers:{
-          "Content-Type":"application/json"
-        },
-        credentials:"include",
-        body:JSON.stringify(data)
+  static async getCurrentUser() {
+    try {
+      const res = await fetch(API.me, {
+        method: "GET",
+        credentials: "include",
       });
 
-      const result = await res.json();
+      const result = await safeJson(res);
 
-      if(!res.ok){
-        throw new Error(result.message || "Password change failed");
+      if (!res.ok) {
+        return {
+          success: false,
+          loggedInUser: null,
+          message: result?.message || "Failed to fetch user",
+        };
       }
 
-      return result;
+      return {
+        success: true,
+        loggedInUser: result?.loggedInUser || result?.user || null,
+        message: result?.message || "User retrieved successfully",
+      };
+    } catch (err) {
+      console.error("Current user error:", err);
 
-    }catch(err){
-      console.error("Change password error:",err);
-      throw err;
+      return {
+        success: false,
+        loggedInUser: null,
+        message: err?.message || "Failed to fetch user",
+      };
     }
   }
 
+  /* ================= LOGOUT ================= */
 
-  /* FORGOT PASSWORD */
-
-  static async forgotPassword(data){
-    try{
-
-      const res = await fetch(API.forgotPassword,{
-        method:"POST",
-        headers:{
-          "Content-Type":"application/json"
-        },
-        body:JSON.stringify(data)
+  static async logoutUser() {
+    try {
+      const res = await fetch(API.logout, {
+        method: "GET",
+        credentials: "include",
       });
 
-      const result = await res.json();
+      const result = await safeJson(res);
 
-      if(!res.ok){
-        throw new Error(result.message || "Forgot password failed");
+      if (!res.ok) {
+        return {
+          success: false,
+          message: result?.message || "Logout failed",
+        };
       }
 
       return result;
+    } catch (err) {
+      console.error("Logout error:", err);
 
-    }catch(err){
-      console.error("Forgot password error:",err);
-      throw err;
+      return {
+        success: false,
+        message: err?.message || "Logout failed",
+      };
     }
   }
 
-  static async verifyUser(data){
-    const res=await fetch(`${API.users}/verify-user`,{method:"POST", headers:{
-          "Content-Type":"application/json"
+  /* ================= CHANGE PASSWORD ================= */
+
+  static async changePassword(data) {
+    try {
+      const res = await fetch(API.changePassword, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
         },
-        credentials:"include",
-        body:JSON.stringify(data)});
+        credentials: "include",
+        body: JSON.stringify(data),
+      });
 
-    const result=await res.json();
-    return result;
-  }
- static async resetPassword(data){  
-    try{
+      const result = await safeJson(res);
 
-      const res = await fetch(API.resetPassword,{
-        method:"POST",
-        headers:{
-          "Content-Type":"application/json"
-        },
-        body:JSON.stringify(data)
-      }); 
-            const result = await res.json();
-
-      if(!res.ok){
-        throw new Error(result.message || "Reset password failed");
+      if (!res.ok) {
+        return {
+          success: false,
+          message: result?.message || "Password change failed",
+        };
       }
-      return result;
 
-    } 
-    catch(err){
-      console.error("Reset password error:",err);
-      throw err;
+      return result;
+    } catch (err) {
+      console.error("Change password error:", err);
+
+      return {
+        success: false,
+        message: err?.message || "Password change failed",
+      };
     }
   }
 
-static async deleteUser(id) {
-  const res = await fetch(`${API.users}/${id}`, {
-    method: "DELETE",
-    credentials: "include",
-  });
+  /* ================= FORGOT PASSWORD ================= */
 
-  const result = await res.json();
+  static async forgotPassword(data) {
+    try {
+      const res = await fetch(API.forgotPassword, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+      });
 
-  if (!res.ok) {
-    throw new Error(result.message || "Delete failed");
+      const result = await safeJson(res);
+
+      if (!res.ok) {
+        return {
+          success: false,
+          message: result?.message || "Forgot password failed",
+        };
+      }
+
+      return result;
+    } catch (err) {
+      console.error("Forgot password error:", err);
+
+      return {
+        success: false,
+        message: err?.message || "Forgot password failed",
+      };
+    }
   }
 
-  return result;
+  /* ================= RESET PASSWORD ================= */
+
+  static async resetPassword(data) {
+    try {
+      const res = await fetch(API.resetPassword, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+      });
+
+      const result = await safeJson(res);
+
+      if (!res.ok) {
+        return {
+          success: false,
+          message: result?.message || "Reset password failed",
+        };
+      }
+
+      return result;
+    } catch (err) {
+      console.error("Reset password error:", err);
+
+      return {
+        success: false,
+        message: err?.message || "Reset password failed",
+      };
+    }
+  }
+
+  static async getUsersByIndustryPaginated(industryId, filters = {}) {
+    try {
+      if (!industryId) {
+        return {
+          success: false,
+          userByIndustry: [],
+          pagination: null,
+        };
+      }
+
+      const {
+        page = 1,
+        limit = 20,
+        search = "",
+        user_type = "",
+        status = "",
+      } = filters;
+
+      const params = new URLSearchParams();
+
+      params.set("page", String(page));
+      params.set("limit", String(limit));
+
+      if (search) params.set("search", search);
+      if (user_type) params.set("user_type", user_type);
+      if (status) params.set("status", status);
+
+      const res = await fetch(
+        `${API.users}/industry/${industryId}?${params.toString()}`,
+        {
+          method: "GET",
+          credentials: "include",
+        }
+      );
+
+      const result = await safeJson(res);
+
+      if (!res.ok) {
+        return {
+          success: false,
+          message: result?.message || "Failed to fetch users",
+          userByIndustry: [],
+          pagination: null,
+        };
+      }
+
+      return {
+        success: true,
+        userByIndustry: result?.userByIndustry || [],
+        pagination: result?.pagination || null,
+      };
+    } catch (err) {
+      return {
+        success: false,
+        message: err?.message || "Failed to fetch users",
+        userByIndustry: [],
+        pagination: null,
+      };
+    }
+  }
+
+  static async createTeamMember(data) {
+    try {
+      const res = await fetch(`${API.users}`, {
+        method: "POST",
+        credentials: "include",
+        body: data,
+      });
+
+      const result = await safeJson(res);
+
+      if (!res.ok) {
+        return {
+          success: false,
+          message: result?.message || "Failed to create user",
+        };
+      }
+
+      return result;
+    } catch (err) {
+      return {
+        success: false,
+        message: err?.message || "Failed to create user",
+      };
+    }
+  }
+
+  static async updateUser(id, data) {
+    try {
+      const res = await fetch(`${API.users}/${id}`, {
+        method: "PATCH",
+        credentials: "include",
+        body: data,
+      });
+
+      const result = await safeJson(res);
+
+      if (!res.ok) {
+        return {
+          success: false,
+          message: result?.message || "Update failed",
+        };
+      }
+
+      return result;
+    } catch (err) {
+      return {
+        success: false,
+        message: err?.message || "Update failed",
+      };
+    }
+  }
+
+  static async deleteUser(id) {
+    try {
+      const res = await fetch(`${API.users}/${id}`, {
+        method: "DELETE",
+        credentials: "include",
+      });
+
+      const result = await safeJson(res);
+
+      if (!res.ok) {
+        return {
+          success: false,
+          message: result?.message || "Delete failed",
+        };
+      }
+
+      return result;
+    } catch (err) {
+      return {
+        success: false,
+        message: err?.message || "Delete failed",
+      };
+    }
+  }
+
+  static async getUserAuditLogs(userId, page = 1, limit = 20) {
+    try {
+      const res = await fetch(
+        `${API.audit}/entity/USER/${userId}?page=${page}&limit=${limit}`,
+        {
+          method: "GET",
+          credentials: "include",
+        }
+      );
+
+      const result = await safeJson(res);
+
+      if (!res.ok) {
+        return {
+          success: false,
+          data: [],
+          pagination: null,
+          message: result?.message || "Failed to fetch user activity",
+        };
+      }
+
+      return result;
+    } catch (err) {
+      return {
+        success: false,
+        data: [],
+        pagination: null,
+        message: err?.message || "Failed to fetch user activity",
+      };
+    }
+  }
 }
-}
 
-export default AuthService;
+export default UserService;

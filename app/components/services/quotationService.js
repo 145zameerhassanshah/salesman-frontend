@@ -1,6 +1,15 @@
 import { API } from "@/app/components/lib/endpoints";
 
+const safeJson = async (res) => {
+  try {
+    return await res.json();
+  } catch {
+    return {};
+  }
+};
+
 class QuotationService {
+  /* ================= CREATE ================= */
 
   static async createQuotation(data, businessId) {
     try {
@@ -8,122 +17,296 @@ class QuotationService {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify(data)
+        body: JSON.stringify(data),
       });
 
-      const result = await res.json();
+      const result = await safeJson(res);
 
-      if (!res.ok) throw new Error(result.message);
+      if (!res.ok) {
+        throw new Error(result?.message || "Quotation creation failed");
+      }
 
-      return result.message;
+      // Old code agar string expect kar raha hai to ye safe hai
+      return result?.message || "Quotation created successfully";
     } catch (err) {
-      return err.message;
+      return err?.message || "Quotation creation failed";
     }
   }
-static async getQuotations(businessId) {
-  try {
-    const res = await fetch(`${API.quotations}/${businessId}`, {
-      method: "GET",
-      credentials: "include"
-    });
-    const result = await res.json();
 
-    if (!res.ok) throw new Error(result.message);
-    return result.quotations || [];
-  } catch (err) {
-    return [];
-  }
-}
+  /* ================= LIST ================= */
 
-static async getQuotationById(id) {
-    const res = await fetch(`${API.quotations}/details/${id}`, {
-      method: "GET",
-      credentials: "include"
-    }); 
-    const result = await res.json();
+  static async getQuotations(businessId, filters = {}) {
+    try {
+      if (!businessId) return [];
 
-   return result;
-}
+      const {
+        page = 1,
+        limit = 100,
+        search = "",
+        status = "",
+      } = filters;
 
-static async getProductsByCategory(categoryId) {
-  try {
-    const res = await fetch(`${API.quotations}/products/${categoryId}`, {
-      method: "GET",
-      credentials: "include"
-    });
+      const params = new URLSearchParams();
 
-    const result = await res.json();
+      params.set("page", String(page));
+      params.set("limit", String(limit));
 
-    if (!res.ok) throw new Error(result.message);
+      if (search) params.set("search", search);
+      if (status) params.set("status", status);
 
-    return result.products || [];
-  } catch (err) {
-    return [];
-  }
-}
+      const res = await fetch(`${API.quotations}/${businessId}?${params.toString()}`, {
+        method: "GET",
+        credentials: "include",
+      });
 
- static async updateQuotation(data, id) {
+      const result = await safeJson(res);
 
-    const res = await fetch(`${API.quotations}/${id}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      credentials: "include",
-      body: JSON.stringify(data)
-    });
+      if (!res.ok) {
+        throw new Error(result?.message || "Failed to fetch quotations");
+      }
 
-    const result = await res.json();
-    return result;
+      return result?.quotations || [];
+    } catch (err) {
+      console.error("Get quotations error:", err);
+      return [];
+    }
   }
 
- static async updateQuotationStatus(id, status) {
-  const res = await fetch(`${API.quotations}/update-status/${id}`, {
-    method: "PATCH",
-    headers: { "Content-Type": "application/json" },
-    credentials: "include",
-    body: JSON.stringify({ status }),
-  });
-  return await res.json();
-}
+  /* ================= LIST WITH PAGINATION ================= */
+
+  static async getQuotationsPaginated(businessId, filters = {}) {
+    try {
+      if (!businessId) {
+        return {
+          success: false,
+          quotations: [],
+          pagination: null,
+        };
+      }
+
+      const {
+        page = 1,
+        limit = 20,
+        search = "",
+        status = "",
+      } = filters;
+
+      const params = new URLSearchParams();
+
+      params.set("page", String(page));
+      params.set("limit", String(limit));
+
+      if (search) params.set("search", search);
+      if (status) params.set("status", status);
+
+      const res = await fetch(`${API.quotations}/${businessId}?${params.toString()}`, {
+        method: "GET",
+        credentials: "include",
+      });
+
+      const result = await safeJson(res);
+
+      if (!res.ok) {
+        throw new Error(result?.message || "Failed to fetch quotations");
+      }
+
+      return {
+        success: true,
+        quotations: result?.quotations || [],
+        pagination: result?.pagination || null,
+      };
+    } catch (err) {
+      console.error("Get paginated quotations error:", err);
+
+      return {
+        success: false,
+        quotations: [],
+        pagination: null,
+        message: err?.message || "Failed to fetch quotations",
+      };
+    }
+  }
+
+  /* ================= DETAILS ================= */
+
+  static async getQuotationById(id) {
+    try {
+      const res = await fetch(`${API.quotations}/details/${id}`, {
+        method: "GET",
+        credentials: "include",
+      });
+
+      const result = await safeJson(res);
+
+      if (!res.ok) {
+        throw new Error(result?.message || "Failed to fetch quotation");
+      }
+
+      return result;
+    } catch (err) {
+      console.error("Get quotation detail error:", err);
+
+      return {
+        success: false,
+        message: err?.message || "Failed to fetch quotation",
+      };
+    }
+  }
+
+  /* ================= PRODUCTS BY CATEGORY ================= */
+
+  static async getProductsByCategory(categoryId) {
+    try {
+      if (!categoryId) return [];
+
+      const res = await fetch(`${API.quotations}/products/${categoryId}`, {
+        method: "GET",
+        credentials: "include",
+      });
+
+      const result = await safeJson(res);
+
+      if (!res.ok) {
+        throw new Error(result?.message || "Failed to fetch products");
+      }
+
+      return result?.products || [];
+    } catch (err) {
+      console.error("Get quotation products error:", err);
+      return [];
+    }
+  }
+
+  /* ================= UPDATE ================= */
+
+  static async updateQuotation(data, id) {
+    try {
+      const res = await fetch(`${API.quotations}/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify(data),
+      });
+
+      const result = await safeJson(res);
+
+      if (!res.ok) {
+        throw new Error(result?.message || "Quotation update failed");
+      }
+
+      return result;
+    } catch (err) {
+      console.error("Update quotation error:", err);
+
+      return {
+        success: false,
+        message: err?.message || "Quotation update failed",
+      };
+    }
+  }
+
+  /* ================= STATUS UPDATE ================= */
+
+  static async updateQuotationStatus(id, status) {
+    try {
+      const res = await fetch(`${API.quotations}/update-status/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ status }),
+      });
+
+      const result = await safeJson(res);
+
+      if (!res.ok) {
+        throw new Error(result?.message || "Status update failed");
+      }
+
+      return result;
+    } catch (err) {
+      console.error("Update quotation status error:", err);
+
+      return {
+        success: false,
+        message: err?.message || "Status update failed",
+      };
+    }
+  }
 
   /* ================= DELETE ================= */
 
   static async deleteQuotation(id) {
+    try {
+      const res = await fetch(`${API.quotations}/${id}`, {
+        method: "DELETE",
+        credentials: "include",
+      });
 
-    const res = await fetch(`${API.quotations}/${id}`, {
-      method: "DELETE",
-      credentials: "include"
-    });
+      const result = await safeJson(res);
 
-    const result = await res.json();
+      if (!res.ok) {
+        throw new Error(result?.message || "Delete failed");
+      }
 
-    if (!res.ok) throw new Error(result.message);
-
-    return result.message;
+      // Old code agar string expect kar raha hai to ye safe hai
+      return result?.message || "Quotation deleted successfully";
+    } catch (err) {
+      console.error("Delete quotation error:", err);
+      throw new Error(err?.message || "Delete failed");
+    }
   }
-static async downloadPdf(id) {
-  try {
-    const res = await fetch(`${API.quotations}/pdf/${id}`, {
-      method: "GET",
-      credentials: "include",
-    });
 
-    if (!res.ok) throw new Error("PDF download failed");
+  /* ================= PDF DOWNLOAD ================= */
 
-    const blob = await res.blob();
-    
-    const url = window.URL.createObjectURL(blob);
+  static async downloadPdf(id) {
+    try {
+      const res = await fetch(`${API.quotations}/pdf/${id}`, {
+        method: "GET",
+        credentials: "include",
+      });
 
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `quotation-${id}.pdf`;  // Naming the file
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    window.URL.revokeObjectURL(url);  // Clean up the URL object
-  } catch (error) {
-    console.error("PDF download error:", error);
-    throw error; // Optional: propagate error for handling in calling code
+      if (!res.ok) {
+        const result = await safeJson(res);
+        throw new Error(result?.message || "PDF download failed");
+      }
+
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+
+      let filename = `quotation-${id}.pdf`;
+
+      const disposition = res.headers.get("Content-Disposition");
+
+      if (disposition) {
+        const match = disposition.match(/filename="?([^"]+)"?/);
+        if (match?.[1]) {
+          filename = match[1];
+        }
+      }
+
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+
+      window.URL.revokeObjectURL(url);
+
+      return {
+        success: true,
+        message: "PDF downloaded successfully",
+      };
+    } catch (error) {
+      console.error("PDF download error:", error);
+
+      return {
+        success: false,
+        message: error?.message || "PDF download failed",
+      };
+    }
   }
 }
-}
-export default  QuotationService; 
+
+export default QuotationService;

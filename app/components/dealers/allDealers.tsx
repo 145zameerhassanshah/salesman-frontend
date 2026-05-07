@@ -70,8 +70,13 @@ export default function DealersTable({ dealers, refresh, onEdit }: any) {
       res = await DealerService.reassignDealer(confirmDealerId, newSalesmanId, rejectReason);
     }
     if (confirmAction === "delete") res = await DealerService.deleteDealer(confirmDealerId);
-    if (res?.success) { toast.success("Success"); refresh(); }
-    else toast.error(res?.message || "Failed");
+if (res?.success) {
+  toast.success(res.message || "Action completed successfully");
+  refresh();
+}
+else {
+  toast.error(res?.message || "Something went wrong");
+}
     setConfirmDealerId(null);
     setConfirmAction(null);
     setRejectReason("");

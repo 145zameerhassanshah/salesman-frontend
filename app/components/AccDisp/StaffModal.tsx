@@ -21,18 +21,19 @@ export default function StaffModal({
 }) {
   const user = useSelector((state: any) => state?.user.user);
   console.log(user.industry);
-  const [form, setForm] = useState({
-    name: "",
-    email: "",
-
-    phone_number: "",
-    whatsapp_number: "",
-    city: "",
-    address: "",
-    password: "",
-    status: "Active",
-    profile_image: null,
-  });
+const [form, setForm] = useState({
+  name: "",
+  email: "",
+  phone_number: "",
+  whatsapp_number: "",
+  city: "",
+  address: "",
+  territory: "",
+  designation: "",
+  password: "",
+  status: "Active",
+  profile_image: null,
+});
 const [showPassword, setShowPassword] = useState(false);
   const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
@@ -85,7 +86,8 @@ if (data && form.password && form.password.length < 6)
       formData.append("address", form.address);
       formData.append("industry", user?.industry);
       formData.append("status", form.status);
-
+formData.append("territory", form.territory || "");
+formData.append("designation", form.designation || "");
       // 👉 only send password if creating
 // 👉 CREATE case
 if (!data) {
@@ -263,11 +265,11 @@ if (data && form.password) {
 
         {/* ACTIONS */}
         <div className="flex justify-end gap-2 pt-2">
-          <button onClick={onClose} className="px-4 py-2 border rounded">
+          <button type="button" onClick={onClose} className="px-4 py-2 border rounded">
             Cancel
           </button>
 
-          <button
+          <button type="button"
             onClick={handleSubmit} // ✅ HERE
             disabled={loading}
             className="px-4 py-2 bg-black text-white rounded"
