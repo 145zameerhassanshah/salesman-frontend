@@ -1,217 +1,326 @@
 // import { API } from "@/app/components/lib/endpoints";
 
 // class IndustryService {
-
 //   /* =========================
 //      GET ALL INDUSTRIES
 //   ========================= */
-
 //   async getAllIndustries() {
 //     try {
-
 //       const res = await fetch(API.industry, {
 //         method: "GET",
 //         credentials: "include"
 //       });
-
 //       const result = await res.json();
-
-//       if (result.success==false) return result;
-
+//       if (result.success == false) return result;
 //       return result.industry;
-
 //     } catch (error) {
 //       throw error.message;
 //     }
 //   }
-
 
 //   /* =========================
 //      CREATE INDUSTRY
 //   ========================= */
-
 //   async createIndustry(data) {
-//       const res = await fetch(API.industry, {
-//         method: "POST",
-//         credentials: "include",
-//         body: data
-//       });
-
-//       const result = await res.json();
-
-//       if (!res.ok) return result;
-
-//       return result;
+//     const res = await fetch(API.industry, {
+//       method: "POST",
+//       credentials: "include",
+//       body: data
+//     });
+//     const result = await res.json();
+//     if (!res.ok) return result;
+//     return result;
 //   }
-
 
 //   /* =========================
 //      GET INDUSTRY BY ID
 //   ========================= */
-
 //   async getIndustryById(id) {
 //     try {
-
 //       const res = await fetch(`${API.industry}/${id}`, {
 //         method: "GET",
 //         credentials: "include"
 //       });
-
 //       const result = await res.json();
-
 //       if (!res.ok) return false;
-
 //       return result.industry;
-
 //     } catch (error) {
 //       throw error.message;
 //     }
 //   }
-
 
 //   /* =========================
 //      UPDATE INDUSTRY
 //   ========================= */
+// async updateIndustry(id, data) {
+//   try {
+//     const res = await fetch(`${API.industry}/${id}`, {
+//       method: "PUT",
+//       credentials: "include",
+//       body: data // ❌ JSON.stringify hatao
+//     });
 
-//   async updateIndustry(data, id) {
-//     try {
-
-//       const res = await fetch(`${API.industry}/${id}`, {
-//         method: "PUT",
-//         headers: {
-//           "Content-Type": "application/json"
-//         },
-//         credentials: "include",
-//         body: JSON.stringify(data)
-//       });
-
-//       const result = await res.json();
-
-//       if (!res.ok) return false;
-
-//       return result.message;
-
-//     } catch (error) {
-//       throw error.message;
-//     }
+//     const result = await res.json();
+//     if (!res.ok) return result;
+//     return result;
+//   } catch (error) {
+//     throw error.message;
 //   }
-
-
+// }
 //   /* =========================
 //      DELETE INDUSTRY
 //   ========================= */
+// async deleteIndustry(id) {
+//   try {
+//     const res = await fetch(`${API.industry}/${id}`, {
+//       method: "DELETE",
+//       credentials: "include"
+//     });
 
-//   async deleteIndustry(id) {
-//     try {
+//     const result = await res.json();
 
-//       const res = await fetch(`${API.industry}/${id}`, {
-//         method: "DELETE",
-//         credentials: "include"
-//       });
+//     if (!res.ok) return result;
 
-//       const result = await res.json();
-
-//       if (!res.ok) return false;
-
-//       return result.message;
-
-//     } catch (error) {
-//       throw error.message;
-//     }
+//     return result; // 🔥 full object
+//   } catch (error) {
+//     throw error.message;
 //   }
+// }}
 
-// }
-
+// // Exporting as an instance
 // export const industry = new IndustryService();
 
+
+
 import { API } from "@/app/components/lib/endpoints";
+
+const safeJson = async (res) => {
+  try {
+    return await res.json();
+  } catch {
+    return {};
+  }
+};
 
 class IndustryService {
   /* =========================
      GET ALL INDUSTRIES
   ========================= */
-  async getAllIndustries() {
+
+  async getAllIndustries(filters = {}) {
     try {
-      const res = await fetch(API.industry, {
+      const {
+        page = 1,
+        limit = 12,
+        search = "",
+        status = "",
+      } = filters;
+
+      const params = new URLSearchParams();
+
+      params.set("page", String(page));
+      params.set("limit", String(limit));
+
+      if (search) params.set("search", search);
+      if (status) params.set("status", status);
+
+      const res = await fetch(`${API.industry}?${params.toString()}`, {
         method: "GET",
-        credentials: "include"
+        credentials: "include",
       });
-      const result = await res.json();
-      if (result.success == false) return result;
-      return result.industry;
+
+      const result = await safeJson(res);
+
+      if (!res.ok) {
+        return {
+          success: false,
+          message: result?.message || "Failed to fetch businesses",
+          industry: [],
+          industries: [],
+          pagination: null,
+        };
+      }
+
+      return {
+        success: true,
+        industry: result?.industry || result?.industries || [],
+        industries: result?.industries || result?.industry || [],
+        pagination: result?.pagination || null,
+        count: result?.pagination?.total || result?.count || 0,
+      };
     } catch (error) {
-      throw error.message;
+      return {
+        success: false,
+        message: error?.message || "Failed to fetch businesses",
+        industry: [],
+        industries: [],
+        pagination: null,
+      };
     }
   }
 
   /* =========================
      CREATE INDUSTRY
   ========================= */
+
   async createIndustry(data) {
-    const res = await fetch(API.industry, {
-      method: "POST",
-      credentials: "include",
-      body: data
-    });
-    const result = await res.json();
-    if (!res.ok) return result;
-    return result;
+    try {
+      const res = await fetch(API.industry, {
+        method: "POST",
+        credentials: "include",
+        body: data,
+      });
+
+      const result = await safeJson(res);
+
+      if (!res.ok) {
+        return {
+          success: false,
+          message: result?.message || "Failed to create business",
+        };
+      }
+
+      return result;
+    } catch (error) {
+      return {
+        success: false,
+        message: error?.message || "Failed to create business",
+      };
+    }
   }
 
   /* =========================
      GET INDUSTRY BY ID
   ========================= */
+
   async getIndustryById(id) {
     try {
       const res = await fetch(`${API.industry}/${id}`, {
         method: "GET",
-        credentials: "include"
+        credentials: "include",
       });
-      const result = await res.json();
-      if (!res.ok) return false;
-      return result.industry;
+
+      const result = await safeJson(res);
+
+      if (!res.ok) {
+        return {
+          success: false,
+          message: result?.message || "Failed to fetch business",
+          industry: null,
+        };
+      }
+
+      return {
+        success: true,
+        industry: result?.industry || null,
+      };
     } catch (error) {
-      throw error.message;
+      return {
+        success: false,
+        message: error?.message || "Failed to fetch business",
+        industry: null,
+      };
     }
   }
 
   /* =========================
      UPDATE INDUSTRY
   ========================= */
-async updateIndustry(id, data) {
-  try {
-    const res = await fetch(`${API.industry}/${id}`, {
-      method: "PUT",
-      credentials: "include",
-      body: data // ❌ JSON.stringify hatao
-    });
 
-    const result = await res.json();
-    if (!res.ok) return result;
-    return result;
-  } catch (error) {
-    throw error.message;
+  async updateIndustry(id, data) {
+    try {
+      const res = await fetch(`${API.industry}/${id}`, {
+        method: "PUT",
+        credentials: "include",
+        body: data,
+      });
+
+      const result = await safeJson(res);
+
+      if (!res.ok) {
+        return {
+          success: false,
+          message: result?.message || "Failed to update business",
+        };
+      }
+
+      return result;
+    } catch (error) {
+      return {
+        success: false,
+        message: error?.message || "Failed to update business",
+      };
+    }
   }
-}
+
   /* =========================
      DELETE INDUSTRY
   ========================= */
-async deleteIndustry(id) {
-  try {
-    const res = await fetch(`${API.industry}/${id}`, {
-      method: "DELETE",
-      credentials: "include"
-    });
 
-    const result = await res.json();
+  async deleteIndustry(id) {
+    try {
+      const res = await fetch(`${API.industry}/${id}`, {
+        method: "DELETE",
+        credentials: "include",
+      });
 
-    if (!res.ok) return result;
+      const result = await safeJson(res);
 
-    return result; // 🔥 full object
-  } catch (error) {
-    throw error.message;
+      if (!res.ok) {
+        return {
+          success: false,
+          message: result?.message || "Failed to delete business",
+          error: result?.error,
+        };
+      }
+
+      return result;
+    } catch (error) {
+      return {
+        success: false,
+        message: error?.message || "Failed to delete business",
+      };
+    }
   }
-}}
 
-// Exporting as an instance
+  /* =========================
+     AUDIT HISTORY
+  ========================= */
+
+  async getIndustryAuditLogs(industryId, page = 1, limit = 20) {
+    try {
+      const res = await fetch(
+        `${API.audit}/entity/INDUSTRY/${industryId}?page=${page}&limit=${limit}`,
+        {
+          method: "GET",
+          credentials: "include",
+        }
+      );
+
+      const result = await safeJson(res);
+
+      if (!res.ok) {
+        return {
+          success: false,
+          data: [],
+          logs: [],
+          pagination: null,
+          message: result?.message || "Failed to fetch business activity",
+        };
+      }
+
+      return result;
+    } catch (error) {
+      return {
+        success: false,
+        data: [],
+        logs: [],
+        pagination: null,
+        message: error?.message || "Failed to fetch business activity",
+      };
+    }
+  }
+}
+
 export const industry = new IndustryService();
+export default industry;

@@ -23,6 +23,7 @@ type Industry = {
 export default function SuperAdminPage() {
   const user = useSelector((state: any) => state.user.user);
   const [business, setBusiness] = useState<Industry[]>([]);
+  
   const [showForm, setShowForm] = useState(false);
 
   const [editMode, setEditMode] = useState(false);
@@ -44,15 +45,62 @@ export default function SuperAdminPage() {
   const router = useRouter();
 
   /* ================= FETCH ================= */
-  useEffect(() => {
-    async function getIndustry() {
-      const data = await industry.getAllIndustries();
-      if (data?.message) return toast.error(data?.message);
-      setBusiness(data);
-    }
-    getIndustry();
-  }, [user?._id]);
+const BUSINESSES_PER_PAGE = 8;
 
+const [pagination, setPagination] = useState<any>(null);
+const [loading, setLoading] = useState(false);
+const [search, setSearch] = useState("");
+const [debouncedSearch, setDebouncedSearch] = useState("");
+const [statusFilter, setStatusFilter] = useState("");
+const [currentPage, setCurrentPage] = useState(1);
+
+useEffect(() => {
+  const timer = setTimeout(() => {
+    setDebouncedSearch(search.trim());
+    setCurrentPage(1);
+  }, 400);
+
+  return () => clearTimeout(timer);
+}, [search]);
+
+const loadBusinesses = async (page = currentPage) => {
+  try {
+    setLoading(true);
+
+    const res = await industry.getAllIndustries({
+      page,
+      limit: BUSINESSES_PER_PAGE,
+      search: debouncedSearch,
+      status: statusFilter,
+    });
+
+    if (!res?.success) {
+      toast.error(res?.message || "Error fetching businesses");
+      setBusiness([]);
+      setPagination(null);
+      return;
+    }
+
+    const list = Array.isArray(res?.industries)
+      ? res.industries
+      : Array.isArray(res?.industry)
+        ? res.industry
+        : [];
+
+    setBusiness(list);
+    setPagination(res?.pagination || null);
+  } catch (error) {
+    toast.error("Error fetching businesses");
+    setBusiness([]);
+    setPagination(null);
+  } finally {
+    setLoading(false);
+  }
+};
+
+useEffect(() => {
+  loadBusinesses(currentPage);
+}, [currentPage, debouncedSearch, statusFilter]);
   /* ================= INPUT ================= */
   const handleChange = (e: any) => {
     const { name, value } = e.target;
@@ -224,7 +272,6 @@ const handleDelete = async (id) => {
     setEditMode(false);
     setEditId(null);
 
-    // 🔥 IMPORTANT FIX
     setFormData({
       industry: "",
       businessName: "",

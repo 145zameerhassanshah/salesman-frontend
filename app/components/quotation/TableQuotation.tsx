@@ -35,48 +35,71 @@ export default function TableQuotation({ items = [] }) {
               </td>
             </tr>
           ) : (
-            items.map((item, index) => {
-              const price = Number(item?.unit_price) || 0;
-              const discPercent = Number(item?.discount_percent) || 0;
-              const qty = Number(item?.quantity) || 0;
+items.map((item, index) => {
+  const price = Number(item?.unit_price) || 0;
+  const discountValue = Number(item?.discount_percent) || 0;
+  const discountType = item?.discount_type || "percentage";
+  const qty = Number(item?.quantity) || 0;
 
-              const gross = price * qty;
-              const discountAmount = (gross * discPercent) / 100;
-              const calculatedTotal = gross - discountAmount;
+  const gross = price * qty;
 
-              const finalTotal =
-                item?.total !== undefined && item?.total !== null
-                  ? Number(item.total)
-                  : calculatedTotal;
+  const discountAmount =
+    discountType === "fixed"
+      ? discountValue
+      : (gross * discountValue) / 100;
 
-              return (
-                <tr key={item?._id || index}>
-                  <td className="border border-gray-300 px-3 py-2 text-gray-700">
-                    {String(index + 1).padStart(2, "0")}
-                  </td>
+  const calculatedTotal = Math.max(gross - discountAmount, 0);
 
-                  <td className="border border-gray-300 px-3 py-2 text-gray-800">
-                    {item?.item_name || "N/A"}
-                  </td>
+  const finalTotal =
+    item?.total !== undefined && item?.total !== null
+      ? Number(item.total)
+      : calculatedTotal;
 
-                  <td className="border border-gray-300 px-3 py-2 text-right text-gray-800">
-                    {price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                  </td>
+  const formatNumber = (value) =>
+    value.toLocaleString(undefined, {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
 
-                  <td className="border border-gray-300 px-3 py-2 text-right text-gray-800">
-                    {discPercent}
-                  </td>
+  const discountLabel =
+    discountValue > 0
+      ? discountType === "fixed"
+        ? ` ${formatNumber(discountValue)}`
+        : `${discountValue}%`
+      : "-";
 
-                  <td className="border border-gray-300 px-3 py-2 text-right text-gray-800">
-                    {qty}
-                  </td>
+  return (
+    <tr key={item?._id || index}>
+      <td className="border border-gray-300 px-3 py-2 text-gray-700">
+        {String(index + 1).padStart(2, "0")}
+      </td>
 
-                  <td className="border border-gray-300 px-3 py-2 text-right font-semibold text-gray-900">
-                    {finalTotal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                  </td>
-                </tr>
-              );
-            })
+      <td className="border border-gray-300 px-3 py-2 text-gray-800">
+        {item?.item_name || "N/A"}
+      </td>
+
+      <td className="border border-gray-300 px-3 py-2 text-right text-gray-800">
+        {formatNumber(price)}
+      </td>
+
+      <td className="border border-gray-300 px-3 py-2 text-right text-gray-800">
+        <div>{discountLabel}</div>
+        {discountAmount > 0 && (
+          <div className="text-[10px] text-gray-500">
+          </div>
+        )}
+      </td>
+
+      <td className="border border-gray-300 px-3 py-2 text-right text-gray-800">
+        {qty}
+      </td>
+
+      <td className="border border-gray-300 px-3 py-2 text-right font-semibold text-gray-900">
+        {formatNumber(finalTotal)}
+      </td>
+    </tr>
+  );
+})
           )}
         </tbody>
       </table>
