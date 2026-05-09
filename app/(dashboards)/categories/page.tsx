@@ -8,6 +8,7 @@ import {
   X,
   Trash2,
   Eye,
+  History,
   Loader2,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -17,8 +18,10 @@ import { useSelector } from "react-redux";
 
 export default function CategoriesPage() {
   const user = useSelector((state: any) => state.user.user);
-  const router = useRouter();
 
+  const router = useRouter();
+const userType = String(user?.user_type || user?.role || "").toLowerCase();
+const isAdmin = userType === "admin";
   const CATEGORIES_PER_PAGE = 5;
 
   const [categories, setCategories] = useState<any[]>([]);
@@ -246,18 +249,30 @@ const deleteCategory = async () => {
     return String(value);
   };
 
-  const getPerformedByText = (log: any) => {
-    const name = log?.performedBy?.name || log?.performedByName || "System";
+const getRoleLabel = (role: any) => {
+  const value = String(role || "").toLowerCase();
 
-    const role =
-      log?.performedBy?.user_type ||
-      log?.performedBy?.role ||
-      log?.performedByRole ||
-      "";
+  if (value === "admin") return "Director";
+  if (value === "salesman") return "Salesman";
+  if (value === "dispatcher") return "Dispatcher";
+  if (value === "manager") return "Manager";
+  if (value === "accountant") return "Accountant";
+  if (value === "super_admin") return "Super Admin";
 
-    return role ? `${name} (${role})` : name;
-  };
+  return "User";
+};
 
+const getPerformedByText = (log: any) => {
+  const name = log?.performedBy?.name || log?.performedByName || "System";
+
+  const role =
+    log?.performedBy?.user_type ||
+    log?.performedBy?.role ||
+    log?.performedByRole ||
+    "";
+
+  return role ? `${name} (${getRoleLabel(role)})` : name;
+};
   const hiddenAuditFields = [
     "_id",
     "__v",
@@ -315,7 +330,9 @@ const deleteCategory = async () => {
             <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
               <div>
                 <h2 className="text-sm font-semibold text-gray-900">
-                  Category Activity
+
+  Category History
+
                 </h2>
                 <p className="text-xs text-gray-400">{activityItem?.name}</p>
               </div>
@@ -421,8 +438,8 @@ const deleteCategory = async () => {
             <option value="inactive">Inactive</option>
           </select>
 
-          {user?.user_type === "admin" && (
-            <button
+{isAdmin && (
+  <button
               onClick={() => router.push("/categories/add")}
               className="flex items-center gap-1.5 bg-gray-900 text-white px-3 py-2 rounded-xl text-xs md:text-sm font-medium hover:bg-gray-700 transition whitespace-nowrap"
             >
@@ -498,15 +515,17 @@ const deleteCategory = async () => {
 
             <td className="py-3 px-4">
               <div className="flex items-center justify-center gap-2">
-                <button
-                  onClick={() => openActivity(item)}
-                  className="p-1.5 bg-gray-100 hover:bg-gray-200 rounded-lg transition"
-                >
-                  <Eye size={14} className="text-gray-600" />
-                </button>
+<button
+  type="button"
+  onClick={() => openActivity(item)}
+  className="p-1.5 bg-purple-50 hover:bg-purple-100 rounded-lg transition"
+  title="History"
+>
+  <History size={14} className="text-purple-600" />
+</button>
 
-                {user?.user_type === "admin" && (
-                  <>
+{isAdmin && (
+        <>
                     <button
                       onClick={() => openEdit(item)}
                       className="p-1.5 bg-blue-50 hover:bg-blue-100 rounded-lg transition"
@@ -622,14 +641,15 @@ const deleteCategory = async () => {
                 </div>
 
                 <div className="flex items-center gap-1.5 flex-shrink-0">
-                  <button
-                    onClick={() => openActivity(item)}
-                    className="p-1.5 bg-gray-100 hover:bg-gray-200 rounded-lg transition"
-                  >
-                    <Eye size={13} className="text-gray-600" />
-                  </button>
-
-                  {user?.user_type === "admin" && (
+<button
+  type="button"
+  onClick={() => openActivity(item)}
+  className="p-1.5 bg-purple-50 hover:bg-purple-100 rounded-lg transition"
+  title="History"
+>
+  <History size={14} className="text-purple-600" />
+</button>
+{isAdmin && (
                     <>
                       <button
                         onClick={() => openEdit(item)}

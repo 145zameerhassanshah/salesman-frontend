@@ -11,10 +11,21 @@ import DealerService from "@/app/components/services/dealerService";
 import QuotationService from "@/app/components/services/quotationService";
 
 export default function AddQuotation() {
+  const normalizeDiscountType = (type: any, defaultType = "percentage") => {
+  const value = String(type || "").toLowerCase();
+
+  if (value === "percent" || value === "percentage") return "percentage";
+  if (value === "amount" || value === "fixed") return "fixed";
+
+  return defaultType;
+};
   const user = useSelector((state: any) => state.user.user);
   const businessId = user?.industry;
   const router = useRouter();
-
+const [deleteItemConfirm, setDeleteItemConfirm] = useState<{
+  index: number;
+  item: any;
+} | null>(null);
   const [dealers, setDealers] = useState<any[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
   const [activeCategory, setActiveCategory] = useState("");
@@ -34,7 +45,17 @@ export default function AddQuotation() {
     discount_type: "fixed",
     tax_type: "fixed",
   });
-
+const isItemFilled = (item: any) => {
+  return Boolean(
+    item?.category_id ||
+      item?.product_id ||
+      String(item?.item_name || "").trim() ||
+      Number(item?.price || 0) > 0 ||
+      Number(item?.discount || 0) > 0 ||
+      Number(item?.total || 0) > 0 ||
+      Number(item?.qty || 1) > 1
+  );
+};
   useEffect(() => {
     if (businessId) fetchInitialData();
   }, [businessId]);
@@ -78,11 +99,25 @@ export default function AddQuotation() {
     setEditingIndex(newIndex);
   };
 
-  const removeRow = (index: number) => {
-    setItems(items.filter((_, i) => i !== index));
-    if (editingIndex === index) setEditingIndex(null);
-  };
+const removeRow = (index: number) => {
+  if (items.length === 1) {
+    toast.error("At least one item is required");
+    return;
+  }
 
+  const itemName = items[index]?.item_name || "Item";
+
+  const confirmDelete = window.confirm(`Remove ${itemName}?`);
+  if (!confirmDelete) return;
+
+  setItems(items.filter((_, i) => i !== index));
+
+  if (editingIndex === index) {
+    setEditingIndex(null);
+  }
+
+  toast.success(`${itemName} removed`);
+};
   const updateItem = (index: number, key: string, value: any) => {
     const updated = [...items];
     if (["discount", "qty", "price"].includes(key)) {
@@ -285,8 +320,8 @@ export default function AddQuotation() {
                   <div className="flex gap-1">
                     <select value={item.discount_type} onChange={(e) => updateItem(index, "discount_type", e.target.value)}
                       className="border border-gray-200 rounded-lg px-1 py-2 text-xs focus:outline-none w-14 shrink-0 bg-white">
-                      <option value="percent">%</option>
-                      <option value="amount">Amt</option>
+                      <option value="percentage">%</option>
+                      <option value="fixed">Amt</option>
                     </select>
                     <input type="number" value={item.discount} onChange={(e) => updateItem(index, "discount", e.target.value)}
                       className={`${inputCls} min-w-0`} />

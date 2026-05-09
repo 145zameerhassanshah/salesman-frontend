@@ -34,7 +34,7 @@ export default function Quotation() {
       <div
         id="invoice"
         className="
-          w-[210mm] min-h-[297mm] 
+          w-[210mm] min-h-[190mm] 
           bg-white shadow-lg 
           p-6 md:p-10
           text-[10px] md:text-[12px]
@@ -46,7 +46,12 @@ export default function Quotation() {
 <HeaderQuotation quotation={quotation} />
 
         <div className="my-6">
+          
           <TableQuotation items={items} />
+
+
+
+
         </div>
 
 <QuotationFooter quotation={quotation} />        

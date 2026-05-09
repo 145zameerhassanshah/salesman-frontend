@@ -1,82 +1,87 @@
 export default function HeaderQuotation({ quotation }) {
   const formatDate = (date) => {
-  if (!date) return "";
+    if (!date) return "";
 
-  const parsed = new Date(date);
+    const parsed = new Date(date);
 
-  if (Number.isNaN(parsed.getTime())) return "";
-  if (parsed.getFullYear() === 1970) return "";
+    if (Number.isNaN(parsed.getTime())) return "";
+    if (parsed.getFullYear() === 1970) return "";
 
-  return parsed.toLocaleDateString("en-GB");
-};
+    return parsed.toLocaleDateString("en-GB");
+  };
 
-const validUntilDate = formatDate(quotation?.valid_until);
+  const validUntilDate = formatDate(quotation?.valid_until);
+
   return (
     <div className="space-y-6">
-
       {/* 🔝 TOP BAR: LEFT LOGO | CENTER HEADING | RIGHT LOGO */}
       <div className="grid grid-cols-3 items-center">
-
         {/* LEFT → DEALER LOGO */}
-        {/* <div className="flex items-center gap-2">
-          <img
-            src={quotation?.dealer_id?.business_logo}
-            alt="Dealer Logo"
-            className="w-12 h-12 object-cover rounded-full border"
-          />
-        </div> */}
-<div className="flex items-center gap-2">
-  {quotation?.dealer_id?.business_logo ? (
-    <img
-      src={quotation.dealer_id.business_logo}
-      alt="Dealer Logo"
-      className="w-12 h-12 object-cover rounded-full border"
-    />
-  ) : (
-    <div className="w-12 h-12 rounded-full border flex items-center justify-center text-sm font-semibold text-gray-500">
-      {quotation?.dealer_id?.name?.charAt(0) || "D"}
-    </div>
-  )}
-</div>
+        <div className="flex items-center gap-2">
+          {quotation?.dealer_id?.business_logo ? (
+            <img
+              src={quotation.dealer_id.business_logo}
+              alt="Dealer Logo"
+              className="w-12 h-12 object-cover rounded-full border"
+            />
+          ) : (
+            <div className="w-12 h-12 rounded-full border flex items-center justify-center text-sm font-semibold text-gray-500">
+              {quotation?.dealer_id?.name?.charAt(0) || "D"}
+            </div>
+          )}
+        </div>
+
         {/* CENTER → QUOTATION HEADING */}
         <div className="text-center">
-          <h1 className="text-2xl font-bold tracking-wide">
-            QUOTATION
-          </h1>
+          <h1 className="text-2xl font-bold tracking-wide">QUOTATION</h1>
         </div>
 
         {/* RIGHT → COMPANY LOGO */}
         <div className="flex justify-end">
-          <img
-            src={quotation?.businessId?.business_logo}
-            alt="Company Logo"
-            className="h-24 object-contain"
-          />
+          {quotation?.businessId?.business_logo && (
+            <img
+              src={quotation?.businessId?.business_logo}
+              alt="Company Logo"
+              className="h-24 object-contain"
+            />
+          )}
         </div>
-
       </div>
 
-      {/* 🔥 OPTIONAL LINE (PRO LOOK) */}
-
       {/* 🔽 MAIN SECTION */}
-      <div className="flex justify-between items-start mt-4">
-
+      <div className="flex justify-between items-start mt-4 gap-6">
         {/* LEFT → DEALER DETAILS */}
-        <div className="space-y-1 text-sm">
-          <p className="font-semibold">
+        <div className="space-y-1 text-sm max-w-[55%]">
+          <h3 className="font-bold text-gray-900 mb-1">Dealer Details</h3>
+
+          <p>
+            <strong>Dealer Name:</strong>{" "}
             {quotation?.dealer_id?.name || "-"}
           </p>
-          <p>{quotation?.dealer_id?.company_name || "-"}</p>
-          <p>{quotation?.dealer_id?.city || "-"}</p>
+
           <p>
+            <strong>Company Name:</strong>{" "}
+            {quotation?.dealer_id?.company_name || "-"}
+          </p>
+
+          <p>
+            <strong>City:</strong>{" "}
+            {quotation?.dealer_id?.city || "-"}
+          </p>
+
+          <p>
+            <strong>Phone Number:</strong>{" "}
             {quotation?.dealer_id?.phone_number ||
               quotation?.dealer_id?.whatsapp_number ||
               "-"}
           </p>
+
         </div>
 
         {/* RIGHT → QUOTATION DETAILS */}
         <div className="text-right text-sm space-y-1">
+          <h3 className="font-bold text-gray-900 mb-1">Quotation Details</h3>
+
           <p>
             <strong>Quotation #:</strong>{" "}
             {quotation?.quotation_number || quotation?.order_number || "-"}
@@ -84,23 +89,20 @@ const validUntilDate = formatDate(quotation?.valid_until);
 
           <p>
             <strong>Date:</strong>{" "}
-            {quotation?.quotation_date
-              ? new Date(quotation.quotation_date).toLocaleDateString("en-GB")
-              : "-"}
+            {formatDate(quotation?.quotation_date) || "-"}
           </p>
 
-<p>
-  <strong>Valid Until:</strong>{" "}
-  {validUntilDate || ""}
-</p>
+          <p>
+            <strong>Valid Until:</strong>{" "}
+            {validUntilDate || "-"}
+          </p>
+
           <p>
             <strong>Generated By:</strong>{" "}
             {quotation?.created_by?.name || "-"}
           </p>
         </div>
-
       </div>
-
     </div>
   );
 }

@@ -83,7 +83,9 @@ items.map((item, index) => {
       </td>
 
       <td className="border border-gray-300 px-3 py-2 text-right text-gray-800">
-        <div>{discountLabel}</div>
+        <div>{discountLabel}
+          
+        </div>
         {discountAmount > 0 && (
           <div className="text-[10px] text-gray-500">
           </div>

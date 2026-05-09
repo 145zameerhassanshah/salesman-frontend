@@ -5,7 +5,7 @@ export default function QuotationFooter({ quotation }) {
   const total = Number(quotation?.total) || 0;
 
   const formatCurrency = (value) =>
-    `PKR ${value.toLocaleString(undefined, {
+    ` ${value.toLocaleString(undefined, {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
     })}`;
