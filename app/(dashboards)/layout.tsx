@@ -24,8 +24,7 @@ export default function DashboardLayout({
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  const SIDEBAR_W = 224;
-
+const SIDEBAR_W = 240;
   return (
     <>
       <style>{`

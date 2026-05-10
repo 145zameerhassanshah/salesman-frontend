@@ -485,8 +485,13 @@ export default function AddOrder() {
   const activeCategories = categories.filter((c: any) => c.is_active);
 
   const [activeCategory, setActiveCategory] = useState("");
-  const { data: products = [] } = useProductsByCategory(activeCategory);
+const { data: productsResponse } = useProductsByCategory(activeCategory);
 
+const products = Array.isArray(productsResponse)
+  ? productsResponse
+  : Array.isArray(productsResponse?.products)
+    ? productsResponse.products
+    : [];
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [items, setItems] = useState<any[]>([]);
   const [submitLoading, setSubmitLoading] = useState(false);
