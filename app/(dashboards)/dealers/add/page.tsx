@@ -55,7 +55,7 @@ const validate = () => {
   if (!form.shipping_address.trim()) return "Shipping address is required";
   if (!form.city.trim()) return "City is required";
   if (!form.country.trim()) return "Country is required";
-  if (!form.business_logo) return "Business logo is required";
+  // if (!form.business_logo) return "Business logo is required";
   if (user?.user_type === "admin" && !form.userId) return "Salesman is required";
   return null;
 };
@@ -134,7 +134,7 @@ const validate = () => {
 
         {/* Logo upload */}
         <div className="mb-3">
-          <label className={labelCls}> <span className="text-red-500">*</span>Business Logo</label>
+          <label className={labelCls}> Business Logo</label>
           <div className="mt-1 flex items-center gap-3">
             <div className="w-14 h-14 flex-shrink-0 rounded-xl bg-gray-100 border border-gray-200 flex items-center justify-center overflow-hidden">
               {form.business_logo ? (

@@ -71,7 +71,7 @@ export default function DealersTable({ dealers, refresh, onEdit }: any) {
     }
     if (confirmAction === "delete") res = await DealerService.deleteDealer(confirmDealerId);
 if (res?.success) {
-  toast.success(res.message || "Action completed successfully");
+  toast.success(res.message || "Dealer deleted successfully");
   refresh();
 }
 else {
