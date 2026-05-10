@@ -148,6 +148,11 @@ const [verifyLoading, setVerifyLoading] = useState(false);
 
 
 const handleVerify = async () => {
+  if (!verificationCode.trim()) {
+    toast.error("Please enter verification code");
+    return;
+  }
+
   try {
     setVerifyLoading(true);
 
@@ -183,20 +188,23 @@ const handleVerify = async () => {
     } else {
       router.push("/dashboard");
     }
-
-  } catch (err) {
+  } catch (err: any) {
     toast.error(err.message || "Verification failed");
   } finally {
     setVerifyLoading(false);
   }
 };
-
   return (
     <>
-    {showVerifyModal && (
+{showVerifyModal && (
   <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-    <div className="bg-white p-6 rounded-2xl w-full max-w-sm shadow-xl">
-      
+    <form
+      onSubmit={(e) => {
+        e.preventDefault();
+        handleVerify();
+      }}
+      className="bg-white p-6 rounded-2xl w-full max-w-sm shadow-xl"
+    >
       <h2 className="text-lg font-semibold mb-2 text-gray-800">
         Verify Your Account
       </h2>
@@ -211,23 +219,23 @@ const handleVerify = async () => {
         onChange={(e) => setVerificationCode(e.target.value)}
         placeholder="Enter code"
         className="w-full border rounded-lg px-3 py-2 mb-4 focus:outline-none focus:ring-1 focus:ring-gray-300"
+        autoFocus
       />
 
       <button
-        onClick={handleVerify}
-        disabled={!verificationCode || verifyLoading}
-        className={`w-full py-2 rounded-lg text-white ${
-          !verificationCode
+        type="submit"
+        disabled={!verificationCode.trim() || verifyLoading}
+        className={`w-full py-2 rounded-lg text-white transition ${
+          !verificationCode.trim() || verifyLoading
             ? "bg-gray-300 cursor-not-allowed"
-            : "bg-black hover:bg-gray-800"
+            : "bg-black hover:bg-gray-800 cursor-pointer"
         }`}
       >
         {verifyLoading ? "Verifying..." : "Verify"}
       </button>
-
-    </div>
+    </form>
   </div>
-)}  
+)}
     <div className="min-h-screen flex flex-col lg:flex-row bg-[#d7dbd9]">
       {/* RIGHT SECTION */}
       <div className="order-1 lg:order-2 flex w-full lg:w-1/2 items-center justify-center px-6 py-10">
