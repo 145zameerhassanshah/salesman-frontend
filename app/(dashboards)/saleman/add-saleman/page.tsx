@@ -11,7 +11,7 @@ export default function AddSalesman() {
   const user = useSelector((state: any) => state.user.user);
 
   const emptyForm = {
-    name: "", email: "", phone_number: "", whatsapp_number: "",
+    name: "", email: "", phone_number: "", 
     city: "", address: "", territory: "", designation: "",
     password: "", profile_image: null as File | null,
   };
@@ -32,8 +32,8 @@ export default function AddSalesman() {
   };
 
   const handleSubmit = async () => {
-    const { name, email, phone_number, whatsapp_number, city, address, password, territory, designation } = form;
-    if (!name || !email || !phone_number || !whatsapp_number || !city || !address || !password || !territory || !designation)
+    const { name, email, phone_number,  city, address, password, territory, designation } = form;
+    if (!name || !email || !phone_number  || !city || !address || !password || !territory || !designation)
       return toast.error("Please fill all required fields");
     if (territory.length < 3) return toast.error("Territory must be at least 3 characters");
     if (designation.length < 2) return toast.error("Designation is too short");
@@ -44,7 +44,6 @@ export default function AddSalesman() {
       formData.append("name", form.name);
       formData.append("email", form.email);
       formData.append("phone_number", form.phone_number);
-      formData.append("whatsapp_number", form.whatsapp_number);
       formData.append("city", form.city);
       formData.append("address", form.address);
       formData.append("password", form.password);
@@ -150,11 +149,6 @@ export default function AddSalesman() {
               type="text" placeholder="+92 300 0000000" className={inputClass} />
           </div>
 
-          <div className="min-w-0">
-            <label className={labelClass}>WhatsApp <span className="text-red-500">*</span></label>
-            <input name="whatsapp_number" value={form.whatsapp_number} onChange={handleChange}
-              type="text" placeholder="+92 300 0000000" className={inputClass} />
-          </div>
 
           <div className="min-w-0">
             <label className={labelClass}>Designation <span className="text-red-500">*</span></label>

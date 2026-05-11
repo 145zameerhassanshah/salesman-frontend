@@ -25,7 +25,6 @@ const [form, setForm] = useState({
   name: "",
   email: "",
   phone_number: "",
-  whatsapp_number: "",
   city: "",
   address: "",
   territory: "",
@@ -45,7 +44,6 @@ const [showPassword, setShowPassword] = useState(false);
     if (!/\S+@\S+\.\S+/.test(form.email)) return "Invalid email";
 
     if (!form.phone_number.trim()) return "Phone number is required";
-    if (!form.whatsapp_number.trim()) return "WhatsApp number is required";
 
     if (!form.city.trim()) return "City is required";
     if (!form.address.trim()) return "Address is required";
@@ -81,20 +79,16 @@ if (data && form.password && form.password.length < 6)
       formData.append("name", form.name);
       formData.append("email", form.email);
       formData.append("phone_number", form.phone_number);
-      formData.append("whatsapp_number", form.whatsapp_number);
       formData.append("city", form.city);
       formData.append("address", form.address);
       formData.append("industry", user?.industry);
       formData.append("status", form.status);
 formData.append("territory", form.territory || "");
 formData.append("designation", form.designation || "");
-      // 👉 only send password if creating
-// 👉 CREATE case
 if (!data) {
   formData.append("password", form.password);
 }
 
-// 👉 EDIT case (only if user entered)
 if (data && form.password) {
   formData.append("password", form.password);
 }
@@ -163,16 +157,6 @@ if (data && form.password) {
           onChange={(e) => setForm({ ...form, phone_number: e.target.value })}
         />
 
-        <label className="text-sm text-gray-500">
-          Whatsapp No{!isEdit && <span className="text-red-500">*</span>}
-        </label>
-        <input
-          className="w-full border p-2 rounded"
-          value={form.whatsapp_number}
-          onChange={(e) =>
-            setForm({ ...form, whatsapp_number: e.target.value })
-          }
-        />
 
         <label className="text-sm text-gray-500">
           City{!isEdit && <span className="text-red-500">*</span>}
@@ -234,7 +218,7 @@ if (data && form.password) {
 
         {/* IMAGE */}
         <label className="text-sm text-gray-500">Profile Image</label>
-       {!isEdit && <span className="text-red-500">*</span>}
+       {!isEdit && <p className="text-xs text-gray-400">Optional - JPG, PNG (Max 2MB)</p>}
         <div className="border rounded-lg p-3">
           <div className="flex items-center gap-3">
             {/* HIDDEN INPUT */}

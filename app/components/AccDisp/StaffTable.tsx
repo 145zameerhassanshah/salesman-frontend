@@ -142,7 +142,6 @@ export default function StaffTable({
       name: "Name",
       email: "Email",
       phone_number: "Phone",
-      whatsapp_number: "WhatsApp",
       city: "City",
       address: "Address",
       territory: "Territory",
@@ -293,7 +292,6 @@ export default function StaffTable({
                   <DetailBox label="Name" value={detailUser?.name} />
                   <DetailBox label="Email" value={detailUser?.email} />
                   <DetailBox label="Phone Number" value={detailUser?.phone_number} />
-                  <DetailBox label="WhatsApp Number" value={detailUser?.whatsapp_number} />
                   <DetailBox label="Role" value={getRoleLabel(detailUser?.user_type)} />
                   <DetailBox label="Status" value={detailUser?.status} />
                   <DetailBox label="City" value={detailUser?.city} />

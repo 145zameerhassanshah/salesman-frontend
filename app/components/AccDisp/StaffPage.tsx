@@ -165,7 +165,7 @@ export default function StaffPage({ role }: { role: string }) {
           >
             <option value="">All</option>
             <option value="Active">Active</option>
-            <option value="Left">Left</option>
+            <option value="Left">Inactive</option>
           </select>
 
           {user?.user_type === "admin" && (
@@ -209,7 +209,7 @@ export default function StaffPage({ role }: { role: string }) {
         >
           <option value="">All Staff</option>
           <option value="Active">Active Only</option>
-          <option value="Left">Left Only</option>
+          <option value="Left">Inactive Only</option>
         </select>
       </div>
 

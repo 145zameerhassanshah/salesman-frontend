@@ -18,7 +18,7 @@ import toast from "react-hot-toast";
 
 const statusStyle: any = {
   Active: "bg-green-100 text-green-700",
-  Left: "bg-red-100 text-red-600",
+  Inactive: "bg-red-100 text-red-600",
 };
 
 export default function AllSaleman() {
@@ -41,7 +41,6 @@ export default function AllSaleman() {
     email: "",
     password: "",
     phone_number: "",
-    whatsapp_number: "",
     city: "",
     address: "",
     territory: "",
@@ -162,7 +161,6 @@ export default function AllSaleman() {
       email: item.email || "",
       password: "",
       phone_number: item.phone_number || "",
-      whatsapp_number: item.whatsapp_number || "",
       city: item.city || "",
       address: item.address || "",
       territory: item.territory || "",
@@ -179,7 +177,6 @@ export default function AllSaleman() {
       email: "",
       password: "",
       phone_number: "",
-      whatsapp_number: "",
       city: "",
       address: "",
       territory: "",
@@ -346,7 +343,6 @@ export default function AllSaleman() {
       name: "Name",
       email: "Email",
       phone_number: "Phone",
-      whatsapp_number: "WhatsApp",
       city: "City",
       address: "Address",
       territory: "Territory",
@@ -527,7 +523,6 @@ export default function AllSaleman() {
                   <DetailBox label="Name" value={detailUser?.name} />
                   <DetailBox label="Email" value={detailUser?.email} />
                   <DetailBox label="Phone Number" value={detailUser?.phone_number} />
-                  <DetailBox label="WhatsApp Number" value={detailUser?.whatsapp_number} />
                   <DetailBox label="Role" value={getRoleLabel(detailUser?.user_type)} />
                   <DetailBox label="Status" value={detailUser?.status} />
                   <DetailBox label="City" value={detailUser?.city} />
@@ -667,7 +662,7 @@ export default function AllSaleman() {
           >
             <option value="">All</option>
             <option value="Active">Active</option>
-            <option value="Left">Left</option>
+            <option value="Left">Inactive</option>
           </select>
 
           <Link href="/saleman/add-saleman">
@@ -710,7 +705,7 @@ export default function AllSaleman() {
         >
           <option value="">All Salesmen</option>
           <option value="Active">Active Only</option>
-          <option value="Left">Left Only</option>
+          <option value="Left">Inactive Only</option>
         </select>
       </div>
 
@@ -1096,16 +1091,6 @@ export default function AllSaleman() {
                   />
                 </div>
 
-                <div>
-                  <label className={labelClass}>WhatsApp</label>
-                  <input
-                    name="whatsapp_number"
-                    value={form.whatsapp_number || ""}
-                    onChange={handleChange}
-                    placeholder="WhatsApp"
-                    className={inputClass}
-                  />
-                </div>
 
                 <div>
                   <label className={labelClass}>City</label>
@@ -1160,7 +1145,7 @@ export default function AllSaleman() {
                     className={inputClass}
                   >
                     <option value="Active">Active</option>
-                    <option value="Left">Left</option>
+                    <option value="Left">Inactive</option>
                   </select>
                 </div>
               </div>

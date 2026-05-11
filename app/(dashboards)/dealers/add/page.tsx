@@ -23,7 +23,7 @@ export default function AddDealer() {
   }, [user]);
 
   const [form, setForm] = useState({
-    name: "", email: "", phone_number: "", whatsapp_number: "",
+    name: "", email: "", phone_number: "",
     company_name: "", business_logo: null as File | null,
     billing_address: "", shipping_address: "",
     city: "", country: "", is_active: true, userId: "",
@@ -48,8 +48,6 @@ const validate = () => {
   if (!/\S+@\S+\.\S+/.test(form.email)) return "Invalid email format";
   if (!form.phone_number.trim()) return "Phone number is required";
   if (!/^[0-9]{10,15}$/.test(form.phone_number)) return "Phone must be 10–15 digits";
-  if (!form.whatsapp_number.trim()) return "WhatsApp number is required";
-  if (!/^[0-9]{10,15}$/.test(form.whatsapp_number)) return "WhatsApp must be 10–15 digits";
   if (!form.company_name.trim()) return "Company name is required";
   if (!form.billing_address.trim()) return "Billing address is required";
   if (!form.shipping_address.trim()) return "Shipping address is required";
@@ -68,7 +66,6 @@ const validate = () => {
       formData.append("name", form.name.trim());
       formData.append("email", form.email.trim());
       formData.append("phone_number", form.phone_number.trim());
-      formData.append("whatsapp_number", form.whatsapp_number.trim());
       formData.append("company_name", form.company_name.trim());
       formData.append("billing_address", form.billing_address);
       formData.append("shipping_address", form.shipping_address);
@@ -81,7 +78,7 @@ const validate = () => {
       if (!res.success) { toast.error(res?.message); return; }
       toast.success("Dealer created successfully");
       router.push("/dealers");
-      setForm({ name: "", email: "", phone_number: "", whatsapp_number: "", company_name: "", business_logo: null, billing_address: "", shipping_address: "", city: "", country: "", is_active: true, userId: "" });
+      setForm({ name: "", email: "", phone_number: "",  company_name: "", business_logo: null, billing_address: "", shipping_address: "", city: "", country: "", is_active: true, userId: "" });
     } catch (err: any) {
       toast.error(err.message || "Failed to create dealer");
     } finally {
@@ -180,10 +177,6 @@ const validate = () => {
             <input name="phone_number" value={form.phone_number} onChange={handleChange} type="text" placeholder="03001234567" className={inputCls} />
           </div>
 
-          <div className="min-w-0">
-            <label className={labelCls}>WhatsApp Number <span className="text-red-500">*</span></label>
-            <input name="whatsapp_number" value={form.whatsapp_number} onChange={handleChange} type="text" placeholder="03001234567" className={inputCls} />
-          </div>
 
           <div className="min-w-0">
             <label className={labelCls}>Company Name <span className="text-red-500">*</span></label>

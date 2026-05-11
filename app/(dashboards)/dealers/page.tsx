@@ -126,7 +126,6 @@ function DealerEditModal({ dealer, onClose, refresh, user }: any) {
     name: dealer?.name || "",
     email: dealer?.email || "",
     phone_number: dealer?.phone_number || "",
-    whatsapp_number: dealer?.whatsapp_number || "",
     company_name: dealer?.company_name || "",
     billing_address: dealer?.billing_address || "",
     shipping_address: dealer?.shipping_address || "",
@@ -170,14 +169,12 @@ function DealerEditModal({ dealer, onClose, refresh, user }: any) {
     if (!form.name.trim()) return "Name is required";
     if (!form.email.trim()) return "Email is required";
     if (!form.phone_number.trim()) return "Phone is required";
-    if (!form.whatsapp_number.trim()) return "WhatsApp is required";
     if (!form.company_name.trim()) return "Company is required";
     if (!form.billing_address.trim()) return "Billing address required";
     if (!form.shipping_address.trim()) return "Shipping address required";
     if (!form.city.trim()) return "City required";
     if (!form.country.trim()) return "Country required";
     if (!form.userId) return "Salesman required";
-    if (!preview && !form.business_logo) return "Logo is required";
     return null;
   };
 
@@ -218,7 +215,7 @@ function DealerEditModal({ dealer, onClose, refresh, user }: any) {
 
           {/* Image upload */}
           <div>
-            <p className={labelCls}>Business Logo <span className="text-red-500">*</span></p>
+            <p className={labelCls}>Business Logo </p>
             <div className="flex items-center gap-3 mt-1">
               <div className="w-14 h-14 flex-shrink-0 rounded-xl bg-gray-100 border border-gray-200 flex items-center justify-center overflow-hidden">
                 {preview ? (
@@ -256,10 +253,6 @@ function DealerEditModal({ dealer, onClose, refresh, user }: any) {
               <input name="phone_number" value={form.phone_number} onChange={handleChange} placeholder="+92 300 0000000" className={inputCls} />
             </div>
 
-            <div className="min-w-0">
-              <label className={labelCls}>WhatsApp <span className="text-red-500">*</span></label>
-              <input name="whatsapp_number" value={form.whatsapp_number} onChange={handleChange} placeholder="+92 300 0000000" className={inputCls} />
-            </div>
 
             <div className="min-w-0">
               <label className={labelCls}>Company Name <span className="text-red-500">*</span></label>
