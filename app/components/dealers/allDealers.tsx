@@ -56,32 +56,85 @@ export default function DealersTable({ dealers, refresh, onEdit }: any) {
   }, [confirmAction]);
 
   /* ================= CONFIRM ================= */
-  const handleConfirm = async () => {
-    let res;
-    if (confirmAction === "approve") res = await DealerService.updateDealerStatus(confirmDealerId, { status: "approved" });
-    if (confirmAction === "reject") {
-      if (!rejectReason.trim()) return toast.error("Reason required");
-      res = await DealerService.updateDealerStatus(confirmDealerId, { status: "rejected", rejectReason });
-    }
-    if (confirmAction === "unapprove") res = await DealerService.updateDealerStatus(confirmDealerId, { status: "unapproved" });
-    if (confirmAction === "reassign") {
-      if (!newSalesmanId) return toast.error("Select salesman");
-      if (String(newSalesmanId) === String(currentDealer?.assigned_to?._id)) return toast.error("Already assigned");
-      res = await DealerService.reassignDealer(confirmDealerId, newSalesmanId, rejectReason);
-    }
-    if (confirmAction === "delete") res = await DealerService.deleteDealer(confirmDealerId);
-if (res?.success) {
-  toast.success(res.message || "Dealer deleted successfully");
-  refresh();
-}
-else {
-  toast.error(res?.message || "Something went wrong");
-}
-    setConfirmDealerId(null);
-    setConfirmAction(null);
-    setRejectReason("");
-  };
+const handleConfirm = async () => {
+  try {
+    let res: any;
 
+    if (confirmAction === "approve") {
+      res = await DealerService.updateDealerStatus(confirmDealerId, {
+        status: "approved",
+      });
+    }
+
+    if (confirmAction === "reject") {
+      if (!rejectReason.trim()) {
+        toast.error("Reason required");
+        return;
+      }
+
+      res = await DealerService.updateDealerStatus(confirmDealerId, {
+        status: "rejected",
+        rejectReason,
+      });
+    }
+
+    if (confirmAction === "unapprove") {
+      res = await DealerService.updateDealerStatus(confirmDealerId, {
+        status: "unapproved",
+      });
+    }
+
+    if (confirmAction === "reassign") {
+      if (!newSalesmanId) {
+        toast.error("Select salesman");
+        return;
+      }
+
+      if (String(newSalesmanId) === String(currentDealer?.assigned_to?._id)) {
+        toast.error("Already assigned");
+        return;
+      }
+
+      res = await DealerService.reassignDealer(
+        confirmDealerId,
+        newSalesmanId,
+        rejectReason
+      );
+    }
+
+    if (confirmAction === "delete") {
+      res = await DealerService.deleteDealer(confirmDealerId);
+    }
+
+    if (res?.success) {
+      const fallbackMessages: any = {
+        approve: "Dealer approved successfully",
+        reject: "Dealer rejected successfully",
+        unapprove: "Dealer unapproved successfully",
+        reassign: "Dealer reassigned successfully",
+        delete: "Dealer deleted successfully",
+      };
+
+      toast.success(
+        res.message ||
+          fallbackMessages[confirmAction] ||
+          "Action completed successfully"
+      );
+
+      await refresh(); // ✅ list updated without browser reload
+
+      setConfirmDealerId(null);
+      setConfirmAction(null);
+      setRejectReason("");
+      setNewSalesmanId("");
+      setCurrentDealer(null);
+    } else {
+      toast.error(res?.message || "Something went wrong");
+    }
+  } catch (err: any) {
+    toast.error(err.message || "Action failed");
+  }
+};
   const statusCls = (status: string) => {
     if (status === "approved") return "bg-green-100 text-green-700";
     if (status === "pending") return "bg-yellow-100 text-yellow-700";
