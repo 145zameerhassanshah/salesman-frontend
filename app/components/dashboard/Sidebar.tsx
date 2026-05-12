@@ -443,6 +443,7 @@ export default function Sidebar({
   ];
 
   const salesmanMenu = [
+    {icon: LayoutGrid, label: "Dashboard", href: "/dashboard" },
     { icon: ShoppingCart, label: "Orders", href: "/orders" },
     { icon: ClipboardList, label: "Quotations", href: "/quotations" },
     { icon: Package, label: "My Dealers", href: "/dealers" },
