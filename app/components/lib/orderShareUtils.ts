@@ -18,37 +18,37 @@ export const formatOrderShareText = (orderData: any, items: any[] = []) => {
   const dealer = orderData?.dealer_id;
   const createdBy = orderData?.created_by;
 
-const itemsText =
-  items.length > 0
-    ? items
-        .map((item, index) => {
-          return `${index + 1}. ${item?.item_name || item?.product_name || "Item"}
-Qty: ${item?.quantity || 0}`;
-        })
-        .join("\n\n")
-    : "No items found";
-return `🧾 ORDER DETAILS
+  const itemsText =
+    items.length > 0
+      ? items
+          .map((item) => {
+            const itemName =
+              item?.item_name ||
+              item?.product_name ||
+              item?.product_id?.name ||
+              item?.product_id?.product_name ||
+              item?.product?.name ||
+              item?.name ||
+              "Item";
 
-Order #: ${orderData?.order_number || "-"}
-Date: ${formatDate(orderData?.order_date)}
-Due Date: ${formatDate(orderData?.due_date)}
+            return `${itemName}       Qty: ${item?.quantity || 0}`;
+          })
+          .join("\n")
+      : "No items found";
+
+  return `Order #: ${orderData?.order_number || "-"}
+Due Date: ${orderData?.due_date ? formatDate(orderData?.due_date) : ""}
 
 Dealer: ${dealer?.name || "-"}
-Phone: ${dealer?.phone_number || dealer?.whatsapp_number || "-"}
 
 Created By: ${createdBy?.name || "-"}
 
 -------------------------
-ITEMS
 ${itemsText}
 -------------------------
 
-Status: ${orderData?.status || "-"}
-
-${orderData?.deliveryNotes ? `Delivery Notes: ${orderData.deliveryNotes}` : ""}
-
-`;}
-/* =========================
+Status: ${orderData?.status || "-"}`;
+};/* =========================
    TEXT SHARE
    Important: call this directly from button click
 ========================= */
