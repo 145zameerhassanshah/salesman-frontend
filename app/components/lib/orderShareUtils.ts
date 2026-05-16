@@ -18,20 +18,31 @@ export const formatOrderShareText = (orderData: any, items: any[] = []) => {
   const dealer = orderData?.dealer_id;
   const createdBy = orderData?.created_by;
 
+const getProductCode = (item: any) => {
+  const name =
+    item?.item_name ||
+    item?.product_name ||
+    item?.product_id?.name ||
+    item?.product_id?.product_name ||
+    item?.product?.name ||
+    item?.name ||
+    "Item";
+
+  const match = name.match(/\(([^)]+)\)/);
+
+  return match ? match[1] : name;
+};
+
+export const formatOrderShareText = (orderData: any, items: any[] = []) => {
+  const dealer = orderData?.dealer_id;
+  const createdBy = orderData?.created_by;
+
   const itemsText =
     items.length > 0
       ? items
           .map((item) => {
-            const itemName =
-              item?.item_name ||
-              item?.product_name ||
-              item?.product_id?.name ||
-              item?.product_id?.product_name ||
-              item?.product?.name ||
-              item?.name ||
-              "Item";
-
-            return `${itemName}       Qty: ${item?.quantity || 0}`;
+            const productCode = getProductCode(item);
+            return `${productCode}       Qty: ${item?.quantity || 0}`;
           })
           .join("\n")
       : "No items found";
@@ -40,6 +51,7 @@ export const formatOrderShareText = (orderData: any, items: any[] = []) => {
 Due Date: ${orderData?.due_date ? formatDate(orderData?.due_date) : ""}
 
 Dealer: ${dealer?.name || "-"}
+Phone: ${dealer?.phone_number || dealer?.whatsapp_number || ""}
 
 Created By: ${createdBy?.name || "-"}
 
@@ -48,6 +60,7 @@ ${itemsText}
 -------------------------
 
 Status: ${orderData?.status || "-"}`;
+
 };/* =========================
    TEXT SHARE
    Important: call this directly from button click
