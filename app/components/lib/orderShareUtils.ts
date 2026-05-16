@@ -30,7 +30,7 @@ Total: Rs. ${formatMoney(item?.total)}`;
           .join("\n\n")
       : "No items found";
 
-  return `🧾 ORDER DETAILS
+return `🧾 ORDER DETAILS
 
 Order #: ${orderData?.order_number || "-"}
 Date: ${formatDate(orderData?.order_date)}
@@ -46,19 +46,11 @@ ITEMS
 ${itemsText}
 -------------------------
 
-// Subtotal: Rs. ${formatMoney(orderData?.subtotal)}
-// Discount: Rs. ${formatMoney(orderData?.discount)}
-// Tax: Rs. ${formatMoney(orderData?.tax)}
-// Total: Rs. ${formatMoney(orderData?.total)}
-
-// Payment Term: ${orderData?.payment_term || "-"}
 Status: ${orderData?.status || "-"}
 
 ${orderData?.deliveryNotes ? `Delivery Notes: ${orderData.deliveryNotes}` : ""}
 
-Thank you.`;
-};
-
+Thank you.`;}
 /* =========================
    TEXT SHARE
    Important: call this directly from button click
