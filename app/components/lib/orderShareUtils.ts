@@ -42,7 +42,6 @@ export const formatOrderShareText = (orderData: any, items: any[] = []) => {
 Due Date: ${formatDate(orderData?.due_date)}
 
 Dealer: ${dealer?.name || "-"}
-Phone: ${dealer?.phone_number || dealer?.whatsapp_number || ""}
 
 Created By: ${createdBy?.name || "-"}
 
