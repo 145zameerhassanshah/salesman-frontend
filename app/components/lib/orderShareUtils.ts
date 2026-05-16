@@ -1,22 +1,13 @@
 import { order } from "@/app/components/services/orderService";
 
-const formatMoney = (value: any) => {
-  const amount = Number(value) || 0;
-  return amount.toLocaleString("en-PK");
-};
-
 const formatDate = (date: any) => {
-  if (!date) return "-";
+  if (!date) return "";
 
   const parsed = new Date(date);
-  if (Number.isNaN(parsed.getTime())) return "-";
+  if (Number.isNaN(parsed.getTime())) return "";
 
   return parsed.toLocaleDateString("en-GB");
 };
-
-export const formatOrderShareText = (orderData: any, items: any[] = []) => {
-  const dealer = orderData?.dealer_id;
-  const createdBy = orderData?.created_by;
 
 const getProductCode = (item: any) => {
   const name =
@@ -28,9 +19,9 @@ const getProductCode = (item: any) => {
     item?.name ||
     "Item";
 
-  const match = name.match(/\(([^)]+)\)/);
+  const match = String(name).match(/\(([^)]+)\)/);
 
-  return match ? match[1] : name;
+  return match ? match[1].trim() : String(name).trim();
 };
 
 export const formatOrderShareText = (orderData: any, items: any[] = []) => {
@@ -48,7 +39,7 @@ export const formatOrderShareText = (orderData: any, items: any[] = []) => {
       : "No items found";
 
   return `Order #: ${orderData?.order_number || "-"}
-Due Date: ${orderData?.due_date ? formatDate(orderData?.due_date) : ""}
+Due Date: ${formatDate(orderData?.due_date)}
 
 Dealer: ${dealer?.name || "-"}
 Phone: ${dealer?.phone_number || dealer?.whatsapp_number || ""}
@@ -60,8 +51,9 @@ ${itemsText}
 -------------------------
 
 Status: ${orderData?.status || "-"}`;
+};
 
-};/* =========================
+/* =========================
    TEXT SHARE
    Important: call this directly from button click
 ========================= */
