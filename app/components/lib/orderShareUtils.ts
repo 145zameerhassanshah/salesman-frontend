@@ -46,12 +46,12 @@ ITEMS
 ${itemsText}
 -------------------------
 
-Subtotal: Rs. ${formatMoney(orderData?.subtotal)}
-Discount: Rs. ${formatMoney(orderData?.discount)}
-Tax: Rs. ${formatMoney(orderData?.tax)}
-Total: Rs. ${formatMoney(orderData?.total)}
+// Subtotal: Rs. ${formatMoney(orderData?.subtotal)}
+// Discount: Rs. ${formatMoney(orderData?.discount)}
+// Tax: Rs. ${formatMoney(orderData?.tax)}
+// Total: Rs. ${formatMoney(orderData?.total)}
 
-Payment Term: ${orderData?.payment_term || "-"}
+// Payment Term: ${orderData?.payment_term || "-"}
 Status: ${orderData?.status || "-"}
 
 ${orderData?.deliveryNotes ? `Delivery Notes: ${orderData.deliveryNotes}` : ""}
