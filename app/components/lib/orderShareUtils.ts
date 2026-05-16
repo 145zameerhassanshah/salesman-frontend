@@ -47,7 +47,7 @@ Status: ${orderData?.status || "-"}
 
 ${orderData?.deliveryNotes ? `Delivery Notes: ${orderData.deliveryNotes}` : ""}
 
-Thank you.`;}
+`;}
 /* =========================
    TEXT SHARE
    Important: call this directly from button click
