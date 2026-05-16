@@ -18,18 +18,15 @@ export const formatOrderShareText = (orderData: any, items: any[] = []) => {
   const dealer = orderData?.dealer_id;
   const createdBy = orderData?.created_by;
 
-  const itemsText =
-    items.length > 0
-      ? items
-          .map((item, index) => {
-            return `${index + 1}. ${item?.item_name || item?.product_name || "Item"}
-Qty: ${item?.quantity || 0}
-Rate: Rs. ${formatMoney(item?.unit_price)}
-Total: Rs. ${formatMoney(item?.total)}`;
-          })
-          .join("\n\n")
-      : "No items found";
-
+const itemsText =
+  items.length > 0
+    ? items
+        .map((item, index) => {
+          return `${index + 1}. ${item?.item_name || item?.product_name || "Item"}
+Qty: ${item?.quantity || 0}`;
+        })
+        .join("\n\n")
+    : "No items found";
 return `🧾 ORDER DETAILS
 
 Order #: ${orderData?.order_number || "-"}
