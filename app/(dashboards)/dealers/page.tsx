@@ -40,6 +40,7 @@ export default function Page() {
     let data = [...dealers];
     if (search) data = data.filter((d) => d.name?.toLowerCase().includes(search.toLowerCase()) || d.company_name?.toLowerCase().includes(search.toLowerCase()));
     if (statusFilter) data = data.filter((d) => statusFilter === "active" ? d.is_active : !d.is_active);
+    
     setFiltered(data);
   }, [search, statusFilter, dealers]);
 
@@ -62,8 +63,9 @@ export default function Page() {
           <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}
             className="hidden md:block bg-white border border-gray-200 px-3 py-2 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-gray-900">
             <option value="">All Status</option>
-            <option value="active">Active</option>
-            <option value="inactive">Inactive</option>
+            <option value="active">Approved</option>
+            
+            <option value="inactive">Pending</option>
           </select>
 
           <button onClick={() => router.push("/dealers/add")}
@@ -85,8 +87,8 @@ export default function Page() {
         <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}
           className="bg-white border border-gray-200 px-2 py-2 rounded-xl text-sm focus:outline-none flex-shrink-0">
           <option value="">All</option>
-          <option value="active">Active</option>
-          <option value="inactive">Inactive</option>
+          <option value="active">Approved</option>
+          <option value="inactive">Pending</option>
         </select>
       </div>
 

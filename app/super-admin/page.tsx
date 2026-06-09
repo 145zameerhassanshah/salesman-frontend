@@ -7,6 +7,7 @@ import toast from "react-hot-toast";
 import { industry } from "../components/services/industryService";
 import { useDispatch, useSelector } from "react-redux";
 import { clearUser } from "@/store/userSlice";
+import UserService from "../components/services/userService";
 import AuthService from "../components/services/authService";
 import { useRouter } from "next/navigation";
 import API_URL from "../components/lib/apiConfig";

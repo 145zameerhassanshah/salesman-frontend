@@ -306,10 +306,9 @@ export default function LoginPage() {
   const redirectByRole = (role: string) => {
     if (role === USER_ROLES.SUPER_ADMIN) router.push("/super-admin");
     else if (role === USER_ROLES.ADMIN) router.push("/dashboard");
-    else if (role === USER_ROLES.SALESMAN) router.push("/saleman/salemanDashboard");
-    else if (role === USER_ROLES.DISPATCHER) router.push("/dashboard/dispatch");
-    else if (role === USER_ROLES.ACCOUNTANT) router.push("/dashboard/accounts");
-    else if (role === USER_ROLES.MANAGER) router.push("/dashboard/manager");
+    else if (role === USER_ROLES.DISPATCHER) router.push("/dispatch");
+    else if (role === USER_ROLES.ACCOUNTANT) router.push("/accounts");
+    else if (role === USER_ROLES.MANAGER) router.push("/manager");
     else router.push("/dashboard");
   };
 

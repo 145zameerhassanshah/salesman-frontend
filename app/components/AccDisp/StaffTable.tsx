@@ -1,7 +1,7 @@
 "use client";
 
 import { Eye, History, Pencil, Trash2, X, Loader2 } from "lucide-react";
-import UserService from "@/app/components/services/authService";
+import UserService from "@/app/components/services/userService";
 import toast from "react-hot-toast";
 import { useState } from "react";
 

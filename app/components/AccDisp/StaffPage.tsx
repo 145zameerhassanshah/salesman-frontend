@@ -8,8 +8,7 @@ import StaffModal from "./StaffModal";
 import { useSelector } from "react-redux";
 import { Search, Loader2 } from "lucide-react";
 import toast from "react-hot-toast";
-import UserService from "@/app/components/services/authService";
-
+import UserService from "@/app/components/services/userService";
 export default function StaffPage({ role }: { role: string }) {
   const user = useSelector((state: any) => state?.user.user);
 

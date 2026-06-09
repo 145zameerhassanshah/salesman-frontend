@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 import { useSelector } from "react-redux";
 import { useEffect, useMemo, useRef, useState } from "react";
-import UserService from "@/app/components/services/authService";
+import UserService from "@/app/components/services/userService";
 import toast from "react-hot-toast";
 
 const statusStyle: any = {
