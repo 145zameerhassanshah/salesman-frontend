@@ -1,6 +1,4 @@
 
-
-
 "use client";
 
 import { order } from "@/app/components/services/orderService";
@@ -8,15 +6,21 @@ import { useCategory } from "@/hooks/useCategory";
 import { useDealers } from "@/hooks/useDealers";
 import { useProductsByCategory } from "@/hooks/useProductByCategory";
 import { useRouter } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import toast from "react-hot-toast";
 import { useSelector } from "react-redux";
-import { Plus, Pencil, Trash2, Check } from "lucide-react";
+import { Plus, Pencil, Trash2, Check, Mic, X, Loader2 } from "lucide-react";
 import {
   shareOrderText,
   shareOrderPdfFile,
   downloadOrderPdf,
 } from "@/app/components/lib/orderShareUtils";
+declare global {
+  interface Window {
+    SpeechRecognition: any;
+    webkitSpeechRecognition: any;
+  }
+}
 export default function AddOrder() {
   const user = useSelector((state: any) => state.user.user);
   const router = useRouter();
@@ -41,11 +45,29 @@ const products = Array.isArray(productsResponse)
   const [items, setItems] = useState<any[]>([]);
   const [submitLoading, setSubmitLoading] = useState(false);
 
+const [voiceModalOpen, setVoiceModalOpen] = useState(false);
+const [listening, setListening] = useState(false);
+const [transcript, setTranscript] = useState("");
+const [voiceLoading, setVoiceLoading] = useState(false);
+const recognitionRef = useRef<any>(null);
+const keepListeningRef = useRef(false);
+const transcriptRef = useRef("");
   const [deleteItemConfirm, setDeleteItemConfirm] = useState<{
     index: number;
     item: any;
   } | null>(null);
+useEffect(() => {
+  transcriptRef.current = transcript;
+}, [transcript]);
 
+useEffect(() => {
+  return () => {
+    keepListeningRef.current = false;
+    try {
+      recognitionRef.current?.stop();
+    } catch {}
+  };
+}, []);
   const [form, setForm] = useState<any>({
     creation_date: new Date().toISOString().split("T")[0],
     due_date: "",
@@ -57,6 +79,9 @@ const products = Array.isArray(productsResponse)
     discount_type: "amount",
     tax_type: "amount",
     payment_term: "cash",
+  creation_source: "manual",
+  voice_transcript: null,
+
   });
 
   useEffect(() => {
@@ -207,6 +232,224 @@ const products = Array.isArray(productsResponse)
     return Number(Math.max(taxable + taxAmount, 0).toFixed(2));
   };
 
+
+const formatDateInput = (value: any) => {
+  if (!value) return "";
+
+  try {
+    return new Date(value).toISOString().split("T")[0];
+  } catch {
+    return "";
+  }
+};
+
+
+const stopVoiceInput = () => {
+  keepListeningRef.current = false;
+
+  try {
+    recognitionRef.current?.stop();
+  } catch {}
+
+  recognitionRef.current = null;
+  setListening(false);
+};
+
+const startVoiceInput = async () => {
+  if (listening) {
+    stopVoiceInput();
+    return;
+  }
+
+  const SpeechRecognition =
+    window.SpeechRecognition || window.webkitSpeechRecognition;
+
+  if (!SpeechRecognition) {
+    toast.error("Voice input is not supported in this browser. Please use Chrome.");
+    return;
+  }
+
+  try {
+    if (navigator?.mediaDevices?.getUserMedia) {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      stream.getTracks().forEach((track) => track.stop());
+    }
+  } catch {
+    toast.error("Microphone permission denied. Please allow microphone.");
+    return;
+  }
+
+  const recognition = new SpeechRecognition();
+
+  recognition.lang = "en-PK";
+  recognition.interimResults = true;
+  recognition.continuous = true;
+  recognition.maxAlternatives = 1;
+
+  keepListeningRef.current = true;
+  recognitionRef.current = recognition;
+
+  recognition.onstart = () => {
+    setListening(true);
+  };
+
+  recognition.onresult = (event: any) => {
+    let finalText = "";
+
+    for (let i = event.resultIndex; i < event.results.length; i++) {
+      const chunk = event.results[i]?.[0]?.transcript || "";
+
+      if (event.results[i].isFinal) {
+        finalText += chunk + " ";
+      }
+    }
+
+    if (finalText.trim()) {
+      const nextText = `${transcriptRef.current} ${finalText}`
+        .replace(/\s+/g, " ")
+        .trim();
+
+      transcriptRef.current = nextText;
+      setTranscript(nextText);
+    }
+  };
+
+  recognition.onerror = (event: any) => {
+    const error = event?.error;
+
+    if (error === "no-speech") {
+      return;
+    }
+
+    if (error === "not-allowed") {
+      keepListeningRef.current = false;
+      setListening(false);
+      toast.error("Mic permission blocked. Allow microphone from browser settings.");
+      return;
+    }
+
+    if (error === "audio-capture") {
+      keepListeningRef.current = false;
+      setListening(false);
+      toast.error("No microphone found.");
+      return;
+    }
+
+    console.error("Speech recognition error:", event);
+  };
+
+  recognition.onend = () => {
+    if (keepListeningRef.current) {
+      setTimeout(() => {
+        try {
+          recognition.start();
+        } catch {}
+      }, 350);
+    } else {
+      recognitionRef.current = null;
+      setListening(false);
+    }
+  };
+
+  try {
+    recognition.start();
+  } catch {
+    setListening(false);
+  }
+};
+
+const handleCreateVoiceDraft = async () => {
+if (listening) {
+  stopVoiceInput();
+} 
+ if (!user?.industry) {
+    return toast.error("Business not found");
+  }
+
+  if (!transcript.trim()) {
+    return toast.error("Please speak or write order details first");
+  }
+
+  try {
+    setVoiceLoading(true);
+
+    const res = await order.createVoiceDraft({
+      businessId: user?.industry,
+      transcript,
+      type: "order",
+    });
+
+    if (!res?.success) {
+      return toast.error(res?.message || "Voice draft failed");
+    }
+
+    const draft = res.draft;
+
+    const mappedItems = Array.isArray(draft?.items)
+      ? draft.items.map((item: any) => {
+          const localItem = {
+            category_id: item.category_id ? String(item.category_id) : "",
+            product_id: item.product_id ? String(item.product_id) : "",
+            item_name: item.item_name || "",
+            price: Number(item.unit_price) || 0,
+            discount: Number(item.discount_percent) || 0,
+            discount_type: normalizeAmountType(item.discount_type, "percent"),
+            qty: Number(item.quantity) || 1,
+            total: 0,
+          };
+
+          localItem.total = calculateItemTotal(localItem);
+
+          return localItem;
+        })
+      : [];
+
+    setForm((prev: any) => ({
+      ...prev,
+      creation_date: draft?.order_date
+        ? formatDateInput(draft.order_date)
+        : prev.creation_date,
+
+      due_date: draft?.due_date ? formatDateInput(draft.due_date) : "",
+
+      dealer_id: draft?.dealer_id ? String(draft.dealer_id) : prev.dealer_id,
+
+      payment_term: draft?.payment_term || "cash",
+
+      discount: Number(draft?.discount) || 0,
+      discount_type: normalizeAmountType(draft?.discount_type, "amount"),
+
+      tax: Number(draft?.tax) || 0,
+      tax_type: normalizeAmountType(draft?.tax_type, "amount"),
+
+      notes: draft?.notes || prev.notes,
+      deliveryNotes: draft?.deliveryNotes || "",
+
+      // ✅ ADDED
+      creation_source: "voice",
+      voice_transcript: res?.transcript || transcript,
+    }));
+
+    if (mappedItems.length > 0) {
+      setItems(mappedItems);
+      setActiveCategory(mappedItems[0]?.category_id || "");
+      setEditingIndex(0);
+    }
+
+    if (res?.missing?.length) {
+      toast.error(res.missing.join(", "));
+    } else {
+      toast.success("Order form filled from voice");
+    }
+
+    setVoiceModalOpen(false);
+  } catch (error: any) {
+    toast.error(error?.message || "Voice draft failed");
+  } finally {
+    setVoiceLoading(false);
+  }
+};
+
   const handleSubmit = async () => {
     if (submitLoading) return;
 
@@ -234,8 +477,11 @@ const products = Array.isArray(productsResponse)
         tax: Number(form.tax) || 0,
         discount_type: normalizeAmountType(form.discount_type, "amount"),
         tax_type: normalizeAmountType(form.tax_type, "amount"),
+creation_source: form.creation_source || "manual",
+voice_transcript: form.voice_transcript || null,
         items: validItems.map((i) => ({
           product_id: i.product_id || null,
+
           category_id: i.category_id || null,
           unit_price: Number(i.price) || 0,
           item_name: i.item_name,
@@ -271,6 +517,89 @@ const products = Array.isArray(productsResponse)
 
   return (
     <div className="w-full max-w-5xl mx-auto px-2 py-3 md:px-6 md:py-6 overflow-hidden">
+
+{voiceModalOpen && (
+  <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+    <div className="bg-white rounded-2xl shadow-xl p-5 w-full max-w-md">
+      <div className="flex items-center justify-between mb-3">
+        <div>
+          <h2 className="text-base font-semibold text-gray-900">
+            Create Order by Voice
+          </h2>
+          <p className="text-xs text-gray-400 mt-0.5">
+            Speak order details, then review before saving.
+          </p>
+        </div>
+
+        <button
+          type="button"
+          onClick={() => setVoiceModalOpen(false)}
+          className="p-1.5 hover:bg-gray-100 rounded-lg"
+        >
+          <X size={16} />
+        </button>
+      </div>
+
+      <div className="bg-gray-50 border border-gray-100 rounded-xl p-3 mb-3">
+        <p className="text-xs font-medium text-gray-500 mb-1">Example</p>
+        <p className="text-xs text-gray-500 leading-relaxed">
+          Ahmed Dealer ka order banao, Plastic category se bucket 20 pieces,
+          rate 300, discount 5 percent aur tax 18 percent.
+        </p>
+      </div>
+
+      <textarea
+        rows={5}
+        value={transcript}
+        onChange={(e) => {
+  transcriptRef.current = e.target.value;
+  setTranscript(e.target.value);
+}}
+        placeholder="Voice transcript will appear here..."
+        className={`${inputCls} resize-none mb-3`}
+      />
+
+      <div className="flex gap-2">
+        <button
+          type="button"
+          onClick={startVoiceInput}
+          disabled={voiceLoading}
+          className="flex-1 py-2 text-sm border border-gray-200 rounded-xl text-gray-700 hover:bg-gray-50 transition font-medium disabled:opacity-60 flex items-center justify-center gap-2"
+        >
+          {listening ? (
+  <>
+    <X size={15} />
+    Stop
+  </>
+) : (
+  <>
+    <Mic size={15} />
+    Speak
+  </>
+)}
+        </button>
+
+        <button
+          type="button"
+          onClick={handleCreateVoiceDraft}
+          disabled={voiceLoading}
+          className="flex-1 py-2 text-sm bg-gray-900 text-white rounded-xl hover:bg-gray-700 transition font-medium disabled:opacity-60 flex items-center justify-center gap-2"
+        >
+          {voiceLoading ? (
+            <>
+              <Loader2 size={15} className="animate-spin" />
+              Creating...
+            </>
+          ) : (
+            "Create Draft"
+          )}
+        </button>
+      </div>
+    </div>
+  </div>
+)}
+
+
       {deleteItemConfirm && (
         <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
           <div className="bg-white rounded-2xl shadow-xl p-5 w-full max-w-sm">
@@ -320,6 +649,15 @@ const products = Array.isArray(productsResponse)
         </div>
 
         <div className="flex gap-2 flex-shrink-0">
+      <button
+    type="button"
+    onClick={() => setVoiceModalOpen(true)}
+    className="px-3 py-1.5 text-xs border border-gray-200 rounded-xl text-gray-700 hover:bg-gray-50 transition cursor-pointer flex items-center gap-1 whitespace-nowrap"
+  >
+    <Mic size={13} />
+    Voice
+  </button>
+
           <button
             type="button"
             onClick={() => router.push("/orders")}

@@ -44,6 +44,49 @@ async getDashboardStats(id) {
     throw error.message;
   }
 }
+
+  /* =========================
+     ✅ ADDED: CREATE VOICE DRAFT
+     This does not save order.
+     It only creates draft payload.
+  ========================= */
+
+  async createVoiceDraft(data) {
+  const res = await fetch(API.orderVoiceDraft, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    credentials: "include",
+    body: JSON.stringify(data),
+  });
+
+  const text = await res.text();
+
+  console.log("VOICE DRAFT STATUS:", res.status);
+  console.log("VOICE DRAFT RESPONSE:", text);
+
+  let result;
+
+  try {
+    result = JSON.parse(text);
+  } catch {
+    return {
+      success: false,
+      message: `Server returned non-JSON response. Status: ${res.status}`,
+      raw: text,
+    };
+  }
+
+  if (!res.ok) {
+    return {
+      success: false,
+      message: result?.message || "Voice draft failed",
+    };
+  }
+
+  return result;
+}
   /* =========================
      CREATE ORDER
   ========================= */
@@ -56,30 +99,6 @@ async downloadPDF(id) {
   const blob = await res.blob();
   return blob;
 }
-
-// async createOrder(data) {
-//   const res = await fetch(API.orders, {
-//     method: "POST",
-//     headers: {
-//       "Content-Type": "application/json"
-//     },
-//     credentials: "include",
-//     body: JSON.stringify(data)
-//   });
-
-//   let result;
-
-//   try {
-//     result = await res.json();
-//   } catch {
-//     return { success: false, message: "Server error (non-JSON response)" };
-//   }
-
-//   if (!res.ok) return { success: false, message: result?.message };
-
-//   return { success: true, message: result?.message };
-// }
-
 
 async createOrder(data) {
   const res = await fetch(API.orders, {
@@ -228,29 +247,6 @@ async getAuditLogs(orderId) {
 /* =========================
    DOWNLOAD PDF
 ========================= */
-// async downloadPdf(id) {
-//   try {
-//     const res = await fetch(API.orderPdf(id), {
-//       method: "GET",
-//       credentials: "include",
-//     });
-
-//     if (!res.ok) throw new Error("PDF download failed");
-
-//     const blob = await res.blob();
-//     const url = window.URL.createObjectURL(blob);
-
-//     const a = document.createElement("a");
-//     a.href = url;
-//     a.download = `order-${id}.pdf`;
-//     document.body.appendChild(a);
-//     a.click();
-//     a.remove();
-//     window.URL.revokeObjectURL(url);
-//   } catch (error) {
-//     console.error("PDF download error:", error);
-//   }
-// }
 async downloadPDF(id) {
   const res = await fetch(API.orderPdf(id), {
     method: "GET",

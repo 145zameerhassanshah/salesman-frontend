@@ -13,6 +13,7 @@ export const API = {
   products:`${API_URL}/products`,
   subCategory:`${API_URL}/sub-category`,
   orders:`${API_URL}/order`,
+orderVoiceDraft: `${API_URL}/order/voice-draft`,
   industry:`${API_URL}/industry`,
   dealers:`${API_URL}/dealers`,
   quotations:`${API_URL}/quotation`,
