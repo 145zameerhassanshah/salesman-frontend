@@ -9,6 +9,7 @@ import {
   FileWarning,
   FileText,
   Users,
+  Plus,
 } from "lucide-react";
 
 import { useSelector } from "react-redux";
@@ -60,22 +61,44 @@ const id = user?.industry;
   if (!user) return null;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 md:space-y-6">
 
-      <DashboardHeader />
+      <div className="flex items-start justify-between gap-3">
+        <DashboardHeader />
+        <div className="flex shrink-0 flex-col gap-2 sm:flex-row">
+          <button
+            onClick={() => router.push("/orders/add")}
+            className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-black px-3 py-2 text-xs font-medium text-white"
+          >
+            <Plus size={14} /> Create new order
+          </button>
+          <button
+            onClick={() => router.push("/quotations/add")}
+            className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-gray-200 bg-white px-3 py-2 text-xs font-medium text-gray-700"
+          >
+            <FileText size={14} /> Create quotation
+          </button>
+        </div>
+      </div>
 
 <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-3">
 
   {/* ✅ TOTAL ORDERS */}
   <StatsCard
-    title="Orders"
+    title="Total Orders"
     value={loading ? "..." : stats.totalOrders || 0}
     Icon={ShoppingCart}
   />
 
+  <StatsCard
+    title="Active Orders"
+    value={loading ? "..." : (stats.approvedOrders || 0) + (stats.dispatchedOrders || 0)}
+    Icon={Clock}
+  />
+
   {/* ✅ PENDING → ONLY ADMIN + SALESMAN */}
   {(user?.user_type === "admin" || user?.user_type === "super_admin" || user?.user_type === "salesman") && (
-    <StatsCard
+  <StatsCard
       title="Pending"
       value={stats.pendingOrders || 0}
       Icon={FileWarning}
@@ -88,6 +111,14 @@ const id = user?.industry;
     value={stats.approvedOrders || 0}
     Icon={Clock}
   />
+
+  {(user?.user_type === "admin" || user?.user_type === "super_admin") && (
+    <StatsCard
+      title="Unapproved"
+      value={stats.pendingOrders || 0}
+      Icon={FileWarning}
+    />
+  )}
 
   {/* ✅ DISPATCHED → ONLY DISPATCHER / ACCOUNTANT */}
   {(user?.user_type === "dispatcher" || user?.user_type === "manager" || user?.user_type === "accountant") && (
