@@ -1,6 +1,7 @@
 @import "tailwindcss";
 @custom-variant dark (&:is(.dark *));
 :root{
+  --font-sans: "Poppins", "Segoe UI", Arial, sans-serif;
   --sidebar-bg: #d9dddc;
   --sidebar-icon-bg: #e6e9e8;
   --sidebar-active: #cfd4d2;

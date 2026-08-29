@@ -38,6 +38,7 @@ const [deleteItemConfirm, setDeleteItemConfirm] = useState<{
     quotation_date: new Date().toISOString().split("T")[0],
     valid_until: "",
     dealer_id: "",
+    dealer_name: "",
     notes: "",
     deliveryNotes: "",
     discount: 0,
@@ -152,13 +153,12 @@ const removeRow = (index: number) => {
   };
 
   const handleSubmit = async () => {
-    if (!form.dealer_id) return toast.error("Please select a dealer");
-    if (items.length === 0) return toast.error("Please add at least one item");
-    if (items.some((i) => !i.product_id && !i.item_name)) return toast.error("Please enter product or item name");
     try {
       setLoading(true);
+      const validItems = items.filter(isItemFilled);
       const payload = {
         dealer_id: form.dealer_id,
+        dealer_name: form.dealer_name?.trim() || null,
         quotation_date: form.quotation_date,
         valid_until: form.valid_until || null,
         notes: form.notes?.trim() || null,
@@ -167,7 +167,7 @@ const removeRow = (index: number) => {
         tax: Number(form.tax) || 0,
         discount_type: form.discount_type,
         tax_type: form.tax_type,
-        items: items.map((i) => ({
+        items: validItems.map((i) => ({
           product_id: i.product_id || null,
           category_id: i.category_id,
           unit_price: Number(i.price) || 0,
@@ -234,11 +234,21 @@ const removeRow = (index: number) => {
           </div>
 
           <div>
-            <label className={labelCls}>Dealer <span className="text-red-500">*</span></label>
-            <select value={form.dealer_id} onChange={(e) => setForm({ ...form, dealer_id: e.target.value })} className={inputCls}>
-              <option value="">Select Dealer</option>
-              {dealers.map((d: any) => <option key={d._id} value={d._id}>{d.name}</option>)}
-            </select>
+            <label className={labelCls}>Dealer</label>
+            <input
+              list="quotation-dealers"
+              value={form.dealer_name}
+              placeholder="Select or type a dealer name"
+              onChange={(e) => {
+                const dealerName = e.target.value;
+                const selectedDealer = dealers.find((dealer: any) => dealer.name.toLowerCase() === dealerName.toLowerCase());
+                setForm({ ...form, dealer_name: dealerName, dealer_id: selectedDealer?._id || "" });
+              }}
+              className={inputCls}
+            />
+            <datalist id="quotation-dealers">
+              {dealers.map((dealer: any) => <option key={dealer._id} value={dealer.name} />)}
+            </datalist>
           </div>
 
           <div className="sm:col-span-3">
@@ -389,10 +399,27 @@ const removeRow = (index: number) => {
                   <div className="space-y-2">
                     <div>
                       <label className={labelCls}>Category</label>
-                      <select value={item.category_id} onChange={(e) => handleCategoryChange(index, e.target.value)} className={inputCls}>
-                        <option value="">Select Category</option>
-                        {categories.filter((c: any) => c.is_active).map((c: any) => <option key={c._id} value={c._id}>{c.name}</option>)}
-                      </select>
+                      {item.category_id ? (
+                        <div className="flex items-center justify-between rounded-lg border border-orange-200 bg-orange-50 p-2">
+                          <span className="text-xs font-medium text-gray-800">
+                            {categories.find((category: any) => category._id === item.category_id)?.name}
+                          </span>
+                          <button type="button" onClick={() => handleCategoryChange(index, "")}
+                            className="rounded border border-orange-200 bg-white px-2 py-1 text-[10px] text-gray-600">
+                            Reselect
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="grid grid-cols-3 gap-2">
+                          {categories.filter((category: any) => category.is_active).map((category: any) => (
+                            <button key={category._id} type="button" onClick={() => handleCategoryChange(index, category._id)}
+                              className="rounded-lg border border-gray-100 bg-white p-1.5 text-left">
+                              <img src={category.image || "https://placehold.co/80x80/e8f0ed/5b6b63?text=Category"} alt="" className="h-10 w-full rounded object-cover" />
+                              <span className="mt-1 block truncate text-[10px] font-medium text-gray-700">{category.name}</span>
+                            </button>
+                          ))}
+                        </div>
+                      )}
                     </div>
                     <div>
                       <label className={labelCls}>Product</label>
@@ -407,10 +434,24 @@ const removeRow = (index: number) => {
                           updateItem(index, "item_name", product?.name || "");
                           updateItem(index, "price", product?.mrp || 0);
                           updateItem(index, "discount", 0);
-                        }} className={inputCls}>
+                        }} className={`${inputCls} py-1.5 text-xs`}>
                           <option value="">Select Product</option>
                           {rowProducts.map((p: any) => <option key={p._id} value={p._id}>{p.name}</option>)}
                         </select>
+                      )}
+                      {!isGeneralCategory(item.category_id) && rowProducts.length > 0 && (
+                        <div className="mt-2 grid grid-cols-2 gap-2">
+                          {rowProducts.map((product: any) => (
+                            <button key={product._id} type="button" onClick={() => {
+                              updateItem(index, "product_id", product._id);
+                              updateItem(index, "item_name", product.name || "");
+                              updateItem(index, "price", product.mrp || 0);
+                            }} className={`flex items-center gap-2 rounded-lg border p-1.5 text-left ${item.product_id === product._id ? "border-orange-300 bg-orange-50" : "border-gray-100 bg-white"}`}>
+                              <img src={product.image || "https://placehold.co/64x64/f3f4f6/6b7280?text=Product"} alt="" className="h-9 w-9 rounded object-cover" />
+                              <span className="min-w-0 text-[10px] text-gray-700"><span className="block truncate font-medium">{product.name}</span><span className="text-gray-400">Rs {product.mrp || 0}</span></span>
+                            </button>
+                          ))}
+                        </div>
                       )}
                     </div>
                     <div className="grid grid-cols-2 gap-2">

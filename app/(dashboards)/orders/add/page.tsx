@@ -72,6 +72,7 @@ useEffect(() => {
     creation_date: new Date().toISOString().split("T")[0],
     due_date: "",
     dealer_id: "",
+    dealer_name: "",
     notes: "",
     deliveryNotes: "",
     discount: 0,
@@ -455,18 +456,12 @@ if (listening) {
 
     const validItems = items.filter(isItemFilled);
 
-    if (!form.dealer_id) return toast.error("Please select a dealer");
-    if (validItems.length === 0) return toast.error("Please add at least one item");
-
-    if (validItems.some((i) => !i.product_id && !String(i.item_name || "").trim())) {
-      return toast.error("Please enter product or item name");
-    }
-
     try {
       setSubmitLoading(true);
 
       const payload = {
         dealer_id: form.dealer_id,
+        dealer_name: form.dealer_name?.trim() || null,
         order_date: form.creation_date,
         due_date: form.due_date || null,
         businessId: user?.industry,
@@ -699,21 +694,29 @@ voice_transcript: form.voice_transcript || null,
           </div>
 
           <div>
-            <label className={labelCls}>
-              Dealer <span className="text-red-500">*</span>
-            </label>
-            <select
-              value={form.dealer_id}
-              onChange={(e) => setForm({ ...form, dealer_id: e.target.value })}
+            <label className={labelCls}>Dealer</label>
+            <input
+              list="order-dealers"
+              value={form.dealer_name}
+              placeholder="Select or type a dealer name"
+              onChange={(e) => {
+                const dealerName = e.target.value;
+                const selectedDealer = dealers.find(
+                  (dealer: any) => dealer.name.toLowerCase() === dealerName.toLowerCase()
+                );
+                setForm({
+                  ...form,
+                  dealer_name: dealerName,
+                  dealer_id: selectedDealer?._id || "",
+                });
+              }}
               className={inputCls}
-            >
-              <option value="">Select Dealer</option>
+            />
+            <datalist id="order-dealers">
               {dealers?.map((d: any) => (
-                <option key={d._id} value={d._id}>
-                  {d.name}
-                </option>
+                <option key={d._id} value={d.name} />
               ))}
-            </select>
+            </datalist>
           </div>
 
           <div>
@@ -977,10 +980,51 @@ voice_transcript: form.voice_transcript || null,
                   <div className="p-3 space-y-2.5">
                     <div>
                       <label className={labelCls}>Category</label>
+                      {item.category_id ? (
+                        <div className="mb-2 flex items-center justify-between rounded-lg border border-orange-200 bg-orange-50 p-2">
+                          <div className="flex min-w-0 items-center gap-2">
+                            <img
+                              src={categories.find((category: any) => category._id === item.category_id)?.image || "https://placehold.co/48x48/e8f0ed/5b6b63?text=Category"}
+                              alt=""
+                              className="h-10 w-10 rounded object-cover bg-white"
+                            />
+                            <span className="truncate text-xs font-medium text-gray-800">
+                              {categories.find((category: any) => category._id === item.category_id)?.name}
+                            </span>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => handleCategoryChange(index, "")}
+                            className="rounded-md border border-orange-200 bg-white px-2 py-1 text-[10px] text-gray-600"
+                          >
+                            Reselect
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="grid grid-cols-3 gap-2 mb-2">
+                          {activeCategories.map((category: any) => (
+                            <button
+                              key={category._id}
+                              type="button"
+                              onClick={() => handleCategoryChange(index, category._id)}
+                              className="rounded-lg border border-gray-100 bg-gray-50 p-1.5 text-left transition"
+                            >
+                              <img
+                                src={category.image || "https://placehold.co/80x80/e8f0ed/5b6b63?text=Category"}
+                                alt=""
+                                className="h-12 w-full rounded object-cover bg-white"
+                              />
+                              <span className="mt-1 block truncate text-[10px] font-medium text-gray-700">
+                                {category.name}
+                              </span>
+                            </button>
+                          ))}
+                        </div>
+                      )}
                       <select
                         value={item.category_id}
                         onChange={(e) => handleCategoryChange(index, e.target.value)}
-                        className={inputCls}
+                        className={`${inputCls} py-1.5 text-xs`}
                       >
                         <option value="">Select Category</option>
                         {activeCategories.map((c: any) => (
@@ -1002,7 +1046,7 @@ voice_transcript: form.voice_transcript || null,
                             updateItem(index, "item_name", e.target.value);
                             updateItem(index, "product_id", null);
                           }}
-                          className={inputCls}
+                          className={`${inputCls} py-1.5 text-xs`}
                         />
                       ) : (
                         <select
@@ -1023,6 +1067,34 @@ voice_transcript: form.voice_transcript || null,
                             </option>
                           ))}
                         </select>
+                      )}
+                      {!isGeneralCategory(item.category_id) && rowProducts.length > 0 && (
+                        <div className="mt-2 grid grid-cols-2 gap-2">
+                          {rowProducts.map((product: any) => (
+                            <button
+                              key={product._id}
+                              type="button"
+                              onClick={() => {
+                                updateItem(index, "product_id", product._id);
+                                updateItem(index, "item_name", product.name || "");
+                                updateItem(index, "price", product.mrp || 0);
+                              }}
+                              className={`flex items-center gap-2 rounded-lg border p-1.5 text-left ${
+                                item.product_id === product._id ? "border-orange-300 bg-orange-50" : "border-gray-100"
+                              }`}
+                            >
+                              <img
+                                src={product.image || "https://placehold.co/64x64/f3f4f6/6b7280?text=Product"}
+                                alt=""
+                                className="h-10 w-10 rounded object-cover bg-gray-50"
+                              />
+                              <span className="min-w-0 text-[10px] font-medium text-gray-700">
+                                <span className="block truncate">{product.name}</span>
+                                <span className="block text-gray-400">Rs {product.mrp || 0}</span>
+                              </span>
+                            </button>
+                          ))}
+                        </div>
                       )}
                     </div>
 
@@ -1132,6 +1204,7 @@ voice_transcript: form.voice_transcript || null,
         )}
       </div>
 
+      {items.some((item) => item.product_id || String(item.item_name || "").trim()) && (
       <div className="bg-white border border-gray-200 rounded-2xl p-3 md:p-5 shadow-sm ml-auto w-full md:max-w-xs space-y-2.5">
         <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">
           Summary
@@ -1192,6 +1265,7 @@ voice_transcript: form.voice_transcript || null,
           {submitLoading ? "Saving..." : "Save Order"}
         </button>
       </div>
+      )}
     </div>
   );
 }
