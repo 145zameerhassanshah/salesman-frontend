@@ -32,6 +32,16 @@ const [createdItems, setCreatedItems] = useState<any[]>([]);
 
   const { data: categories = [] } = useCategory(user?.industry);
   const activeCategories = categories.filter((c: any) => c.is_active);
+  const [categoryPickerPage, setCategoryPickerPage] = useState(0);
+  const categoryPickerPageSize = 6;
+  const categoryPickerPages = Math.max(
+    1,
+    Math.ceil(activeCategories.length / categoryPickerPageSize)
+  );
+  const visiblePickerCategories = activeCategories.slice(
+    categoryPickerPage * categoryPickerPageSize,
+    (categoryPickerPage + 1) * categoryPickerPageSize
+  );
 
   const [activeCategory, setActiveCategory] = useState("");
 const { data: productsResponse } = useProductsByCategory(activeCategory);
@@ -635,15 +645,15 @@ voice_transcript: form.voice_transcript || null,
         </div>
       )}
 
-      <div className="flex items-center justify-between gap-2 mb-4">
+      <div className="flex flex-col gap-2 mb-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="min-w-0">
           <p className="text-xs text-gray-400 mb-0.5">Orders › Add</p>
-          <h1 className="text-lg md:text-2xl font-bold text-gray-900 truncate">
+          <h1 className="text-xl md:text-2xl font-bold leading-tight text-gray-900">
             Create Order
           </h1>
         </div>
 
-        <div className="flex gap-2 flex-shrink-0">
+        <div className="flex flex-wrap gap-2">
       <button
     type="button"
     onClick={() => setVoiceModalOpen(true)}
@@ -988,7 +998,7 @@ voice_transcript: form.voice_transcript || null,
                               alt=""
                               className="h-10 w-10 rounded object-cover bg-white"
                             />
-                            <span className="truncate text-xs font-medium text-gray-800">
+                            <span className="text-xs font-medium leading-snug text-gray-800 break-words">
                               {categories.find((category: any) => category._id === item.category_id)?.name}
                             </span>
                           </div>
@@ -1001,8 +1011,9 @@ voice_transcript: form.voice_transcript || null,
                           </button>
                         </div>
                       ) : (
-                        <div className="grid grid-cols-3 gap-2 mb-2">
-                          {activeCategories.map((category: any) => (
+                        <>
+                        <div className="grid grid-cols-2 gap-2 mb-2 sm:grid-cols-3">
+                          {visiblePickerCategories.map((category: any) => (
                             <button
                               key={category._id}
                               type="button"
@@ -1014,12 +1025,24 @@ voice_transcript: form.voice_transcript || null,
                                 alt=""
                                 className="h-12 w-full rounded object-cover bg-white"
                               />
-                              <span className="mt-1 block truncate text-[10px] font-medium text-gray-700">
+                              <span className="mt-1 block min-h-7 text-[11px] font-medium leading-tight text-gray-700 break-words">
                                 {category.name}
                               </span>
                             </button>
                           ))}
                         </div>
+                        {categoryPickerPages > 1 && (
+                          <div className="mt-2 flex items-center justify-between text-xs text-gray-500">
+                            <button type="button" disabled={categoryPickerPage === 0}
+                              onClick={() => setCategoryPickerPage((page) => Math.max(0, page - 1))}
+                              className="rounded border border-gray-200 px-2 py-1 disabled:opacity-40">Previous</button>
+                            <span>{categoryPickerPage + 1} / {categoryPickerPages}</span>
+                            <button type="button" disabled={categoryPickerPage >= categoryPickerPages - 1}
+                              onClick={() => setCategoryPickerPage((page) => Math.min(categoryPickerPages - 1, page + 1))}
+                              className="rounded border border-gray-200 px-2 py-1 disabled:opacity-40">Next</button>
+                          </div>
+                        )}
+                        </>
                       )}
                       <select
                         value={item.category_id}
@@ -1088,8 +1111,8 @@ voice_transcript: form.voice_transcript || null,
                                 alt=""
                                 className="h-10 w-10 rounded object-cover bg-gray-50"
                               />
-                              <span className="min-w-0 text-[10px] font-medium text-gray-700">
-                                <span className="block truncate">{product.name}</span>
+                              <span className="min-w-0 text-[11px] font-medium leading-tight text-gray-700">
+                                <span className="block break-words">{product.name}</span>
                                 <span className="block text-gray-400">Rs {product.mrp || 0}</span>
                               </span>
                             </button>
