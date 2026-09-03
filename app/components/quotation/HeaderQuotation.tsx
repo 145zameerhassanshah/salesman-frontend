@@ -26,7 +26,7 @@ export default function HeaderQuotation({ quotation }) {
             />
           ) : (
             <div className="w-12 h-12 rounded-full border flex items-center justify-center text-sm font-semibold text-gray-500">
-              {quotation?.dealer_id?.name?.charAt(0) || "D"}
+              {(quotation?.dealer_id?.name || quotation?.dealer_name || "D").charAt(0)}
             </div>
           )}
         </div>
@@ -56,24 +56,24 @@ export default function HeaderQuotation({ quotation }) {
 
           <p>
             <strong>Dealer Name:</strong>{" "}
-            {quotation?.dealer_id?.name || "-"}
+            {quotation?.dealer_id?.name || quotation?.dealer_name || "N/A"}
           </p>
 
           <p>
             <strong>Company Name:</strong>{" "}
-            {quotation?.dealer_id?.company_name || "-"}
+            {quotation?.dealer_id?.company_name || "N/A"}
           </p>
 
           <p>
             <strong>City:</strong>{" "}
-            {quotation?.dealer_id?.city || "-"}
+            {quotation?.dealer_id?.city || "N/A"}
           </p>
 
           <p>
             <strong>Phone Number:</strong>{" "}
             {quotation?.dealer_id?.phone_number ||
               quotation?.dealer_id?.whatsapp_number ||
-              "-"}
+              "N/A"}
           </p>
 
         </div>
