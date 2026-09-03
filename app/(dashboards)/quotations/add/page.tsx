@@ -28,11 +28,19 @@ const [deleteItemConfirm, setDeleteItemConfirm] = useState<{
 } | null>(null);
   const [dealers, setDealers] = useState<any[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
+  const [categoryPickerPage, setCategoryPickerPage] = useState(0);
   const [activeCategory, setActiveCategory] = useState("");
   const [categoryProducts, setCategoryProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [items, setItems] = useState<any[]>([]);
+  const activeCategories = categories.filter((category: any) => category.is_active);
+  const categoryPickerPageSize = 6;
+  const categoryPickerPages = Math.max(1, Math.ceil(activeCategories.length / categoryPickerPageSize));
+  const visiblePickerCategories = activeCategories.slice(
+    categoryPickerPage * categoryPickerPageSize,
+    (categoryPickerPage + 1) * categoryPickerPageSize
+  );
 
   const [form, setForm] = useState({
     quotation_date: new Date().toISOString().split("T")[0],
@@ -199,12 +207,12 @@ const removeRow = (index: number) => {
     <div className="w-full max-w-5xl mx-auto px-2 py-3 md:px-6 md:py-6 overflow-hidden">
 
       {/* ── HEADER ── */}
-      <div className="flex items-center justify-between gap-2 mb-4">
+      <div className="flex flex-col gap-2 mb-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="min-w-0">
           <p className="text-xs text-gray-400 mb-0.5">Quotations › Add</p>
-          <h1 className="text-lg md:text-2xl font-bold text-gray-900 truncate">Create Quotation</h1>
+          <h1 className="text-xl md:text-2xl font-bold leading-tight text-gray-900">Create Quotation</h1>
         </div>
-        <div className="flex gap-2 flex-shrink-0">
+        <div className="flex flex-wrap gap-2">
           <button onClick={() => router.push("/quotations")}
             className="px-3 py-1.5 text-xs border border-gray-200 rounded-xl text-gray-600 hover:bg-gray-50 transition cursor-pointer whitespace-nowrap">
             Cancel
@@ -401,7 +409,7 @@ const removeRow = (index: number) => {
                       <label className={labelCls}>Category</label>
                       {item.category_id ? (
                         <div className="flex items-center justify-between rounded-lg border border-orange-200 bg-orange-50 p-2">
-                          <span className="text-xs font-medium text-gray-800">
+                          <span className="text-xs font-medium leading-snug text-gray-800 break-words">
                             {categories.find((category: any) => category._id === item.category_id)?.name}
                           </span>
                           <button type="button" onClick={() => handleCategoryChange(index, "")}
@@ -410,15 +418,28 @@ const removeRow = (index: number) => {
                           </button>
                         </div>
                       ) : (
-                        <div className="grid grid-cols-3 gap-2">
-                          {categories.filter((category: any) => category.is_active).map((category: any) => (
+                        <>
+                        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+                          {visiblePickerCategories.map((category: any) => (
                             <button key={category._id} type="button" onClick={() => handleCategoryChange(index, category._id)}
                               className="rounded-lg border border-gray-100 bg-white p-1.5 text-left">
                               <img src={category.image || "https://placehold.co/80x80/e8f0ed/5b6b63?text=Category"} alt="" className="h-10 w-full rounded object-cover" />
-                              <span className="mt-1 block truncate text-[10px] font-medium text-gray-700">{category.name}</span>
+                              <span className="mt-1 block min-h-7 text-[11px] font-medium leading-tight text-gray-700 break-words">{category.name}</span>
                             </button>
                           ))}
                         </div>
+                        {categoryPickerPages > 1 && (
+                          <div className="mt-2 flex items-center justify-between text-xs text-gray-500">
+                            <button type="button" disabled={categoryPickerPage === 0}
+                              onClick={() => setCategoryPickerPage((page) => Math.max(0, page - 1))}
+                              className="rounded border border-gray-200 px-2 py-1 disabled:opacity-40">Previous</button>
+                            <span>{categoryPickerPage + 1} / {categoryPickerPages}</span>
+                            <button type="button" disabled={categoryPickerPage >= categoryPickerPages - 1}
+                              onClick={() => setCategoryPickerPage((page) => Math.min(categoryPickerPages - 1, page + 1))}
+                              className="rounded border border-gray-200 px-2 py-1 disabled:opacity-40">Next</button>
+                          </div>
+                        )}
+                        </>
                       )}
                     </div>
                     <div>
@@ -448,7 +469,7 @@ const removeRow = (index: number) => {
                               updateItem(index, "price", product.mrp || 0);
                             }} className={`flex items-center gap-2 rounded-lg border p-1.5 text-left ${item.product_id === product._id ? "border-orange-300 bg-orange-50" : "border-gray-100 bg-white"}`}>
                               <img src={product.image || "https://placehold.co/64x64/f3f4f6/6b7280?text=Product"} alt="" className="h-9 w-9 rounded object-cover" />
-                              <span className="min-w-0 text-[10px] text-gray-700"><span className="block truncate font-medium">{product.name}</span><span className="text-gray-400">Rs {product.mrp || 0}</span></span>
+                              <span className="min-w-0 text-[11px] leading-tight text-gray-700"><span className="block font-medium break-words">{product.name}</span><span className="text-gray-400">Rs {product.mrp || 0}</span></span>
                             </button>
                           ))}
                         </div>
