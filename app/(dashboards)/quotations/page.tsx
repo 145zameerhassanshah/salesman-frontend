@@ -2367,6 +2367,7 @@ export default function QuotationsPage() {
       tax_type: taxType,
       deliveryNotes: quotation?.deliveryNotes || "",
       dealer_id: quotation?.dealer_id?._id || quotation?.dealer_id || "",
+      dealer_name: quotation?.dealer_id?.name || quotation?.dealer_name || "",
     });
 
     try {
@@ -2520,6 +2521,7 @@ export default function QuotationsPage() {
         tax: Number(editForm.tax) || 0,
         tax_type: normalizeAmountType(editForm.tax_type, "fixed"),
         dealer_id: editForm.dealer_id,
+        dealer_name: editForm.dealer_name || null,
         items: validItems.map((item) => ({
           product_id: item.product_id || null,
           category_id: item.category_id || null,
@@ -3105,21 +3107,22 @@ export default function QuotationsPage() {
 
                       <select
                         value={editForm.dealer_id || ""}
-                        onChange={(e) =>
-                          setEditForm({
-                            ...editForm,
-                            dealer_id: e.target.value,
-                          })
-                        }
+                        onChange={(e) => {
+                          const selectedDealer = dealers.find((dealer: any) => dealer._id === e.target.value);
+                          setEditForm({ ...editForm, dealer_id: e.target.value, dealer_name: selectedDealer?.name || editForm.dealer_name || "" });
+                        }}
                         className={inputCls}
                       >
-                        <option value="">Select Dealer</option>
-                        {dealers?.map((d: any) => (
-                          <option key={d._id} value={d._id}>
-                            {d.name}
-                          </option>
-                        ))}
+                        <option value="">Choose an existing dealer</option>
+                        {dealers?.map((dealer: any) => <option key={dealer._id} value={dealer._id}>{dealer.name}</option>)}
                       </select>
+                      <input value={editForm.dealer_name || ""}
+                        placeholder="Or type a custom dealer name"
+                        onChange={(e) => {
+                          const dealerName = e.target.value;
+                          const selectedDealer = dealers.find((dealer: any) => dealer.name.toLowerCase() === dealerName.toLowerCase());
+                          setEditForm({ ...editForm, dealer_name: dealerName, dealer_id: selectedDealer?._id || "" });
+                        }} className={`${inputCls} mt-2`} />
 
                       <p className="text-xs text-gray-400 mt-2 mb-0.5">
                         Created By

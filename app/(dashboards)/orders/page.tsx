@@ -2935,6 +2935,7 @@ function OrdersPage() {
         discount_type: res.order?.discount_type || "amount",
         tax_type: res.order?.tax_type || "amount",
         dealer_id: res.order?.dealer_id?._id || "",
+        dealer_name: res.order?.dealer_id?.name || res.order?.dealer_name || "",
         discount:
           res.order?.discount_type === "percent"
             ? res.order?.subtotal > 0
@@ -3137,6 +3138,7 @@ function OrdersPage() {
         discount_type: normalizeAmountType(editFields.discount_type, "amount"),
         tax: computedTotals.taxAmt,
         dealer_id: editFields.dealer_id,
+        dealer_name: editFields.dealer_name || null,
         tax_type: normalizeAmountType(editFields.tax_type, "amount"),
         items: validEditItems.map((item) => ({
           _id: item._id,
@@ -3250,6 +3252,13 @@ function OrdersPage() {
 
   const getActionMenuLeft = (left: number, width = 224) =>
     Math.max(8, Math.min(left, window.innerWidth - width - 8));
+
+  const getActionMenuTop = (rect: DOMRect, estimatedHeight = 360) => {
+    const below = rect.bottom + 8;
+    return below + estimatedHeight <= window.innerHeight
+      ? below
+      : Math.max(8, rect.top - estimatedHeight - 8);
+  };
 
   const actionTriggerCls =
     "inline-flex h-9 w-9 items-center justify-center rounded-xl border border-gray-200 bg-white text-gray-600 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-gray-300 hover:bg-gray-900 hover:text-white hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-gray-900/20";
@@ -3729,23 +3738,26 @@ function OrdersPage() {
                           {editOrder?.dealer_id?.name}
                         </p>
                       ) : (
-                        <select
-                          value={editFields.dealer_id || ""}
-                          onChange={(e) =>
-                            setEditFields((prev: any) => ({
-                              ...prev,
-                              dealer_id: e.target.value,
-                            }))
-                          }
-                          className={inputCls}
-                        >
-                          <option value="">Select Dealer</option>
-                          {dealers.map((d: any) => (
-                            <option key={d._id} value={d._id}>
-                              {d.name}
-                            </option>
-                          ))}
-                        </select>
+                        <>
+                          <select
+                            value={editFields.dealer_id || ""}
+                            onChange={(e) => {
+                              const selectedDealer = dealers.find((dealer: any) => dealer._id === e.target.value);
+                              setEditFields((prev: any) => ({ ...prev, dealer_id: e.target.value, dealer_name: selectedDealer?.name || prev.dealer_name || "" }));
+                            }}
+                            className={inputCls}
+                          >
+                            <option value="">Choose an existing dealer</option>
+                            {dealers.map((dealer: any) => <option key={dealer._id} value={dealer._id}>{dealer.name}</option>)}
+                          </select>
+                          <input value={editFields.dealer_name || ""}
+                            placeholder="Or type a custom dealer name"
+                            onChange={(e) => {
+                              const dealerName = e.target.value;
+                              const selectedDealer = dealers.find((dealer: any) => dealer.name.toLowerCase() === dealerName.toLowerCase());
+                              setEditFields((prev: any) => ({ ...prev, dealer_name: dealerName, dealer_id: selectedDealer?._id || "" }));
+                            }} className={`${inputCls} mt-2`} />
+                        </>
                       )}
                       <p className={`${labelCls} mt-2`}>Created By</p>
                       <p className="text-sm">
@@ -4565,7 +4577,7 @@ function OrdersPage() {
                           e.stopPropagation();
                           const rect = e.currentTarget.getBoundingClientRect();
                           setMenuPosition({
-                            top: rect.bottom + 8,
+                            top: getActionMenuTop(rect),
                             left: getActionMenuLeft(rect.left),
                           });
                           setOpenMenu(openMenu === o._id ? null : o._id);
@@ -4667,7 +4679,7 @@ function OrdersPage() {
                       e.stopPropagation();
                       const rect = e.currentTarget.getBoundingClientRect();
                       setMenuPosition({
-                        top: rect.bottom + 8,
+                        top: getActionMenuTop(rect),
                         left: getActionMenuLeft(rect.left),
                       });
                       setOpenMenu(openMenu === o._id ? null : o._id);
@@ -4754,7 +4766,7 @@ function OrdersPage() {
                 left: menuPosition.left,
                 zIndex: 9999,
               }}
-              className="dropdown-menu w-56 overflow-hidden rounded-2xl border border-gray-200/80 bg-white shadow-2xl ring-1 ring-black/5 backdrop-blur-sm"
+              className="dropdown-menu max-h-[calc(100vh-16px)] w-56 overflow-y-auto rounded-2xl border border-gray-200/80 bg-white shadow-2xl ring-1 ring-black/5 backdrop-blur-sm"
               onClick={(e) => e.stopPropagation()}
             >
               <button

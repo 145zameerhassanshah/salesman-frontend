@@ -483,7 +483,7 @@ export default function Sidebar({
           md:translate-x-0
         `}
       >
-        <div className="flex min-h-full flex-col">
+        <div className="flex h-full flex-col">
           {/* LOGO */}
           <div className="flex items-center gap-3 px-4 py-5 border-b border-white/10">
             <div className="h-11 w-11 rounded-2xl bg-white flex items-center justify-center shadow-lg shadow-white/10">
@@ -507,7 +507,7 @@ export default function Sidebar({
           </div>
 
           {/* MENU */}
-          <nav className="flex flex-col gap-1 px-3 py-4">
+          <nav className="flex flex-1 flex-col gap-1 overflow-y-auto px-3 py-4 pb-8">
             {filteredMenu.map((item: any, i: number) => {
               const Icon = item.icon;
 
