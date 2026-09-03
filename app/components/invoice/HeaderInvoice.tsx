@@ -51,17 +51,18 @@ export default function HeaderInvoice({ order }) {
           <h3 className="font-bold text-gray-900 mb-1">Dealer Details</h3>
 
           <p>
-            <strong>Dealer Name:</strong> {order?.dealer_id?.name || "-"}
+            <strong>Dealer Name:</strong>{" "}
+            {order?.dealer_id?.name || order?.dealer_name || "N/A"}
           </p>
 
           <p>
             <strong>Company Name:</strong>{" "}
-            {order?.dealer_id?.company_name || "-"}
+            {order?.dealer_id?.company_name || "N/A"}
           </p>
 
           <p>
             <strong>Phone Number:</strong>{" "}
-            {order?.dealer_id?.phone_number || "-"}
+            {order?.dealer_id?.phone_number || "N/A"}
           </p>
 
         </div>
