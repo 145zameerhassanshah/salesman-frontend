@@ -3569,7 +3569,7 @@ function OrdersPage() {
                     <div className="bg-gray-50 rounded-xl p-3">
                       <p className="text-xs text-gray-400 mb-0.5">Dealer</p>
                       <p className="text-sm font-medium">
-                        {viewOrder?.dealer_id?.name}
+                        {viewOrder?.dealer_id?.name || viewOrder?.dealer_name || "—"}
                       </p>
                       <p className="text-xs text-gray-400 mt-2 mb-0.5">
                         Created By
@@ -4535,7 +4535,7 @@ function OrdersPage() {
                   >
                     <td className="py-3 px-4 font-medium">{o?.order_number}</td>
                     <td className="py-3 px-4 text-gray-600">
-                      {o?.dealer_id?.name}
+                      {o?.dealer_id?.name || o?.dealer_name || "—"}
                     </td>
                     <td className="py-3 px-4 text-gray-600">
                       {o?.created_by?.name} (
@@ -4646,7 +4646,7 @@ function OrdersPage() {
                     {o?.order_number}
                   </p>
                   <p className="text-xs text-gray-500 truncate">
-                    {o?.dealer_id?.name || "—"}
+                    {o?.dealer_id?.name || o?.dealer_name || "—"}
                   </p>
                   <p className="text-xs text-gray-400">
                     {o?.created_by?.name} ·{" "}
